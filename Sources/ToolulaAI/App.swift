@@ -160,6 +160,7 @@ struct ToolulaAIApp: App {
         delegate.app = app
         chat.photoStore = store
         Diagnostics.chat = chat
+        QuickAsk.shared.setup(chat: chat, app: app)
         automations.photoStore = store
         SystemInfo.shared.start()
         Task.detached { LightroomSetup.syncPlugin() }

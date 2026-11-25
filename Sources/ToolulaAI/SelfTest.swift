@@ -38,7 +38,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -248,6 +248,58 @@ extension AppDelegate {
                     let zip = try await Diagnostics.export(to: URL(fileURLWithPath: dd))
                     log += "diagnostics: \(zip.path)\n"
                 } catch { log += "diagnostics error: \(error.localizedDescription)\n" }
+            }
+            if args.contains("--hotkey-check") {
+                log += "hotkey check: \(HotKeyCenter.shared.quickAsk.display) error=\(HotKeyCenter.shared.error ?? "-") conflict(⌘Space)=\(HotKey(keyCode: 49, modifiers: 256).systemConflict ?? "-")\n"
+                if args.contains("--hotkey-press") {
+                    // 模拟在别的程序里按下快捷键 (需要辅助功能权限)
+                    let k = HotKeyCenter.shared.quickAsk
+                    var flags: CGEventFlags = []
+                    if k.modifiers & 2048 != 0 { flags.insert(.maskAlternate) }
+                    if k.modifiers & 256 != 0 { flags.insert(.maskCommand) }
+                    if k.modifiers & 4096 != 0 { flags.insert(.maskControl) }
+                    if k.modifiers & 512 != 0 { flags.insert(.maskShift) }
+                    for down in [true, false] {
+                        let e = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(k.keyCode), keyDown: down)
+                        e?.flags = flags
+                        e?.post(tap: .cghidEventTap)
+                    }
+                    try? await Task.sleep(for: .seconds(1))
+                    log += "hotkey press: trusted=\(AXIsProcessTrusted()) panelVisible=\(QuickAsk.shared.isVisible)\n"
+                    QuickAsk.shared.close()
+                }
+            }
+            if let q = val("--quick") {
+                // 快速提问小窗: 显示, 提问, 等回答完, 单独截一张小窗的图
+                log += "hotkey: \(HotKeyCenter.shared.quickAsk.display) error=\(HotKeyCenter.shared.error ?? "-")\n"
+                if let k = val("--hotkey-test") {
+                    // 例: "49:2048" (Space + ⌥)
+                    let p = k.split(separator: ":").compactMap { UInt32($0) }
+                    if p.count == 2 { log += "hotkey set \(HotKey(keyCode: p[0], modifiers: p[1]).display): \(HotKeyCenter.shared.set(HotKey(keyCode: p[0], modifiers: p[1])) ?? "ok")\n" }
+                }
+                let qa = QuickAsk.shared
+                qa.show()
+                qa.text = q
+                try? await Task.sleep(for: .seconds(0.5))
+                qa.ask()
+                let qid = qa.conversationId
+                try? await Task.sleep(for: .seconds(1))
+                while let qid, chat.running.contains(qid) { try? await Task.sleep(for: .seconds(0.5)) }
+                try? await Task.sleep(for: .seconds(1.5))
+                if let w = NSApp.windows.first(where: { $0.identifier?.rawValue == "quick-ask" }), let v = w.contentView,
+                   let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds) {
+                    v.cacheDisplay(in: v.bounds, to: rep)
+                    try? rep.representation(using: .png, properties: [:])?.write(to: out.deletingPathExtension().appendingPathExtension("quick.png"))
+                }
+                let c = chat.conversations.first { $0.id == qid }
+                log += "quick: selectedUnchanged=\(chat.selected != qid) agent=\(c?.agent ?? true) answer=\(c?.messages.last?.text.prefix(200) ?? "-") error=\(c?.messages.last?.error ?? "-")\n"
+                if args.contains("--quick-continue") {
+                    qa.continueInAssistant()
+                    try? await Task.sleep(for: .seconds(1))
+                    log += "quick continue: section=\(app.section) selected=\(chat.selected == qid) panelVisible=\(qa.isVisible)\n"
+                }
+                qa.close()
+                if let qid { chat.delete(qid) }
             }
             if args.contains("--wait") { try? await Task.sleep(for: .seconds(4)) }
             log += "scroller style: \(NSScroller.preferredScrollerStyle == .overlay ? "overlay" : "legacy")\n"

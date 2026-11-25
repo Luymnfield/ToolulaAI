@@ -338,8 +338,18 @@ final class ChatStore: ObservableObject {
         return dest.path
     }
 
-    func send(_ text: String, images: [String] = []) {
-        let id: UUID = selected ?? newConversation()
+    /// 快速提问小窗: 新建一个不用工具的对话 (不切换当前选中的对话), 发出问题
+    @discardableResult
+    func startQuick(_ text: String) -> UUID {
+        var c = Conversation(model: ModelManager.shared.chatModel)
+        c.agent = false
+        conversations.insert(c, at: 0)
+        send(text, to: c.id)
+        return c.id
+    }
+
+    func send(_ text: String, images: [String] = [], to target: UUID? = nil) {
+        let id: UUID = target ?? selected ?? newConversation()
         guard !running.contains(id) else { return }
         update(id) { c in
             var msg = ChatMessage(role: "user", text: text, images: images)
