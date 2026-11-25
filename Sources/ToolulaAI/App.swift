@@ -68,7 +68,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        MainActor.assumeIsolated { ComfyEngine.shared.stopOwned(); BuiltinEngine.shared.stop(); MLXEngine.shared.stop() }
+        MainActor.assumeIsolated {
+            ComfyEngine.shared.stopOwned(); BuiltinEngine.shared.stop(); MLXEngine.shared.stop()
+            if let chat { chat.save(); chat.storage.flush() }
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { !BackgroundMode.enabled }

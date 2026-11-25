@@ -59,7 +59,7 @@ final class SkillStore: ObservableObject {
     }
 
     init() {
-        if let d = try? Data(contentsOf: file), let list = try? JSONDecoder().decode([Skill].self, from: d) {
+        if let list = SafeJSON.load([Skill].self, from: file) {
             skills = list
         } else {
             skills = Self.starters
@@ -68,7 +68,7 @@ final class SkillStore: ObservableObject {
     }
 
     private func save() {
-        if let d = try? JSONEncoder().encode(skills) { try? d.write(to: file, options: .atomic) }
+        SafeJSON.save(skills, to: file)
     }
 
     func skill(named name: String) -> Skill? {

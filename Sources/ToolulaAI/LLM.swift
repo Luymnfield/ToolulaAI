@@ -223,11 +223,11 @@ final class ModelManager: ObservableObject {
     }
 
     init() {
-        if let d = try? Data(contentsOf: providersFile), let p = try? JSONDecoder().decode([Provider].self, from: d) { providers = p }
+        if let p = SafeJSON.load([Provider].self, from: providersFile) { providers = p }
     }
 
     private func saveProviders() {
-        if let d = try? JSONEncoder().encode(providers) { try? d.write(to: providersFile, options: .atomic) }
+        SafeJSON.save(providers, to: providersFile)
     }
 
     var cloudModels: [LMModel] {

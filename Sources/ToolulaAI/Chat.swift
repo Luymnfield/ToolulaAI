@@ -262,24 +262,21 @@ final class ChatStore: ObservableObject {
     @Published var contextLimits: [String: Int] = [:]     // 模型 id -> 上下文长度 (token)
     weak var photoStore: Store?
     private var tasks: [UUID: Task<Void, Never>] = [:]
-    private let file = AppPaths.support.appendingPathComponent("conversations.json")
+    let storage: ConversationStorage
 
-    init() {
-        if let d = try? Data(contentsOf: file), let list = try? JSONDecoder().decode([Conversation].self, from: d) {
-            // 启动时清掉没说过话的空对话
-            conversations = list.filter { !$0.messages.isEmpty }
-            if conversations.count != list.count { save() }
-        }
+    init(root: URL = AppPaths.support) {
+        storage = ConversationStorage(root: root)
+        let list = storage.load()
+        // 启动时清掉没说过话的空对话
+        conversations = list.filter { !$0.messages.isEmpty }
+        if conversations.count != list.count { save() }
         selected = conversations.first?.id
+        let st = storage
+        Task.detached(priority: .background) { st.backup(minInterval: 6 * 3600) }
     }
 
-    func save() {
-        let list = conversations
-        let file = self.file
-        Task.detached {
-            if let d = try? JSONEncoder().encode(list) { try? d.write(to: file, options: .atomic) }
-        }
-    }
+    /// 只写改动过的对话 (每个对话一个文件, 原子写入)
+    func save() { storage.save(conversations) }
 
     var current: Conversation? { conversations.first { $0.id == selected } }
 

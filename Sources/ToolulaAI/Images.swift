@@ -283,14 +283,14 @@ final class ImageStore: ObservableObject {
     private let file = AppPaths.support.appendingPathComponent("images.json")
 
     init() {
-        if let d = try? Data(contentsOf: file), let list = try? JSONDecoder().decode([ImageItem].self, from: d) {
+        if let list = SafeJSON.load([ImageItem].self, from: file) {
             items = list.filter { FileManager.default.fileExists(atPath: $0.path) }
         }
         selected = items.first?.id
     }
 
     func save() {
-        if let d = try? JSONEncoder().encode(items) { try? d.write(to: file, options: .atomic) }
+        SafeJSON.save(items, to: file)
     }
 
     static var folder: URL {

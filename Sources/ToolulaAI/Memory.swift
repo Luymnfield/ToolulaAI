@@ -24,11 +24,11 @@ final class MemoryStore: ObservableObject {
     private let file = AppPaths.support.appendingPathComponent("memory.json")
 
     init() {
-        if let d = try? Data(contentsOf: file), let list = try? JSONDecoder().decode([MemoryItem].self, from: d) { items = list }
+        if let list = SafeJSON.load([MemoryItem].self, from: file) { items = list }
     }
 
     private func save() {
-        if let d = try? JSONEncoder().encode(items) { try? d.write(to: file, options: .atomic) }
+        SafeJSON.save(items, to: file)
     }
 
     @discardableResult

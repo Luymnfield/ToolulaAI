@@ -88,8 +88,8 @@ final class AutomationStore: ObservableObject {
     private let runsFile = AppPaths.support.appendingPathComponent("automation_runs.json")
 
     init() {
-        if let d = try? Data(contentsOf: tasksFile), let t = try? JSONDecoder().decode([AutomationTask].self, from: d) { tasks = t }
-        if let d = try? Data(contentsOf: runsFile), let r = try? JSONDecoder().decode([AutomationRun].self, from: d) { runs = r }
+        if let t = SafeJSON.load([AutomationTask].self, from: tasksFile) { tasks = t }
+        if let r = SafeJSON.load([AutomationRun].self, from: runsFile) { runs = r }
         selected = tasks.first?.id
     }
 
@@ -97,8 +97,8 @@ final class AutomationStore: ObservableObject {
         let t = tasks, r = Array(runs.prefix(200))
         let tf = tasksFile, rf = runsFile
         Task.detached {
-            if let d = try? JSONEncoder().encode(t) { try? d.write(to: tf, options: .atomic) }
-            if let d = try? JSONEncoder().encode(r) { try? d.write(to: rf, options: .atomic) }
+            SafeJSON.save(t, to: tf)
+            SafeJSON.save(r, to: rf)
         }
     }
 
