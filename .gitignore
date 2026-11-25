@@ -20,3 +20,4 @@ xcuserdata/
 # 自测/回归产物
 regress-results/
 *.log
+.build-selftest/

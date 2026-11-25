@@ -1,12 +1,23 @@
 #!/bin/zsh
-# 编译并打包成 "Toolula AI 修图.app"
+# 编译并打包成 "Toolula AI.app"
+#   ./build_app.sh             正式版 -> build/Toolula AI.app
+#   ./build_app.sh --selftest  自测版 (带 --snapshot 等自测开关) -> build/selftest/Toolula AI.app
 set -e
 cd "$(dirname "$0")"
-swift build -c release
-APP="build/Toolula AI.app"
+SELFTEST=0
+[[ "$1" == "--selftest" ]] && SELFTEST=1
+if (( SELFTEST )); then
+  swift build -c release --scratch-path .build-selftest -Xswiftc -DTOOLULA_SELFTEST
+  BIN=.build-selftest/release/ToolulaAI
+  APP="build/selftest/Toolula AI.app"
+else
+  swift build -c release
+  BIN=.build/release/ToolulaAI
+  APP="build/Toolula AI.app"
+fi
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp .build/release/ToolulaAI "$APP/Contents/MacOS/ToolulaAI"
+cp "$BIN" "$APP/Contents/MacOS/ToolulaAI"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp ../AIPhotoEdit.lrplugin/ai_edit.py "$APP/Contents/Resources/ai_edit.py"
 mkdir -p "$APP/Contents/Resources/AIPhotoEdit.lrplugin" && cp ../AIPhotoEdit.lrplugin/*.lua ../AIPhotoEdit.lrplugin/ai_edit.py ../AIPhotoEdit.lrplugin/desktop_process.py "$APP/Contents/Resources/AIPhotoEdit.lrplugin/"
@@ -46,6 +57,15 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   </dict></array>
 </dict></plist>
 PLIST
+SIGN_ID="-"
+if security find-certificate -c "Toolula Local Signing" >/dev/null 2>&1; then SIGN_ID="Toolula Local Signing"; fi
+if (( SELFTEST )); then
+  # 自测版不带小组件 (避免和正式版的小组件重复注册)
+  codesign --force -s "$SIGN_ID" "$APP"
+  echo "signed with: $SIGN_ID"
+  echo "built (selftest): $APP"
+  exit 0
+fi
 # 桌面小组件 (WidgetKit 扩展): 单独编译, 放进 PlugIns, 必须开沙盒
 WX="$APP/Contents/PlugIns/ToolulaWidget.appex"
 mkdir -p "$WX/Contents/MacOS" "$WX/Contents/Resources" .build/widget
@@ -80,9 +100,7 @@ cat > .build/widget/widget.entitlements <<ENT
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict><key>com.apple.security.app-sandbox</key><true/></dict></plist>
 ENT
-# 有本地签名证书就用它：签名要求固定不变，更新后不用重新授权「辅助功能」等权限
-SIGN_ID="-"
-if security find-certificate -c "Toolula Local Signing" >/dev/null 2>&1; then SIGN_ID="Toolula Local Signing"; fi
+# 有本地签名证书就用它：签名要求固定不变，更新后不用重新授权「辅助功能」等权限 (SIGN_ID 在上面检测)
 codesign --force -s "$SIGN_ID" --entitlements .build/widget/widget.entitlements "$WX"
 codesign --force -s "$SIGN_ID" "$APP"
 echo "signed with: $SIGN_ID"
