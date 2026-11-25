@@ -165,6 +165,7 @@ final class MLXEngine: ObservableObject {
         if let h = try? FileHandle(forWritingTo: log) { proc.standardOutput = h; proc.standardError = h }
         try proc.run()
         process = proc
+        ProcessJanitor.register("mlx", pid: proc.processIdentifier, signature: "mlx_vlm.server --host 127.0.0.1 --port \(Self.port)")
         startIdleTimer()
         // 加载 27B 模型要几十秒
         for _ in 0..<300 {
@@ -181,6 +182,7 @@ final class MLXEngine: ObservableObject {
         if let p = process, p.isRunning { p.terminate() }
         process = nil
         _ = Exporter.shell("/usr/bin/pkill", ["-f", "mlx_vlm.server --host 127.0.0.1 --port \(Self.port)"])
+        ProcessJanitor.unregister("mlx")
         online = false
         loadedTarget = nil
         idleTimer?.invalidate(); idleTimer = nil

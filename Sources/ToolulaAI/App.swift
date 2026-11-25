@@ -38,6 +38,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // 上次崩溃留下的 llama.cpp / MTP 引擎 / ComfyUI (只清理 Toolula 自己启动、已失去父进程的)
+        Task.detached(priority: .utility) { ProcessJanitor.cleanupOrphans() }
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         // 后台常驻: 主窗口关掉后隐藏 Dock 图标, 留在菜单栏

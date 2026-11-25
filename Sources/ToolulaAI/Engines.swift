@@ -233,6 +233,7 @@ final class BuiltinEngine: ObservableObject {
         if let h = try? FileHandle(forWritingTo: log) { p.standardOutput = h; p.standardError = h }
         try p.run()
         process = p
+        ProcessJanitor.register("llama", pid: p.processIdentifier, signature: EnginePaths.llamaServer.path)
         for _ in 0..<60 {
             try? await Task.sleep(for: .milliseconds(500))
             if await check() { return }
@@ -246,6 +247,7 @@ final class BuiltinEngine: ObservableObject {
         if let p = process, p.isRunning { p.terminate() }
         process = nil
         _ = Exporter.shell("/usr/bin/pkill", ["-f", EnginePaths.llamaServer.path])
+        ProcessJanitor.unregister("llama")
         online = false
     }
 

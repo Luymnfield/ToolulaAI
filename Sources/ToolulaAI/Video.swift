@@ -111,6 +111,7 @@ final class ComfyEngine: ObservableObject {
             FileManager.default.createFile(atPath: log.path, contents: nil)
             if let h = try? FileHandle(forWritingTo: log) { p.standardOutput = h; p.standardError = h }
             do { try p.run(); process = p } catch { message = error.localizedDescription; return }
+            ProcessJanitor.register("comfyui", pid: p.processIdentifier, signature: "ComfyUI/main.py --listen 127.0.0.1 --port 8188")
             port = 8188
         } else if !Self.simulateMissing && FileManager.default.fileExists(atPath: "/Applications/Comfy Desktop.app") {
             NSWorkspace.shared.open(URL(fileURLWithPath: "/Applications/Comfy Desktop.app"))
@@ -130,6 +131,7 @@ final class ComfyEngine: ObservableObject {
     func stopOwned() {
         if let p = process, p.isRunning { p.terminate() }
         process = nil
+        ProcessJanitor.unregister("comfyui")
     }
 
     private func options(_ node: String, _ field: String) async -> [String] {
