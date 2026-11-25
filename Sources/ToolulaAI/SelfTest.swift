@@ -38,7 +38,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -242,6 +242,12 @@ extension AppDelegate {
                 let item = await vs.generate(prompt: vp, seconds: 2, quality: .p480, aspect: .wide)
                 log += "video: \(item.map { "\($0.path) \($0.width)x\($0.height) \(Int($0.elapsed))s" } ?? "failed: \(vs.error ?? "-")")\n"
                 vs.autoFree = true
+            }
+            if let dd = val("--diagnostics") {
+                do {
+                    let zip = try await Diagnostics.export(to: URL(fileURLWithPath: dd))
+                    log += "diagnostics: \(zip.path)\n"
+                } catch { log += "diagnostics error: \(error.localizedDescription)\n" }
             }
             if args.contains("--wait") { try? await Task.sleep(for: .seconds(4)) }
             log += "scroller style: \(NSScroller.preferredScrollerStyle == .overlay ? "overlay" : "legacy")\n"

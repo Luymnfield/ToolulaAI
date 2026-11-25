@@ -138,6 +138,9 @@ struct ToolulaAIApp: App {
             CommandGroup(after: .appSettings) {
                 Button("设置向导…") { SetupWizardState.shared.show = true }
             }
+            CommandGroup(replacing: .help) {
+                Button("导出诊断报告…") { Diagnostics.exportAndReveal() }
+            }
             CommandGroup(after: .toolbar) {
                 Picker("外观", selection: Binding(get: { AppAppearance.current }, set: { AppAppearance.apply($0) })) {
                     ForEach(AppAppearance.allCases) { Text($0.title).tag($0) }
@@ -156,6 +159,7 @@ struct ToolulaAIApp: App {
         delegate.chat = chat
         delegate.app = app
         chat.photoStore = store
+        Diagnostics.chat = chat
         automations.photoStore = store
         SystemInfo.shared.start()
         Task.detached { LightroomSetup.syncPlugin() }
