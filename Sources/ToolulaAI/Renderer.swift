@@ -1,0 +1,333 @@
+import AppKit
+import CoreImage
+import CoreImage.CIFilterBuiltins
+import UniformTypeIdentifiers
+
+/// 修图引擎: Core Image 渲染所有参数
+/// 色调/白平衡/HSL/饱和度/颜色分级/去朦胧 -> 一个 3D LUT; 曝光/清晰度/纹理/暗角/颗粒 -> Core Image 滤镜
+final class Renderer: @unchecked Sendable {
+    static let shared = Renderer()
+
+    let context: CIContext = {
+        let cs = CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!
+        return CIContext(options: [.workingColorSpace: cs, .cacheIntermediates: false])
+    }()
+    let sRGB = CGColorSpace(name: CGColorSpace.sRGB)!
+
+    static let rawExtensions: Set<String> = ["cr2", "cr3", "crw", "nef", "nrw", "arw", "srf", "sr2", "raf", "orf", "rw2",
+                                             "pef", "srw", "x3f", "3fr", "iiq", "erf", "mef", "mos", "rwl", "kdc", "dcr", "dng"]
+    static let imageExtensions: Set<String> = rawExtensions.union(["jpg", "jpeg", "png", "heic", "heif", "tif", "tiff", "webp"])
+
+    static func isRaw(_ url: URL) -> Bool { rawExtensions.contains(url.pathExtension.lowercased()) }
+
+    // MARK: 读取
+
+    /// 读取原图 (RAW 用系统的 RAW 解码)
+    func loadFull(_ url: URL) -> CIImage? {
+        if Renderer.isRaw(url), let raw = CIRAWFilter(imageURL: url), let img = raw.outputImage {
+            return img
+        }
+        return CIImage(contentsOf: url, options: [.applyOrientationProperty: true])
+    }
+
+    /// 缩小到长边 maxSide 并"冻结"成位图 (调滑块时不用每次重新解码 RAW)
+    func loadPreviewBase(_ url: URL, maxSide: CGFloat) -> CIImage? {
+        guard let full = loadFull(url) else { return nil }
+        let scaled = scale(full, maxSide: maxSide)
+        guard let cg = context.createCGImage(scaled, from: scaled.extent, format: .RGBAh, colorSpace: CGColorSpace(name: CGColorSpace.extendedLinearSRGB)) else { return nil }
+        return CIImage(cgImage: cg)
+    }
+
+    func scale(_ img: CIImage, maxSide: CGFloat) -> CIImage {
+        let long = max(img.extent.width, img.extent.height)
+        guard long > maxSide else { return img.transformed(by: CGAffineTransform(translationX: -img.extent.minX, y: -img.extent.minY)) }
+        let f = CIFilter.lanczosScaleTransform()
+        f.inputImage = img.transformed(by: CGAffineTransform(translationX: -img.extent.minX, y: -img.extent.minY))
+        f.scale = Float(maxSide / long)
+        f.aspectRatio = 1
+        return f.outputImage ?? img
+    }
+
+    // MARK: 渲染
+
+    func apply(_ settings: Settings, to input: CIImage) -> CIImage {
+        let extent = input.extent
+        let long = max(extent.width, extent.height)
+        var img = input
+        func v(_ k: String) -> Double { settings[k] ?? 0 }
+
+        // 1. 曝光 (线性空间)
+        let ev = v("Exposure2012")
+        if ev != 0 {
+            let f = CIFilter.exposureAdjust()
+            f.inputImage = img
+            f.ev = Float(ev)
+            img = f.outputImage ?? img
+        }
+
+        // 2. 颜色 / 色调 LUT
+        if LUT.needed(settings) {
+            let f = CIFilter.colorCubeWithColorSpace()
+            f.inputImage = img
+            f.cubeDimension = Float(LUT.size)
+            f.cubeData = LUT.build(settings)
+            f.colorSpace = sRGB
+            img = f.outputImage ?? img
+        }
+
+        // 3. 清晰度 (大半径反锐化) / 纹理 (小半径)
+        let clarity = v("Clarity2012")
+        if clarity != 0 {
+            let f = CIFilter.unsharpMask()
+            f.inputImage = img.clampedToExtent()
+            f.radius = Float(long * 0.012)
+            f.intensity = Float(clarity / 100 * 0.55)
+            img = (f.outputImage ?? img).cropped(to: extent)
+        }
+        let texture = v("Texture")
+        if texture != 0 {
+            let f = CIFilter.unsharpMask()
+            f.inputImage = img.clampedToExtent()
+            f.radius = Float(max(1, long * 0.0018))
+            f.intensity = Float(texture / 100 * 0.9)
+            img = (f.outputImage ?? img).cropped(to: extent)
+        }
+
+        // 4. 暗角
+        let vig = v("PostCropVignetteAmount")
+        if vig != 0 {
+            let f = CIFilter.vignetteEffect()
+            f.inputImage = img
+            f.center = CGPoint(x: extent.midX, y: extent.midY)
+            f.radius = Float(long * 0.42)
+            f.intensity = Float(-vig / 100 * 0.9)
+            f.falloff = 0.6
+            img = (f.outputImage ?? img).cropped(to: extent)
+        }
+
+        // 5. 颗粒
+        let grain = v("GrainAmount")
+        if grain > 0, let noise = CIFilter.randomGenerator().outputImage {
+            let size = max(1, long / 1400)  // 颗粒大小跟随图片尺寸
+            // 灰色噪点, 以 0 为中心 (可正可负), 直接加到图片上
+            let k = CGFloat(grain / 100 * 0.16)
+            let mono = noise
+                .transformed(by: CGAffineTransform(scaleX: size, y: size))
+                .applyingFilter("CIColorMatrix", parameters: [
+                    "inputRVector": CIVector(x: k, y: 0, z: 0, w: 0),
+                    "inputGVector": CIVector(x: k, y: 0, z: 0, w: 0),
+                    "inputBVector": CIVector(x: k, y: 0, z: 0, w: 0),
+                    "inputAVector": CIVector(x: 0, y: 0, z: 0, w: 0),
+                    "inputBiasVector": CIVector(x: -k / 2, y: -k / 2, z: -k / 2, w: 0),
+                ])
+                .cropped(to: extent)
+            img = mono.applyingFilter("CIAdditionCompositing", parameters: [kCIInputBackgroundImageKey: img]).cropped(to: extent)
+        }
+        return img
+    }
+
+    func makeNSImage(_ img: CIImage) -> NSImage? {
+        guard let cg = context.createCGImage(img, from: img.extent, format: .RGBA8, colorSpace: sRGB) else { return nil }
+        return NSImage(cgImage: cg, size: NSSize(width: img.extent.width, height: img.extent.height))
+    }
+
+    func writeJPEG(_ img: CIImage, to url: URL, quality: Double = 0.92) throws {
+        try context.writeJPEGRepresentation(of: img, to: url, colorSpace: sRGB,
+                                            options: [kCGImageDestinationLossyCompressionQuality as CIImageRepresentationOption: quality])
+    }
+
+    /// 拍摄时间 (用来按场景分组)
+    static func captureDate(_ url: URL) -> Date? {
+        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [String: Any],
+              let exif = props[kCGImagePropertyExifDictionary as String] as? [String: Any],
+              let s = exif[kCGImagePropertyExifDateTimeOriginal as String] as? String else { return nil }
+        let f = DateFormatter()
+        f.dateFormat = "yyyy:MM:dd HH:mm:ss"
+        return f.date(from: s)
+    }
+}
+
+// MARK: - 3D LUT
+
+enum LUT {
+    static let size = 33
+    static let lutKeys: [String] = {
+        var k = ["IncrementalTemperature", "IncrementalTint", "Contrast2012", "Highlights2012", "Shadows2012",
+                 "Whites2012", "Blacks2012", "Dehaze", "Vibrance", "Saturation",
+                 "ParametricHighlights", "ParametricLights", "ParametricDarks", "ParametricShadows",
+                 "SplitToningShadowSaturation", "SplitToningHighlightSaturation"]
+        for c in Params.colors { k += ["HueAdjustment\(c.key)", "SaturationAdjustment\(c.key)", "LuminanceAdjustment\(c.key)"] }
+        return k
+    }()
+
+    static func needed(_ s: Settings) -> Bool { lutKeys.contains { (s[$0] ?? 0) != 0 } }
+
+    @inline(__always) static func toLinear(_ c: Double) -> Double { c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4) }
+    @inline(__always) static func toGamma(_ c: Double) -> Double {
+        let x = max(0, c)
+        return x <= 0.0031308 ? x * 12.92 : 1.055 * pow(x, 1 / 2.4) - 0.055
+    }
+    @inline(__always) static func lum(_ r: Double, _ g: Double, _ b: Double) -> Double { 0.2126 * r + 0.7152 * g + 0.0722 * b }
+    @inline(__always) static func bell(_ x: Double, _ c: Double, _ w: Double) -> Double { let d = (x - c) / w; return exp(-d * d) }
+
+    /// 色调曲线 (输入/输出都是 0~1 的亮度)
+    static func toneCurve(_ x: Double, _ s: Settings) -> Double {
+        func v(_ k: String) -> Double { (s[k] ?? 0) / 100 }
+        var y = x
+        y -= v("Contrast2012") * 0.07 * sin(2 * .pi * x)
+        y += v("Highlights2012") * 0.13 * bell(x, 0.80, 0.14)
+        y += v("Shadows2012") * 0.14 * bell(x, 0.20, 0.15)
+        y += v("Whites2012") * 0.10 * bell(x, 0.96, 0.09)
+        y += v("Blacks2012") * 0.10 * bell(x, 0.03, 0.08)
+        y += v("ParametricHighlights") * 0.08 * bell(x, 0.88, 0.10)
+        y += v("ParametricLights") * 0.08 * bell(x, 0.63, 0.12)
+        y += v("ParametricDarks") * 0.08 * bell(x, 0.37, 0.12)
+        y += v("ParametricShadows") * 0.08 * bell(x, 0.13, 0.10)
+        return min(1, max(0, y))
+    }
+
+    static func hueRGB(_ h: Double) -> (Double, Double, Double) {
+        // 纯色 (饱和度 1, 亮度 0.5)
+        let hh = (h.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) / 60
+        let x = 1 - abs(hh.truncatingRemainder(dividingBy: 2) - 1)
+        switch Int(hh) {
+        case 0: return (1, x, 0)
+        case 1: return (x, 1, 0)
+        case 2: return (0, 1, x)
+        case 3: return (0, x, 1)
+        case 4: return (x, 0, 1)
+        default: return (1, 0, x)
+        }
+    }
+
+    static func rgbToHsl(_ r: Double, _ g: Double, _ b: Double) -> (Double, Double, Double) {
+        let mx = max(r, g, b), mn = min(r, g, b)
+        let l = (mx + mn) / 2
+        guard mx - mn > 1e-6 else { return (0, 0, l) }
+        let d = mx - mn
+        let s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn)
+        var h: Double
+        if mx == r { h = (g - b) / d + (g < b ? 6 : 0) } else if mx == g { h = (b - r) / d + 2 } else { h = (r - g) / d + 4 }
+        h *= 60
+        return (h, s, l)
+    }
+
+    static func hslToRgb(_ h: Double, _ s: Double, _ l: Double) -> (Double, Double, Double) {
+        guard s > 1e-6 else { return (l, l, l) }
+        func f(_ p: Double, _ q: Double, _ t0: Double) -> Double {
+            var t = t0
+            if t < 0 { t += 1 }
+            if t > 1 { t -= 1 }
+            if t < 1.0 / 6 { return p + (q - p) * 6 * t }
+            if t < 0.5 { return q }
+            if t < 2.0 / 3 { return p + (q - p) * (2.0 / 3 - t) * 6 }
+            return p
+        }
+        let q = l < 0.5 ? l * (1 + s) : l + s - l * s
+        let p = 2 * l - q
+        let hh = h / 360
+        return (f(p, q, hh + 1.0 / 3), f(p, q, hh), f(p, q, hh - 1.0 / 3))
+    }
+
+    static func build(_ s: Settings) -> Data {
+        func v(_ k: String) -> Double { (s[k] ?? 0) / 100 }
+        let n = size
+        var data = [Float](repeating: 0, count: n * n * n * 4)
+        let temp = v("IncrementalTemperature"), tint = v("IncrementalTint")
+        let dehaze = v("Dehaze"), vib = v("Vibrance"), sat = v("Saturation")
+        let hueAdj = Params.colors.map { v("HueAdjustment\($0.key)") }
+        let satAdj = Params.colors.map { v("SaturationAdjustment\($0.key)") }
+        let lumAdj = Params.colors.map { v("LuminanceAdjustment\($0.key)") }
+        let hasHSL = (hueAdj + satAdj + lumAdj).contains { $0 != 0 }
+        let shHue = s["SplitToningShadowHue"] ?? 0, shSat = v("SplitToningShadowSaturation")
+        let hiHue = s["SplitToningHighlightHue"] ?? 0, hiSat = v("SplitToningHighlightSaturation")
+        let balance = v("SplitToningBalance")
+        let shCol = hueRGB(shHue), hiCol = hueRGB(hiHue)
+        // 白平衡通道倍数
+        let wr = 1 + 0.28 * temp, wb = 1 - 0.28 * temp, wg = 1 - 0.18 * tint
+
+        // 预先算好色调曲线
+        let curveN = 1024
+        let curve = (0...curveN).map { toneCurve(Double($0) / Double(curveN), s) }
+        func applyCurve(_ x: Double) -> Double {
+            let p = min(1, max(0, x)) * Double(curveN)
+            let i = Int(p), f = p - Double(i)
+            return i >= curveN ? curve[curveN] : curve[i] * (1 - f) + curve[i + 1] * f
+        }
+
+        var idx = 0
+        for bi in 0..<n {
+            for gi in 0..<n {
+                for ri in 0..<n {
+                    var r = Double(ri) / Double(n - 1), g = Double(gi) / Double(n - 1), b = Double(bi) / Double(n - 1)
+
+                    // 白平衡 (线性空间, 保持亮度)
+                    if temp != 0 || tint != 0 {
+                        var lr = toLinear(r), lg = toLinear(g), lb = toLinear(b)
+                        let y0 = lum(lr, lg, lb)
+                        lr *= wr; lg *= wg; lb *= wb
+                        let y1 = lum(lr, lg, lb)
+                        if y1 > 1e-6 { let k = y0 / y1; lr *= k; lg *= k; lb *= k }
+                        r = toGamma(lr); g = toGamma(lg); b = toGamma(lb)
+                    }
+
+                    // 去朦胧
+                    if dehaze > 0 {
+                        let d = 0.10 * dehaze
+                        r = (r - d) / (1 - d); g = (g - d) / (1 - d); b = (b - d) / (1 - d)
+                    } else if dehaze < 0 {
+                        let d = -dehaze * 0.30
+                        r = r * (1 - d) + 0.78 * d; g = g * (1 - d) + 0.78 * d; b = b * (1 - d) + 0.80 * d
+                    }
+
+                    // 色调曲线 (作用在亮度上, 保持色相)
+                    let L = lum(r, g, b)
+                    let dL = applyCurve(L) - L
+                    r += dL; g += dL; b += dL
+                    r = min(1, max(0, r)); g = min(1, max(0, g)); b = min(1, max(0, b))
+
+                    // HSL / 饱和度
+                    var (h, sl, l) = rgbToHsl(r, g, b)
+                    if hasHSL && sl > 0.001 {
+                        var dh = 0.0, ds = 0.0, dl = 0.0
+                        for (i, c) in Params.colors.enumerated() {
+                            var dist = abs(h - c.hue)
+                            if dist > 180 { dist = 360 - dist }
+                            let w = max(0, 1 - dist / 42)
+                            if w > 0 {
+                                dh += w * hueAdj[i]; ds += w * satAdj[i]; dl += w * lumAdj[i]
+                            }
+                        }
+                        h = (h + dh * 35 + 360).truncatingRemainder(dividingBy: 360)
+                        sl *= max(0, 1 + ds)
+                        l += dl * 0.22 * min(1, sl * 2) * (1 - abs(2 * l - 1) * 0.5)
+                    }
+                    if vib != 0 { sl *= max(0, 1 + vib * (vib > 0 ? (1 - sl) * 0.9 : 0.8)) }
+                    if sat != 0 { sl *= max(0, 1 + sat) }
+                    if dehaze > 0 { sl *= 1 + dehaze * 0.2 }
+                    sl = min(1, max(0, sl)); l = min(1, max(0, l))
+                    (r, g, b) = hslToRgb(h, sl, l)
+
+                    // 颜色分级 (阴影/高光上色)
+                    if shSat > 0 || hiSat > 0 {
+                        let LL = lum(r, g, b)
+                        let mid = 0.5 + balance * 0.3
+                        let wsh = shSat * 0.22 * pow(max(0, 1 - LL / max(0.05, mid * 2)), 1.5)
+                        let whi = hiSat * 0.22 * pow(max(0, (LL - (1 - (1 - mid) * 2)) / max(0.05, (1 - mid) * 2)), 1.5)
+                        r += (shCol.0 - 0.5) * wsh + (hiCol.0 - 0.5) * whi
+                        g += (shCol.1 - 0.5) * wsh + (hiCol.1 - 0.5) * whi
+                        b += (shCol.2 - 0.5) * wsh + (hiCol.2 - 0.5) * whi
+                    }
+
+                    data[idx] = Float(min(1, max(0, r)))
+                    data[idx + 1] = Float(min(1, max(0, g)))
+                    data[idx + 2] = Float(min(1, max(0, b)))
+                    data[idx + 3] = 1
+                    idx += 4
+                }
+            }
+        }
+        return data.withUnsafeBufferPointer { Data(buffer: $0) }
+    }
+}

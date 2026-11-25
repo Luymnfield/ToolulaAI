@@ -1,0 +1,230 @@
+import AppKit
+import CoreImage
+
+enum Exporter {
+    /// exiftool 不是每台 Mac 都有 (要用 Homebrew 装); 没有时用系统自带的 ImageIO 写参数
+    nonisolated(unsafe) static var simulateNoExiftool = false
+    static var exiftool: String {
+        if simulateNoExiftool { return "/nonexistent/exiftool" }
+        return ["/opt/homebrew/bin/exiftool", "/usr/local/bin/exiftool"].first { FileManager.default.fileExists(atPath: $0) } ?? "/opt/homebrew/bin/exiftool"
+    }
+    static var hasExiftool: Bool { FileManager.default.fileExists(atPath: exiftool) }
+
+    /// 用系统自带的 ImageIO 把 XMP (修图参数) 无损写进 JPEG / TIFF / PNG / HEIC (不重新压缩画面)
+    static func embedXMP(_ xmpText: String, into file: URL) -> Bool {
+        guard let src = CGImageSourceCreateWithURL(file as CFURL, nil), let type = CGImageSourceGetType(src),
+              let meta = CGImageMetadataCreateFromXMPData(Data(xmpText.utf8) as CFData) else { return false }
+        let tmp = file.deletingLastPathComponent().appendingPathComponent(".toolula_\(UUID().uuidString.prefix(6)).\(file.pathExtension)")
+        guard let dst = CGImageDestinationCreateWithURL(tmp as CFURL, type, 1, nil) else { return false }
+        let opts: [CFString: Any] = [kCGImageDestinationMetadata: meta, kCGImageDestinationMergeMetadata: true]
+        var err: Unmanaged<CFError>?
+        guard CGImageDestinationCopyImageSource(dst, src, opts as CFDictionary, &err) else { try? FileManager.default.removeItem(at: tmp); return false }
+        do { _ = try FileManager.default.replaceItemAt(file, withItemAt: tmp) } catch { try? FileManager.default.removeItem(at: tmp); return false }
+        return true
+    }
+
+    struct Job: Sendable {
+        let url: URL
+        let settings: Settings
+        let isRaw: Bool
+        let title: String
+        let caption: String
+        let keywords: [String]
+        let stars: Int
+        var patches: [RetouchPatch] = []
+        var locals: [LocalAdjustment] = []
+        var retouched: Bool { !patches.isEmpty || locals.contains { $0.settings.contains { $0.value != 0 } } }
+    }
+
+    @discardableResult
+    static func shell(_ exe: String, _ args: [String]) -> (Int32, String) {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: exe)
+        p.arguments = args
+        let pipe = Pipe()
+        p.standardOutput = pipe
+        p.standardError = pipe
+        do { try p.run() } catch { return (-1, error.localizedDescription) }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        p.waitUntilExit()
+        return (p.terminationStatus, String(data: data, encoding: .utf8) ?? "")
+    }
+
+    static func uniqueURL(_ folder: URL, _ name: String) -> URL {
+        let base = (name as NSString).deletingPathExtension, ext = (name as NSString).pathExtension
+        var u = folder.appendingPathComponent(name)
+        var i = 2
+        while FileManager.default.fileExists(atPath: u.path) {
+            u = folder.appendingPathComponent("\(base)_\(i).\(ext)")
+            i += 1
+        }
+        return u
+    }
+
+    static func metadataArgs(_ job: Job) -> [String] {
+        var a: [String] = []
+        if !job.title.isEmpty { a += ["-XMP-dc:Title=\(job.title)", "-IPTC:ObjectName=\(job.title)"] }
+        if !job.caption.isEmpty { a += ["-XMP-dc:Description=\(job.caption)", "-IPTC:Caption-Abstract=\(job.caption)"] }
+        for k in job.keywords { a += ["-XMP-dc:Subject+=\(k)", "-IPTC:Keywords+=\(k)"] }
+        if job.stars > 0 { a += ["-XMP-xmp:Rating=\(job.stars)"] }
+        if !job.keywords.isEmpty || !job.caption.isEmpty { a += ["-IPTC:CodedCharacterSet=UTF8"] }
+        return a
+    }
+
+    /// 导出成 JPEG (全分辨率, 保留原片 EXIF, 写入标题/关键词)
+    static func exportJPEG(_ job: Job, to folder: URL, maxSide: CGFloat?) -> String? {
+        let r = Renderer.shared
+        guard var img = r.loadFull(job.url) else { return String(localized: "无法读取 \(job.url.lastPathComponent)") }
+        if let maxSide { img = r.scale(img, maxSide: maxSide) } else {
+            img = img.transformed(by: CGAffineTransform(translationX: -img.extent.minX, y: -img.extent.minY))
+        }
+        let out = r.renderEdited(img, settings: job.settings, patches: job.patches, locals: job.locals)
+        let name = (job.url.deletingPathExtension().lastPathComponent) + ".jpg"
+        let dest = uniqueURL(folder, name)
+        do { try r.writeJPEG(out, to: dest) } catch { return String(localized: "写入失败：\(error.localizedDescription)") }
+        if FileManager.default.fileExists(atPath: exiftool) {
+            // 复制原片的拍摄信息; 方向已经转正, 所以设成 1
+            var args = ["-q", "-q", "-overwrite_original", "-tagsfromfile", job.url.path, "-all:all", "-unsafe",
+                        "-Orientation#=1", "-ThumbnailImage=", "-PreviewImage="]
+            args += metadataArgs(job)
+            args.append(dest.path)
+            shell(exiftool, args)
+        }
+        return nil
+    }
+
+    // MARK: 发送到 Lightroom
+
+    static func xmp(_ settings: Settings, extra: [String: String] = [:]) -> String {
+        var attrs = ["crs:Version=\"15.0\"", "crs:ProcessVersion=\"11.0\"", "crs:HasSettings=\"True\""]
+        for (k, v) in extra.sorted(by: { $0.key < $1.key }) { attrs.append("crs:\(k)=\"\(v)\"") }
+        for (k, v) in settings.sorted(by: { $0.key < $1.key }) {
+            let s: String
+            if k == "Exposure2012" { s = String(format: "%+.2f", v) } else { s = String(Int(v.rounded())) }
+            attrs.append("crs:\(k)=\"\(s)\"")
+        }
+        return """
+        <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Toolula AI 修图">
+         <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+          <rdf:Description rdf:about=""
+            xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/"
+            \(attrs.joined(separator: "\n    "))/>
+         </rdf:RDF>
+        </x:xmpmeta>
+
+        """
+    }
+
+    /// 复制原片到 folder, 写入 Lightroom 修图参数和元数据, 返回副本路径
+    static func prepareForLightroom(_ job: Job, folder: URL) -> (URL?, String?) {
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        // 有 AI 消除 / 局部调整: Lightroom 的参数文件表达不了, 改成发送已经修好的 16 位 TIFF
+        if job.retouched { return Integrations.renderTIFF(job, to: folder) }
+        let dest = uniqueURL(folder, job.url.lastPathComponent)
+        do { try FileManager.default.copyItem(at: job.url, to: dest) } catch { return (nil, String(localized: "复制失败：\(error.localizedDescription)")) }
+        var s = job.settings
+        var extra: [String: String] = [:]
+        let rawNotDNG = job.isRaw && job.url.pathExtension.lowercased() != "dng"
+        if job.isRaw {
+            // RAW 的白平衡在 Lightroom 里是开尔文绝对值: 用相机记录的白平衡 (系统 RAW 解码读出) 换算
+            let inc = s["IncrementalTemperature"] ?? 0, incT = s["IncrementalTint"] ?? 0
+            s["IncrementalTemperature"] = nil
+            s["IncrementalTint"] = nil
+            if inc != 0 || incT != 0, let f = CIRAWFilter(imageURL: job.url), f.neutralTemperature > 0 {
+                s["Temperature"] = min(50000, max(2000, (Double(f.neutralTemperature) * exp(inc / 100 * 0.35)).rounded()))
+                s["Tint"] = min(150, max(-150, (Double(f.neutralTint) + incT * 0.5).rounded()))
+                extra["WhiteBalance"] = "Custom"
+            }
+        } else if s["IncrementalTemperature"] != nil || s["IncrementalTint"] != nil {
+            extra["WhiteBalance"] = "Custom"
+        }
+        let xmpText = xmp(s, extra: extra)
+        if rawNotDNG {
+            let side = dest.deletingPathExtension().appendingPathExtension("xmp")
+            let packet = "<?xpacket begin=\"\u{FEFF}\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n" + xmpText + "<?xpacket end=\"w\"?>\n"
+            try? packet.write(to: side, atomically: true, encoding: .utf8)
+            if !metadataArgs(job).isEmpty && hasExiftool {
+                shell(exiftool, ["-q", "-q", "-overwrite_original"] + metadataArgs(job) + [side.path])
+            }
+        } else if !hasExiftool {
+            // 没有 exiftool: JPEG / TIFF 等用系统 ImageIO 写进去; DNG 写不了, 改发修好的 16 位 TIFF
+            if embedXMP(xmpText, into: dest) { return (dest, nil) }
+            try? FileManager.default.removeItem(at: dest)
+            return Integrations.renderTIFF(job, to: folder)
+        } else {
+            let tmp = AIBridge.workDir.appendingPathComponent("lr_\(UUID().uuidString.prefix(6)).xmp")
+            try? xmpText.write(to: tmp, atomically: true, encoding: .utf8)
+            let (code, out) = shell(exiftool, ["-q", "-q", "-overwrite_original", "-tagsfromfile", tmp.path, "-XMP-crs:all"]
+                                    + metadataArgs(job) + [dest.path])
+            try? FileManager.default.removeItem(at: tmp)
+            if code != 0 { return (dest, String(localized: "写入参数失败：\(out)")) }
+        }
+        return (dest, nil)
+    }
+}
+
+extension Store {
+    func jobs(_ items: [PhotoItem]) -> [Exporter.Job] {
+        items.map { Exporter.Job(url: $0.url, settings: $0.settings, isRaw: $0.isRaw, title: $0.title,
+                                 caption: $0.caption, keywords: $0.keywords, stars: $0.stars, patches: $0.patches, locals: $0.locals) }
+    }
+
+    func exportJPEG(maxSide: CGFloat?) {
+        let items = selectedItems
+        guard !items.isEmpty, !working else { return }
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.prompt = String(localized: "导出到这里")
+        panel.message = String(localized: "选择导出文件夹（原片不会被改动）")
+        let def = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures/" + String(localized: "Toolula AI 修图/导出"))
+        try? FileManager.default.createDirectory(at: def, withIntermediateDirectories: true)
+        panel.directoryURL = def
+        guard panel.runModal() == .OK, let folder = panel.url else { return }
+        let jobs = self.jobs(items)
+        recordForLearning(items)
+        working = true
+        Task {
+            var errors: [String] = []
+            for (i, job) in jobs.enumerated() {
+                status = String(localized: "导出 \(i + 1)/\(jobs.count)：\(job.url.lastPathComponent)")
+                if let e = await Task.detached(operation: { Exporter.exportJPEG(job, to: folder, maxSide: maxSide) }).value {
+                    errors.append(e)
+                }
+            }
+            working = false
+            status = errors.isEmpty ? String(localized: "已导出 \(jobs.count) 张") : String(localized: "导出完成，\(errors.count) 张失败")
+            if !errors.isEmpty { alert = errors.joined(separator: "\n") }
+            NSWorkspace.shared.activateFileViewerSelecting([folder])
+        }
+    }
+
+    func sendToLightroom() {
+        let items = selectedItems
+        guard !items.isEmpty, !working else { return }
+        let jobs = self.jobs(items)
+        recordForLearning(items)
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd_HHmmss"
+        let folder = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Pictures/" + String(localized: "Toolula AI修图") + "/\(f.string(from: Date()))")
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        working = true
+        Task {
+            var outs: [URL] = [], errors: [String] = []
+            for (i, job) in jobs.enumerated() {
+                status = String(localized: "准备发送到 Lightroom \(i + 1)/\(jobs.count)")
+                let (u, e) = await Task.detached(operation: { Exporter.prepareForLightroom(job, folder: folder) }).value
+                if let u { outs.append(u) }
+                if let e { errors.append(e) }
+            }
+            working = false
+            if !outs.isEmpty {
+                Exporter.shell("/usr/bin/open", ["-a", "Adobe Lightroom Classic"] + outs.map { $0.path })
+                status = String(localized: "已发送 \(outs.count) 张到 Lightroom（在导入窗口点「导入」）")
+            }
+            if !errors.isEmpty { alert = errors.joined(separator: "\n") }
+        }
+    }
+}

@@ -1,0 +1,3690 @@
+{
+ "%@ %@ 英寸": [
+  "%1$@ %2$@-inch",
+  "%1$@ %2$@ Zoll"
+ ],
+ "%@ · %@×%@ · 种子 %@ · %lld 秒": [
+  "%@ · %@×%@ · seed %@ · %lld s",
+  "%@ · %@×%@ · Seed %@ · %lld s"
+ ],
+ "%@ × %@ · 预计约 %lld 秒": [
+  "%@ × %@ · about %lld s",
+  "%@ × %@ · ca. %lld s"
+ ],
+ "%@ 核 GPU": [
+  "%@-core GPU",
+  "%@-Kern-GPU"
+ ],
+ "%@完成": [
+  "%@ finished",
+  "%@ abgeschlossen"
+ ],
+ "%@完成，%lld 张失败": [
+  "%1$@ finished, %2$lld failed",
+  "%1$@ abgeschlossen, %2$lld fehlgeschlagen"
+ ],
+ "%@输入：%@": [
+  "%@ type: %@",
+  "%@ eingeben: %@"
+ ],
+ "%@（%lld 项）": [
+  "%1$@ (%2$lld items)",
+  "%1$@ (%2$lld Einträge)"
+ ],
+ "%@：%lld/%lld · %@": [
+  "%1$@: %2$lld/%3$lld · %4$@",
+  "%1$@: %2$lld/%3$lld · %4$@"
+ ],
+ "%lld × %lld · %lld 帧 · 预计约 %lld 分钟": [
+  "%1$lld × %2$lld · %3$lld frames · about %4$lld min",
+  "%1$lld × %2$lld · %3$lld Bilder · ca. %4$lld Min."
+ ],
+ "%lld 个对话": [
+  "%lld chats",
+  "%lld Chats"
+ ],
+ "%lld 个自动化任务待命": [
+  "%lld automations on standby",
+  "%lld Automatisierungen bereit"
+ ],
+ "%lld 分": [
+  "%lld/10",
+  "%lld/10"
+ ],
+ "%lld 张 · 已选 %lld 张（⌘A 全选）": [
+  "%1$lld photos · %2$lld selected (⌘A selects all)",
+  "%1$lld Fotos · %2$lld ausgewählt (⌘A wählt alle)"
+ ],
+ "%lld 核 CPU": [
+  "%lld-core CPU",
+  "%lld-Kern-CPU"
+ ],
+ "%lld 秒": [
+  "%lld s",
+  "%lld s"
+ ],
+ "1. 先用 list_directory 看清楚文件夹里有什么，向用户说明打算怎么分类。\n2. 按 图片 / 文档 / 安装包 / 压缩包 / 视频 / 音频 / 其他 分类，用 mkdir -p 建子文件夹，用 mv -n 移动（不覆盖同名文件）。\n3. 绝对不要删除文件。\n4. 最后汇报每类移动了多少个文件。": [
+  "1. First use list_directory to see what’s in the folder and tell the user how you plan to sort it.\n2. Sort into Images / Documents / Installers / Archives / Videos / Audio / Other: create subfolders with mkdir -p and move with mv -n (never overwrite files with the same name).\n3. Never delete any files.\n4. Finally, report how many files were moved into each category.",
+  "1. Sieh dir zuerst mit list_directory den Ordnerinhalt an und erkläre dem Nutzer, wie du sortieren willst.\n2. Sortiere nach Bilder / Dokumente / Installer / Archive / Videos / Audio / Sonstiges: Unterordner mit mkdir -p anlegen, mit mv -n verschieben (gleichnamige Dateien nie überschreiben).\n3. Niemals Dateien löschen.\n4. Berichte am Ende, wie viele Dateien pro Kategorie verschoben wurden."
+ ],
+ "1. 用 web_search 搜索主题（必要时换 2~3 个关键词）。\n2. 选 3~5 个最相关、最可靠的结果，用 browser_open 打开阅读。\n3. 整理成：一句话结论 → 要点（每条注明来自哪个网站）→ 不同说法或需要注意的地方 → 来源链接列表。\n4. 不要编造网页里没有的内容。": [
+  "1. Search the topic with web_search (try 2–3 different keywords if needed).\n2. Pick the 3–5 most relevant and reliable results and read them with browser_open.\n3. Summarize as: one-sentence conclusion → key points (note which site each came from) → differing views or caveats → list of source links.\n4. Don’t make up anything that isn’t on the pages.",
+  "1. Suche das Thema mit web_search (bei Bedarf 2–3 verschiedene Suchbegriffe).\n2. Wähle die 3–5 relevantesten und verlässlichsten Ergebnisse und lies sie mit browser_open.\n3. Fasse zusammen: Fazit in einem Satz → Kernpunkte (jeweils mit Quelle) → abweichende Meinungen oder Hinweise → Liste der Quellenlinks.\n4. Erfinde nichts, was nicht auf den Seiten steht."
+ ],
+ "1. 确认照片所在文件夹和想要的风格（用户没说风格就用「自动优化，让照片自然好看」）。\n2. 用 photo_edit 处理，paths 填文件夹路径。\n3. 汇报修了几张、导出到哪里，并提醒用户可以在「修图」页继续微调。": [
+  "1. Confirm the folder with the photos and the desired style (if the user didn’t say, use “Auto-enhance for a natural, pleasing look”).\n2. Process them with photo_edit, passing the folder path in paths.\n3. Report how many were edited and where they were exported, and remind the user they can fine-tune them on the Photo page.",
+  "1. Kläre den Ordner mit den Fotos und den gewünschten Stil (ohne Angabe: „Automatisch optimieren für einen natürlichen, schönen Look“).\n2. Bearbeite sie mit photo_edit und gib den Ordnerpfad in paths an.\n3. Berichte, wie viele bearbeitet und wohin sie exportiert wurden, und weise auf die Feinjustierung auf der Foto-Seite hin."
+ ],
+ "16:9 横屏": [
+  "16:9 landscape",
+  "16:9 Querformat"
+ ],
+ "16GB 内存的好选择": [
+  "A good choice for 16 GB RAM",
+  "Gute Wahl für 16 GB RAM"
+ ],
+ "16GB 内存的通用模型": [
+  "General model for 16 GB RAM",
+  "Allround-Modell für 16 GB RAM"
+ ],
+ "1:1 方形": [
+  "1:1 square",
+  "1:1 Quadrat"
+ ],
+ "32GB 内存能跑的编程模型": [
+  "Coding model that runs with 32 GB RAM",
+  "Programmiermodell, läuft mit 32 GB RAM"
+ ],
+ "480p（快，适合试效果）": [
+  "480p (fast, good for trying ideas)",
+  "480p (schnell, gut zum Ausprobieren)"
+ ],
+ "768p（最清晰，模型原生）": [
+  "768p (sharpest, model native)",
+  "768p (am schärfsten, native Auflösung)"
+ ],
+ "8GB 内存也能跑": [
+  "Runs even with 8 GB RAM",
+  "Läuft schon mit 8 GB RAM"
+ ],
+ "9:16 竖屏": [
+  "9:16 portrait",
+  "9:16 Hochformat"
+ ],
+ "AI 优化": [
+  "AI improve",
+  "KI verbessern"
+ ],
+ "AI 修图": [
+  "AI Edit",
+  "KI-Bearbeitung"
+ ],
+ "AI 修图完成": [
+  "AI edit finished",
+  "KI-Bearbeitung abgeschlossen"
+ ],
+ "AI 修图（%lld 张）": [
+  "AI Edit (%lld photos)",
+  "KI-Bearbeitung (%lld Fotos)"
+ ],
+ "AI 修图：第 %lld/%lld 组 · %@": [
+  "AI Edit: group %1$lld/%2$lld · %3$@",
+  "KI-Bearbeitung: Gruppe %1$lld/%2$lld · %3$@"
+ ],
+ "AI 先说出照片的场景和问题，给 3 个带解释的方案，你选一个再决定在哪里继续修": [
+  "The AI describes the scene and problems and offers 3 explained plans — pick one, then choose where to keep editing",
+  "Die KI beschreibt Szene und Probleme und schlägt 3 erklärte Varianten vor – wähle eine und dann, wo du weiterbearbeitest"
+ ],
+ "AI 关键词": [
+  "AI Keywords",
+  "KI-Stichwörter"
+ ],
+ "AI 关键词和描述": [
+  "AI Keywords & Captions",
+  "KI-Stichwörter & Beschreibung"
+ ],
+ "AI 可以运行快捷指令和 AppleScript、读取程序窗口里的按钮和输入框并点击、输入，必要时截屏查看。每次点击和输入都会先问你（除非本对话设为「都允许」）。": [
+  "The AI can run Shortcuts and AppleScript, read buttons and text fields in app windows, click and type, and take screenshots when needed. It asks before every click and keystroke (unless you allow all for this chat).",
+  "Die KI kann Kurzbefehle und AppleScript ausführen, Tasten und Eingabefelder in App-Fenstern lesen, klicken, tippen und bei Bedarf Bildschirmfotos machen. Vor jedem Klick und jeder Eingabe fragt sie nach (außer du erlaubst alles für diesen Chat)."
+ ],
+ "AI 已修": [
+  "AI edited",
+  "KI-bearbeitet"
+ ],
+ "AI 想要执行这个操作，允许吗？": [
+  "The AI wants to do this. Allow it?",
+  "Die KI möchte Folgendes ausführen. Erlauben?"
+ ],
+ "AI 推荐": [
+  "AI suggestion",
+  "KI-Vorschlag"
+ ],
+ "AI 正在消除…": [
+  "AI is removing…",
+  "KI entfernt …"
+ ],
+ "AI 正在看这张照片…": [
+  "The AI is looking at this photo…",
+  "Die KI sieht sich das Foto an …"
+ ],
+ "AI 正在识别照片…": [
+  "The AI is analyzing the photo…",
+  "Die KI analysiert das Foto …"
+ ],
+ "AI 没有返回结果（退出码 %d）": [
+  "The AI returned no result (exit code %d)",
+  "Die KI hat kein Ergebnis geliefert (Exit-Code %d)"
+ ],
+ "AI 消除": [
+  "AI Remove",
+  "KI-Entfernen"
+ ],
+ "AI 的分析": [
+  "AI Analysis",
+  "KI-Analyse"
+ ],
+ "AI 绘图": [
+  "AI Image",
+  "KI-Bild"
+ ],
+ "AI 视频": [
+  "AI Video",
+  "KI-Video"
+ ],
+ "AI 记住你的偏好和习惯，每次对话都用得上": [
+  "The AI remembers your preferences and habits and uses them in every chat",
+  "Die KI merkt sich deine Vorlieben und Gewohnheiten und nutzt sie in jedem Chat"
+ ],
+ "AI 识别和推荐": [
+  "AI analysis & suggestions",
+  "KI-Analyse & Vorschläge"
+ ],
+ "AI 选片": [
+  "AI Culling",
+  "KI-Auswahl"
+ ],
+ "AI 选片（打分、找废片）": [
+  "AI Culling (rate photos, find rejects)",
+  "KI-Auswahl (bewerten, Ausschuss finden)"
+ ],
+ "API 地址": [
+  "API URL",
+  "API-Adresse"
+ ],
+ "Anthropic 官方技能库（文档、PDF、表格、设计等）": [
+  "Anthropic’s official skills (documents, PDF, spreadsheets, design…)",
+  "Offizielle Skills von Anthropic (Dokumente, PDF, Tabellen, Design…)"
+ ],
+ "ComfyUI 启动超时，可以打开 Comfy Desktop 看看有没有报错。": [
+  "ComfyUI took too long to start – open Comfy Desktop to check for errors.",
+  "ComfyUI startet zu langsam – öffne Comfy Desktop, um nach Fehlern zu sehen."
+ ],
+ "ComfyUI 在线（端口 %@）": [
+  "ComfyUI online (port %@)",
+  "ComfyUI online (Port %@)"
+ ],
+ "ComfyUI 在线（端口 %lld）": [
+  "ComfyUI online (port %lld)",
+  "ComfyUI online (Port %lld)"
+ ],
+ "ComfyUI 未运行（生成时会自动在后台启动）": [
+  "ComfyUI not running (starts automatically in the background when generating)",
+  "ComfyUI läuft nicht (startet beim Generieren automatisch im Hintergrund)"
+ ],
+ "ComfyUI 没有启动": [
+  "ComfyUI didn't start",
+  "ComfyUI wurde nicht gestartet"
+ ],
+ "ComfyUI 没有接受这个任务": [
+  "ComfyUI didn’t accept this job",
+  "ComfyUI hat den Auftrag nicht angenommen"
+ ],
+ "ComfyUI 里没有找到 MiniMax H3 模型": [
+  "No MiniMax H3 model found in ComfyUI",
+  "Kein MiniMax-H3-Modell in ComfyUI gefunden"
+ ],
+ "ComfyUI 里没有找到 MiniMax H3 模型文件。请先在 Comfy Desktop 里下载 H3。": [
+  "No MiniMax H3 model files found in ComfyUI. Please download H3 in Comfy Desktop first.",
+  "Keine MiniMax-H3-Modelldateien in ComfyUI gefunden. Bitte H3 zuerst in Comfy Desktop laden."
+ ],
+ "GitHub 访问次数暂时用完了（每小时 60 次），请过一会儿再试。": [
+  "GitHub’s request limit is used up for now (60 per hour). Please try again later.",
+  "Das GitHub-Anfragelimit ist vorerst aufgebraucht (60 pro Stunde). Bitte später erneut versuchen."
+ ],
+ "GitHub 返回错误 %lld": [
+  "GitHub returned error %lld",
+  "GitHub meldet Fehler %lld"
+ ],
+ "Google Gemma 4 中型，能看图": [
+  "Mid-size Google Gemma 4, sees images",
+  "Mittelgroßes Google Gemma 4, sieht Bilder"
+ ],
+ "Google Gemma 4 大模型，能看图": [
+  "Google Gemma 4 large model, sees images",
+  "Großes Google-Gemma-4-Modell, sieht Bilder"
+ ],
+ "Google Gemma 4，速度快，能看图": [
+  "Google Gemma 4, fast, sees images",
+  "Google Gemma 4, schnell, sieht Bilder"
+ ],
+ "HSL 颜色": [
+  "HSL Color",
+  "HSL-Farbe"
+ ],
+ "Intel 芯片的 Mac 不能在本机生成视频。其他功能都可以正常使用。": [
+  "Intel Macs can't generate videos locally. Everything else works normally.",
+  "Intel-Macs können Videos nicht lokal erzeugen. Alles andere funktioniert normal."
+ ],
+ "LM Studio 已经安装，但它的本地服务没开。点「启动」即可。": [
+  "LM Studio is installed but its local server isn’t running. Click “Start”.",
+  "LM Studio ist installiert, aber der lokale Server läuft nicht. Klicke auf „Starten“."
+ ],
+ "LM Studio 本地服务在线（127.0.0.1:1234）": [
+  "LM Studio local server online (127.0.0.1:1234)",
+  "LM Studio lokaler Server online (127.0.0.1:1234)"
+ ],
+ "LM Studio 本地服务没有运行": [
+  "LM Studio local server is not running",
+  "Der lokale LM-Studio-Server läuft nicht"
+ ],
+ "LM Studio 返回错误 %lld：%@": [
+  "LM Studio returned error %1$lld: %2$@",
+  "LM Studio meldet Fehler %1$lld: %2$@"
+ ],
+ "LUT 已保存到「图片/Toolula AI/LUTs」。\n\n• Photoshop：图层 → 新建调整图层 → 颜色查找 → 载入 3D LUT\n• Luminar Neo：编辑 → LUT 映射 → 载入自定义 LUT\n\n清晰度、纹理、暗角、颗粒这类效果放不进 LUT。": [
+  "LUT saved to “Pictures/Toolula AI/LUTs”.\n\n• Photoshop: Layer → New Adjustment Layer → Color Lookup → Load 3D LUT\n• Luminar Neo: Edit → LUT Mapping → Load custom LUT\n\nClarity, texture, vignette and grain can’t be stored in a LUT.",
+  "LUT gespeichert unter „Bilder/Toolula AI/LUTs“.\n\n• Photoshop: Ebene → Neue Einstellungsebene → Color Lookup → 3D-LUT laden\n• Luminar Neo: Bearbeiten → LUT-Mapping → Eigene LUT laden\n\nKlarheit, Struktur, Vignette und Körnung können nicht in einer LUT gespeichert werden."
+ ],
+ "LUT 已保存：%@": [
+  "LUT saved: %@",
+  "LUT gespeichert: %@"
+ ],
+ "Lightroom Classic（可调参数）": [
+  "Lightroom Classic (adjustable settings)",
+  "Lightroom Classic (anpassbare Regler)"
+ ],
+ "Lightroom Classic（未安装）": [
+  "Lightroom Classic (not installed)",
+  "Lightroom Classic (nicht installiert)"
+ ],
+ "Luminar Neo（未安装）": [
+  "Luminar Neo (not installed)",
+  "Luminar Neo (nicht installiert)"
+ ],
+ "Luminar Neo（调好色的 16 位 TIFF）": [
+  "Luminar Neo (graded 16-bit TIFF)",
+  "Luminar Neo (bearbeitetes 16-Bit-TIFF)"
+ ],
+ "Photoshop（Camera Raw，可调参数）": [
+  "Photoshop (Camera Raw, adjustable settings)",
+  "Photoshop (Camera Raw, anpassbare Regler)"
+ ],
+ "Photoshop（未安装）": [
+  "Photoshop (not installed)",
+  "Photoshop (nicht installiert)"
+ ],
+ "Python 安装失败": [
+  "Python installation failed",
+  "Python-Installation fehlgeschlagen"
+ ],
+ "Python 运行环境": [
+  "Python runtime",
+  "Python-Laufzeit"
+ ],
+ "Toolula AI 修图": [
+  "Toolula AI Photo",
+  "Toolula AI Foto"
+ ],
+ "Toolula AI 修图/导出": [
+  "Toolula AI/Export",
+  "Toolula AI/Export"
+ ],
+ "Toolula AI 正在操作「%@」": [
+  "Toolula AI is controlling “%@”",
+  "Toolula AI steuert „%@“"
+ ],
+ "Toolula AI修图": [
+  "Toolula AI/Lightroom",
+  "Toolula AI/Lightroom"
+ ],
+ "Toolula 会检测这台 Mac，自动下载适合它的 AI 引擎和模型，不需要另外安装软件。内存较小的电脑也可以直接连接云端 API。": [
+  "Toolula checks this Mac and downloads the right AI engine and models automatically — no other software needed. Macs with little memory can connect a cloud API instead.",
+  "Toolula prüft diesen Mac und lädt automatisch die passende KI-Engine und Modelle – keine weitere Software nötig. Macs mit wenig Arbeitsspeicher können stattdessen eine Cloud-API verbinden."
+ ],
+ "Toolula 内置 AI 引擎已安装": [
+  "Toolula built-in AI engine installed",
+  "Integrierte KI-Engine von Toolula installiert"
+ ],
+ "Toolula 内置 AI 引擎（llama.cpp）已安装，用到时自动启动，空闲 15 分钟自动释放内存": [
+  "Toolula built-in AI engine (llama.cpp) installed — starts when needed and frees memory after 15 idle minutes",
+  "Integrierte KI-Engine (llama.cpp) installiert – startet bei Bedarf und gibt nach 15 Minuten Leerlauf den Speicher frei"
+ ],
+ "Toolula 检测了这台 Mac，下面是需要安装的内容。全部由 Toolula 自动下载安装，不需要你另外装软件。": [
+  "Toolula checked this Mac. Below is what needs to be installed — Toolula downloads and installs everything for you, no other software needed.",
+  "Toolula hat diesen Mac geprüft. Unten steht, was installiert werden muss – Toolula lädt und installiert alles selbst, keine weitere Software nötig."
+ ],
+ "Toolula 浏览器": [
+  "Toolula Browser",
+  "Toolula Browser"
+ ],
+ "Toolula 用 LM Studio 在本机运行 AI 模型。安装好后回来，就能下载推荐给这台电脑的模型。也可以先连接云端 API。": [
+  "Toolula runs AI models on this Mac with LM Studio. Once it’s installed, come back to download models recommended for this computer. You can also connect a cloud API first.",
+  "Toolula führt KI-Modelle mit LM Studio auf diesem Mac aus. Nach der Installation kannst du hier die für diesen Computer empfohlenen Modelle laden. Du kannst auch zuerst eine Cloud-API verbinden."
+ ],
+ "uv 安装失败": [
+  "uv installation failed",
+  "uv-Installation fehlgeschlagen"
+ ],
+ "⚠️ AI 会在无人确认的情况下执行命令。只给你信任的任务打开，并在任务里写清楚不要删除文件。": [
+  "⚠️ The AI will run commands without anyone confirming. Only enable this for tasks you trust, and state clearly in the task not to delete files.",
+  "⚠️ Die KI führt Befehle ohne Bestätigung aus. Nur für vertrauenswürdige Aufgaben aktivieren und in der Aufgabe klar schreiben, dass keine Dateien gelöscht werden dürfen."
+ ],
+ "✓ 修图模型": [
+  "✓ Photo model",
+  "✓ Foto-Modell"
+ ],
+ "✓ 对话默认": [
+  "✓ Chat default",
+  "✓ Chat-Standard"
+ ],
+ "✓ 已连接": [
+  "✓ Connected",
+  "✓ Verbunden"
+ ],
+ "【二次检查】": [
+  "[Second check]",
+  "[Zweite Prüfung]"
+ ],
+ "一次画 %lld 张": [
+  "%lld image(s) at once",
+  "%lld Bild(er) auf einmal"
+ ],
+ "一键安装": [
+  "Install All",
+  "Alles installieren"
+ ],
+ "上下文 %lldK": [
+  "Context %lldK",
+  "Kontext %lldK"
+ ],
+ "上传首帧图片…": [
+  "Uploading first frame…",
+  "Erstes Bild wird hochgeladen…"
+ ],
+ "上次运行：": [
+  "Last run: ",
+  "Zuletzt ausgeführt: "
+ ],
+ "上网搜索": [
+  "Web search",
+  "Websuche"
+ ],
+ "上网搜索一个主题，读几篇资料，整理成带来源链接的总结": [
+  "Search the web for a topic, read several sources and summarize with source links",
+  "Ein Thema im Web suchen, mehrere Quellen lesen und mit Quellenlinks zusammenfassen"
+ ],
+ "下载": [
+  "Download",
+  "Laden"
+ ],
+ "下载 Comfy Desktop": [
+  "Download Comfy Desktop",
+  "Comfy Desktop laden"
+ ],
+ "下载 ComfyUI…": [
+  "Downloading ComfyUI…",
+  "ComfyUI wird geladen …"
+ ],
+ "下载 LM Studio": [
+  "Download LM Studio",
+  "LM Studio laden"
+ ],
+ "下载中…": [
+  "Downloading…",
+  "Wird geladen…"
+ ],
+ "下载任务": [
+  "Downloads",
+  "Downloads"
+ ],
+ "下载内置 AI 引擎…": [
+  "Downloading built-in AI engine…",
+  "Integrierte KI-Engine wird geladen …"
+ ],
+ "下载到 LM Studio 的模型文件夹，完成后在「本地模型」里就能用（如果没出现，重新打开 Bionic）。断网或取消后再点下载会接着下。": [
+  "Downloads go to LM Studio’s models folder; when finished they appear under “Local models” (if not, reopen Bionic). After a disconnect or cancel, click Download again to resume.",
+  "Downloads landen im Modellordner von LM Studio; danach erscheinen sie unter „Lokale Modelle“ (sonst Bionic neu öffnen). Nach Abbruch erneut auf Laden klicken, um fortzusetzen."
+ ],
+ "下载图片模型 %@…": [
+  "Downloading image model %@…",
+  "Bildmodell %@ wird geladen …"
+ ],
+ "下载失败": [
+  "Download failed",
+  "Download fehlgeschlagen"
+ ],
+ "下载失败：%@（再点下载会接着下）": [
+  "Download failed: %@ (click Download again to resume)",
+  "Download fehlgeschlagen: %@ (erneut auf Laden klicken, um fortzusetzen)"
+ ],
+ "下载安装工具…": [
+  "Downloading installer tools…",
+  "Installationswerkzeuge werden geladen …"
+ ],
+ "下载完成后在「本地模型」里就能用。断网或取消后再点下载会接着下。": [
+  "Once downloaded, it's available under “Local Models”. If interrupted, click Download again to resume.",
+  "Nach dem Download unter „Lokale Modelle“ verfügbar. Bei Abbruch erneut auf Laden klicken, um fortzusetzen."
+ ],
+ "下载新模型": [
+  "Download models",
+  "Modelle laden"
+ ],
+ "下载更多模型（打开 Bionic）": [
+  "Download more models (open Bionic)",
+  "Weitere Modelle laden (Bionic öffnen)"
+ ],
+ "下载本地模型或连接云端 API，选择对话、修图、绘图和视频用的模型": [
+  "Download local models or connect a cloud API; choose models for chat, photo editing, images and video",
+  "Lokale Modelle laden oder eine Cloud-API verbinden; Modelle für Chat, Bildbearbeitung, Bilder und Video wählen"
+ ],
+ "下载本地模型或连接云端 API，选择对话和修图用的模型": [
+  "Download local models or connect cloud APIs, and choose models for chat and photos",
+  "Lokale Modelle laden oder Cloud-APIs verbinden und Modelle für Chat und Fotos wählen"
+ ],
+ "下载模型 %@…": [
+  "Downloading model %@…",
+  "Modell %@ wird geladen …"
+ ],
+ "下载消除模型：%@ / 216 MB": [
+  "Downloading removal model: %@ / 216 MB",
+  "Entfernungsmodell wird geladen: %@ / 216 MB"
+ ],
+ "下载第一个模型": [
+  "Download your first model",
+  "Erstes Modell laden"
+ ],
+ "下载网络脚本并直接运行": [
+  "Downloads a web script and runs it directly",
+  "Lädt ein Web-Skript und führt es direkt aus"
+ ],
+ "下载视频模型 %@…": [
+  "Downloading video model %@…",
+  "Videomodell %@ wird geladen …"
+ ],
+ "不思考（快）": [
+  "No thinking (fast)",
+  "Kein Nachdenken (schnell)"
+ ],
+ "不支持": [
+  "Not supported",
+  "Nicht unterstützt"
+ ],
+ "不能替用户输入密码。请让用户自己在 Toolula 浏览器里登录。": [
+  "Passwords can’t be typed for the user. Ask the user to log in themselves in the Toolula Browser.",
+  "Passwörter werden nicht für den Nutzer eingegeben. Bitte den Nutzer, sich selbst im Toolula Browser anzumelden."
+ ],
+ "中小型通用模型": [
+  "Small-to-mid general model",
+  "Kleines bis mittleres Allround-Modell"
+ ],
+ "中文英文都可以；想在图里出现的文字用引号括起来": [
+  "Any language; put text that should appear in the image in quotes",
+  "Jede Sprache; Text, der im Bild erscheinen soll, in Anführungszeichen setzen"
+ ],
+ "为这台电脑推荐": [
+  "Recommended for this Mac",
+  "Empfohlen für diesen Mac"
+ ],
+ "主体": [
+  "Subject",
+  "Motiv"
+ ],
+ "主页": [
+  "Home",
+  "Start"
+ ],
+ "也可以直接在下面的滑块里继续微调。": [
+  "You can also fine-tune with the sliders below.",
+  "Du kannst auch unten mit den Reglern feinjustieren."
+ ],
+ "二次检查（更准，时间约翻倍）": [
+  "Second check (more accurate, about twice as slow)",
+  "Zweite Prüfung (genauer, etwa doppelt so lang)"
+ ],
+ "云端": [
+  "Cloud",
+  "Cloud"
+ ],
+ "云端 API": [
+  "Cloud APIs",
+  "Cloud-APIs"
+ ],
+ "亮调": [
+  "Lights",
+  "Lichter"
+ ],
+ "人像通透：肤色干净红润，提亮面部，柔化皮肤": [
+  "Clear portrait: clean, rosy skin, brighter face, softer skin",
+  "Klares Porträt: saubere, rosige Haut, helleres Gesicht, weichere Haut"
+ ],
+ "人物": [
+  "People",
+  "Personen"
+ ],
+ "人脸": [
+  "Faces",
+  "Gesichter"
+ ],
+ "什么时候运行": [
+  "When to run",
+  "Wann ausführen"
+ ],
+ "从 GitHub 添加": [
+  "Add from GitHub",
+  "Von GitHub hinzufügen"
+ ],
+ "从 GitHub 添加技能": [
+  "Add Skills from GitHub",
+  "Skills von GitHub hinzufügen"
+ ],
+ "从 Hugging Face 下载（MLX 格式，专为 Apple 芯片优化）": [
+  "Download from Hugging Face (MLX format, optimized for Apple silicon)",
+  "Von Hugging Face laden (MLX-Format, für Apple-Chips optimiert)"
+ ],
+ "从列表移除": [
+  "Remove from list",
+  "Aus Liste entfernen"
+ ],
+ "从这张图开始动起来": [
+  "Animate starting from this image",
+  "Ab diesem Bild animieren"
+ ],
+ "仓库": [
+  "Repositories",
+  "Repositories"
+ ],
+ "以后再说": [
+  "Later",
+  "Später"
+ ],
+ "优化提示词失败（对话模型没有响应）": [
+  "Couldn’t improve the prompt (chat model didn’t respond)",
+  "Prompt konnte nicht verbessert werden (Chat-Modell antwortet nicht)"
+ ],
+ "会写字": [
+  "Renders text",
+  "Kann Text"
+ ],
+ "会用工具": [
+  "Uses tools",
+  "Nutzt Werkzeuge"
+ ],
+ "作为视频的第一帧": [
+  "Use as Video First Frame",
+  "Als ersten Videoframe verwenden"
+ ],
+ "使用云端模型时，对话内容（包括图片和文件内容）会发送给对应的服务商；本地模型则完全不出这台电脑。": [
+  "With cloud models, your chat (including images and file contents) is sent to that provider; local models never leave this Mac.",
+  "Bei Cloud-Modellen wird der Chat (inklusive Bilder und Dateiinhalte) an den Anbieter gesendet; lokale Modelle verlassen diesen Mac nie."
+ ],
+ "使用技能": [
+  "Use skill",
+  "Skill verwenden"
+ ],
+ "使用长期记忆（新对话会带上下面这些信息）": [
+  "Use long-term memory (new chats include the items below)",
+  "Langzeitgedächtnis verwenden (neue Chats enthalten die Einträge unten)"
+ ],
+ "保存": [
+  "Save",
+  "Sichern"
+ ],
+ "保存图片…": [
+  "Saving image…",
+  "Bild wird gespeichert …"
+ ],
+ "保存新技能": [
+  "Save new skill",
+  "Neuen Skill sichern"
+ ],
+ "保存视频…": [
+  "Saving video…",
+  "Video wird gespeichert…"
+ ],
+ "修图": [
+  "Photo",
+  "Foto"
+ ],
+ "修图功能不可用": [
+  "Photo editing is not available",
+  "Fotobearbeitung ist nicht verfügbar"
+ ],
+ "修图功能需要 Python。请打开设置向导一键安装。": [
+  "Photo editing needs Python. Open the Setup Assistant to install it in one click.",
+  "Die Bildbearbeitung braucht Python. Öffne den Einrichtungsassistenten, um es mit einem Klick zu installieren."
+ ],
+ "修图功能需要的 Python 已就绪": [
+  "Python for photo editing is ready",
+  "Python für die Bildbearbeitung ist bereit"
+ ],
+ "修图和 Lightroom 插件需要；这台 Mac 没有装 Xcode 命令行工具": [
+  "Needed for photo editing and the Lightroom plug-in; this Mac doesn't have the Xcode Command Line Tools",
+  "Nötig für Bildbearbeitung und das Lightroom-Plug-in; auf diesem Mac fehlen die Xcode-Befehlszeilentools"
+ ],
+ "修图效果": [
+  "Edited",
+  "Bearbeitet"
+ ],
+ "修图模块正在忙，请稍后再试": [
+  "Photo editing is busy, please try again later",
+  "Die Fotobearbeitung ist beschäftigt, bitte später erneut versuchen"
+ ],
+ "修好了 %lld/%lld 张，导出 %lld 张到 %@": [
+  "Edited %1$lld/%2$lld photos, exported %3$lld to %4$@",
+  "%1$lld/%2$lld Fotos bearbeitet, %3$lld nach %4$@ exportiert"
+ ],
+ "修正偏黄 / 偏色，还原真实颜色": [
+  "Fix yellow / color cast, restore true colors",
+  "Gelbstich / Farbstich korrigieren, echte Farben wiederherstellen"
+ ],
+ "停止": [
+  "Stop",
+  "Stopp"
+ ],
+ "允许": [
+  "Allow",
+  "Erlauben"
+ ],
+ "允许 AI 在聊天中自动记住新信息": [
+  "Let the AI remember new things automatically while chatting",
+  "KI darf sich im Chat automatisch Neues merken"
+ ],
+ "允许 AI 操作电脑上的程序": [
+  "Let the AI control apps on this Mac",
+  "KI darf Apps auf diesem Mac steuern"
+ ],
+ "允许直接执行命令和写文件（没有人确认）": [
+  "Allow running commands and writing files directly (no confirmation)",
+  "Befehle und Schreiben von Dateien direkt erlauben (ohne Bestätigung)"
+ ],
+ "先在左边选一个仓库": [
+  "Pick a repository on the left first",
+  "Wähle zuerst links ein Repository"
+ ],
+ "先让 AI 识别照片，推荐修法": [
+  "Let the AI analyze the photo and suggest edits",
+  "Foto von der KI analysieren und Bearbeitung vorschlagen lassen"
+ ],
+ "全能（对话 + 看图 + 修图）": [
+  "All-round (chat + images + photo editing)",
+  "Allrounder (Chat + Bilder + Fotobearbeitung)"
+ ],
+ "全部": [
+  "All",
+  "Alle"
+ ],
+ "全部清空": [
+  "Clear All",
+  "Alles löschen"
+ ],
+ "全部清空…": [
+  "Clear All…",
+  "Alles löschen…"
+ ],
+ "全部统一": [
+  "Same for all",
+  "Alle gleich"
+ ],
+ "共需下载 %@ · 硬盘剩余 %@": [
+  "Download total %@ · %@ free on disk",
+  "Download gesamt %@ · %@ frei auf dem Laufwerk"
+ ],
+ "关闭时 AI 只能查看文件夹、读文件、修图和发通知，不能执行命令或改文件。": [
+  "When off, the AI can only view folders, read files, edit photos and send notifications. It cannot run commands or change files.",
+  "Wenn aus, kann die KI nur Ordner ansehen, Dateien lesen, Fotos bearbeiten und Mitteilungen senden – keine Befehle ausführen oder Dateien ändern."
+ ],
+ "具体步骤": [
+  "Steps",
+  "Schritte"
+ ],
+ "内存": [
+  "Memory",
+  "Arbeitsspeicher"
+ ],
+ "内存 %lld GB": [
+  "RAM %lld GB",
+  "RAM %lld GB"
+ ],
+ "内存不够": [
+  "Not enough memory",
+  "Zu wenig Speicher"
+ ],
+ "内存已用 %lld / %lld GB": [
+  "Memory used %1$lld / %2$lld GB",
+  "Arbeitsspeicher belegt %1$lld / %2$lld GB"
+ ],
+ "内容是空的": [
+  "The text is empty",
+  "Der Text ist leer"
+ ],
+ "内置 AI 引擎启动失败，详情见 llama.log": [
+  "The built-in AI engine failed to start, see llama.log",
+  "Die integrierte KI-Engine konnte nicht starten, siehe llama.log"
+ ],
+ "内置 AI 引擎还没有安装，请先打开设置向导。": [
+  "The built-in AI engine isn't installed yet. Please open the Setup Assistant first.",
+  "Die integrierte KI-Engine ist noch nicht installiert. Bitte zuerst den Einrichtungsassistenten öffnen."
+ ],
+ "内置 AI 引擎（llama.cpp，开源）": [
+  "Built-in AI engine (llama.cpp, open source)",
+  "Integrierte KI-Engine (llama.cpp, Open Source)"
+ ],
+ "内置引擎安装失败": [
+  "Built-in engine installation failed",
+  "Installation der integrierten Engine fehlgeschlagen"
+ ],
+ "写一个 Python 脚本，把一个文件夹里的图片批量缩小到 2000 像素": [
+  "Write a Python script that resizes all images in a folder to 2000 pixels",
+  "Schreib ein Python-Skript, das alle Bilder eines Ordners auf 2000 Pixel verkleinert"
+ ],
+ "写下你想要的效果，越具体越好": [
+  "Describe the look you want – the more specific, the better",
+  "Beschreibe den gewünschten Look – je genauer, desto besser"
+ ],
+ "写下想要的画面，本机的图片模型几十秒就能画出来。\n画好的图可以直接拿去修图，或者作为视频的第一帧。": [
+  "Describe the picture you want — a local image model draws it in under a minute.\nSend results straight to photo editing, or use them as a video's first frame.",
+  "Beschreibe das gewünschte Bild – ein lokales Bildmodell zeichnet es in unter einer Minute.\nErgebnisse direkt bearbeiten oder als ersten Frame eines Videos verwenden."
+ ],
+ "写下想要的画面，本机的图片模型几十秒画出来": [
+  "Describe a picture and a local image model draws it in under a minute",
+  "Bild beschreiben – ein lokales Bildmodell zeichnet es in unter einer Minute"
+ ],
+ "写下想要的画面，本机的图片模型几十秒画出来，能写中文": [
+  "Describe a picture and a local image model draws it in under a minute — even with Chinese text",
+  "Bild beschreiben – ein lokales Bildmodell zeichnet es in unter einer Minute, sogar mit chinesischem Text"
+ ],
+ "写代码 / 执行命令": [
+  "Coding / running commands",
+  "Programmieren / Befehle ausführen"
+ ],
+ "写代码、执行命令最强": [
+  "Best for coding and running commands",
+  "Am besten für Code und Befehle"
+ ],
+ "写入参数失败：%@": [
+  "Failed to write settings: %@",
+  "Einstellungen konnten nicht geschrieben werden: %@"
+ ],
+ "写入失败：%@": [
+  "Write failed: %@",
+  "Schreiben fehlgeschlagen: %@"
+ ],
+ "写入文件": [
+  "Write file",
+  "Datei schreiben"
+ ],
+ "写入文件 %@（%lld 字）": [
+  "Write file %1$@ (%2$lld characters)",
+  "Datei %1$@ schreiben (%2$lld Zeichen)"
+ ],
+ "准备中…": [
+  "Preparing…",
+  "Vorbereitung…"
+ ],
+ "准备发送到 Lightroom %lld/%lld": [
+  "Preparing for Lightroom %1$lld/%2$lld",
+  "Vorbereitung für Lightroom %1$lld/%2$lld"
+ ],
+ "准备发送到 Luminar Neo %lld/%lld（16 位 TIFF）": [
+  "Preparing for Luminar Neo %1$lld/%2$lld (16-bit TIFF)",
+  "Vorbereitung für Luminar Neo %1$lld/%2$lld (16-Bit-TIFF)"
+ ],
+ "准备发送到 Photoshop %lld/%lld": [
+  "Preparing for Photoshop %1$lld/%2$lld",
+  "Vorbereitung für Photoshop %1$lld/%2$lld"
+ ],
+ "准备模型…": [
+  "Preparing models…",
+  "Modelle werden vorbereitet…"
+ ],
+ "出错：%@": [
+  "Error: %@",
+  "Fehler: %@"
+ ],
+ "删除": [
+  "Delete",
+  "Löschen"
+ ],
+ "删除任务": [
+  "Delete task",
+  "Aufgabe löschen"
+ ],
+ "删除全部": [
+  "Delete All",
+  "Alle löschen"
+ ],
+ "删除全部 %lld 个对话？": [
+  "Delete all %lld chats?",
+  "Alle %lld Chats löschen?"
+ ],
+ "删除全部对话…": [
+  "Delete All Chats…",
+  "Alle Chats löschen…"
+ ],
+ "删除后无法恢复。": [
+  "This can’t be undone.",
+  "Das kann nicht rückgängig gemacht werden."
+ ],
+ "删除图片": [
+  "Delete Image",
+  "Bild löschen"
+ ],
+ "删除对话": [
+  "Delete chat",
+  "Chat löschen"
+ ],
+ "删除常用风格": [
+  "Delete saved style",
+  "Gespeicherten Stil löschen"
+ ],
+ "删除所有空对话": [
+  "Delete Empty Chats",
+  "Leere Chats löschen"
+ ],
+ "删除技能": [
+  "Delete skill",
+  "Skill löschen"
+ ],
+ "删除服务商": [
+  "Remove provider",
+  "Anbieter entfernen"
+ ],
+ "删除视频": [
+  "Delete video",
+  "Video löschen"
+ ],
+ "删除这个局部调整": [
+  "Delete this local adjustment",
+  "Diese lokale Anpassung löschen"
+ ],
+ "刷新": [
+  "Refresh",
+  "Aktualisieren"
+ ],
+ "前往": [
+  "Go",
+  "Gehe zu"
+ ],
+ "加载图片模型（第一次要几十秒）…": [
+  "Loading image model (first time takes a few dozen seconds)…",
+  "Bildmodell wird geladen (beim ersten Mal einige Sekunden) …"
+ ],
+ "加载视频模型（约 90GB，第一次要几分钟）…": [
+  "Loading video model (~90 GB, takes a few minutes the first time)…",
+  "Videomodell wird geladen (~90 GB, beim ersten Mal ein paar Minuten)…"
+ ],
+ "加速（Turbo，4 步出片）": [
+  "Turbo (4-step render)",
+  "Turbo (Rendern in 4 Schritten)"
+ ],
+ "助手": [
+  "Assistant",
+  "Assistent"
+ ],
+ "勾选要在 Toolula 里使用的模型：": [
+  "Check the models to use in Toolula:",
+  "Modelle auswählen, die in Toolula verfügbar sein sollen:"
+ ],
+ "包含 %lld 个脚本（AI 每次运行前都会征求你同意）": [
+  "Contains %lld scripts (the AI asks you before every run)",
+  "Enthält %lld Skripte (die KI fragt vor jeder Ausführung)"
+ ],
+ "卸载所有模型（释放内存）": [
+  "Unload all models (free memory)",
+  "Alle Modelle entladen (Speicher freigeben)"
+ ],
+ "原图": [
+  "Original",
+  "Original"
+ ],
+ "去允许": [
+  "Allow…",
+  "Erlauben …"
+ ],
+ "去朦胧": [
+  "Dehaze",
+  "Dunst entfernen"
+ ],
+ "参考图（可选）": [
+  "Reference image (optional)",
+  "Referenzbild (optional)"
+ ],
+ "参考我的修图习惯": [
+  "Use my editing habits",
+  "Meine Bearbeitungsgewohnheiten berücksichtigen"
+ ],
+ "双击恢复为 0": [
+  "Double-click to reset to 0",
+  "Doppelklick setzt auf 0 zurück"
+ ],
+ "发送到": [
+  "Send to",
+  "Senden an"
+ ],
+ "发送到 Lightroom": [
+  "Send to Lightroom",
+  "An Lightroom senden"
+ ],
+ "发送到 Lightroom / Photoshop 时，会发送已经修好的 16 位 TIFF（局部调整和消除无法写进它们的参数文件）。": [
+  "When sending to Lightroom / Photoshop, a finished 16-bit TIFF is sent (local adjustments and removals can't be stored in their settings files).",
+  "Beim Senden an Lightroom / Photoshop wird ein fertiges 16-Bit-TIFF gesendet (lokale Anpassungen und Entfernungen passen nicht in deren Einstellungsdateien)."
+ ],
+ "发送到 Luminar Neo（16 位 TIFF）": [
+  "Send to Luminar Neo (16-bit TIFF)",
+  "An Luminar Neo senden (16-Bit-TIFF)"
+ ],
+ "发送到 Luminar Neo（未安装）": [
+  "Send to Luminar Neo (not installed)",
+  "An Luminar Neo senden (nicht installiert)"
+ ],
+ "发送到 Photoshop（Camera Raw）": [
+  "Send to Photoshop (Camera Raw)",
+  "An Photoshop senden (Camera Raw)"
+ ],
+ "发送到 Photoshop（未安装）": [
+  "Send to Photoshop (not installed)",
+  "An Photoshop senden (nicht installiert)"
+ ],
+ "发送到其他软件继续编辑": [
+  "Send to another app to keep editing",
+  "Zum Weiterbearbeiten an andere App senden"
+ ],
+ "发送通知": [
+  "Send notification",
+  "Mitteilung senden"
+ ],
+ "取消": [
+  "Cancel",
+  "Abbrechen"
+ ],
+ "只在你点「立即运行」时执行。": [
+  "Runs only when you click “Run now”.",
+  "Wird nur ausgeführt, wenn du auf „Jetzt ausführen“ klickst."
+ ],
+ "只处理选好文件夹之后新放进去的文件，新文件的路径会自动附在任务后面。": [
+  "Only files added after choosing the folder are processed. Their paths are appended to the task automatically.",
+  "Nur Dateien, die nach der Ordnerauswahl hinzukommen, werden verarbeitet. Ihre Pfade werden automatisch an die Aufgabe angehängt."
+ ],
+ "只手动运行": [
+  "Manual only",
+  "Nur manuell"
+ ],
+ "只调某一块：例如提亮人脸、压暗天空找回云层、压暗背景突出主体。AI 会自动找出这些区域。": [
+  "Adjust just one area: brighten faces, darken the sky to recover clouds, darken the background to make the subject pop. The AI finds these areas automatically.",
+  "Nur einen Bereich anpassen: Gesichter aufhellen, Himmel abdunkeln, Hintergrund abdunkeln, damit das Motiv hervortritt. Die KI findet diese Bereiche automatisch."
+ ],
+ "可以跑小型本地模型，适合简单对话和看图；复杂任务可以同时连接一个云端 API。": [
+  "Small local models work here, good for simple chats and images; for complex tasks you can also connect a cloud API.",
+  "Kleine lokale Modelle laufen hier, gut für einfache Chats und Bilder; für komplexe Aufgaben kannst du zusätzlich eine Cloud-API verbinden."
+ ],
+ "可执行操作": [
+  "Can take actions",
+  "Darf handeln"
+ ],
+ "可用 %@": [
+  "%@ free",
+  "%@ frei"
+ ],
+ "可用 %@ / 共 %@": [
+  "%1$@ free of %2$@",
+  "%1$@ frei von %2$@"
+ ],
+ "同上，32GB 内存也能跑": [
+  "Same as above, runs with 32 GB RAM",
+  "Wie oben, läuft mit 32 GB RAM"
+ ],
+ "同上，更小": [
+  "Same as above, smaller",
+  "Wie oben, kleiner"
+ ],
+ "同上，更小更快": [
+  "Same as above, smaller and faster",
+  "Wie oben, kleiner und schneller"
+ ],
+ "同上，稍微小一点": [
+  "Same as above, a bit smaller",
+  "Wie oben, etwas kleiner"
+ ],
+ "同步到所选": [
+  "Sync to selected",
+  "Auf Auswahl übertragen"
+ ],
+ "名称": [
+  "Name",
+  "Name"
+ ],
+ "后台常驻（关闭窗口后在菜单栏继续运行）": [
+  "Run in background (keeps running in the menu bar after closing the window)",
+  "Im Hintergrund laufen (nach dem Schließen weiter in der Menüleiste)"
+ ],
+ "向网络发送数据": [
+  "Sends data over the network",
+  "Sendet Daten ins Netz"
+ ],
+ "启动": [
+  "Start",
+  "Starten"
+ ],
+ "启动图片引擎…": [
+  "Starting image engine…",
+  "Bild-Engine wird gestartet …"
+ ],
+ "启动视频引擎…": [
+  "Starting video engine…",
+  "Video-Engine wird gestartet…"
+ ],
+ "启用": [
+  "Enabled",
+  "Aktiviert"
+ ],
+ "和本地 AI 聊天，或让它执行命令、整理文件、写代码": [
+  "Chat with the local AI, or let it run commands, organize files and write code",
+  "Mit der lokalen KI chatten oder sie Befehle ausführen, Dateien ordnen und Code schreiben lassen"
+ ],
+ "图片和视频引擎（ComfyUI）已安装": [
+  "Image & video engine (ComfyUI) installed",
+  "Bild- & Video-Engine (ComfyUI) installiert"
+ ],
+ "图片和视频引擎（ComfyUI，开源）": [
+  "Image & video engine (ComfyUI, open source)",
+  "Bild- & Video-Engine (ComfyUI, Open Source)"
+ ],
+ "图片模型": [
+  "Image Model",
+  "Bildmodell"
+ ],
+ "图片模型已下载：%@": [
+  "Image models downloaded: %@",
+  "Bildmodelle geladen: %@"
+ ],
+ "图片模型（文字生成图片）": [
+  "Image Models (text to image)",
+  "Bildmodelle (Text zu Bild)"
+ ],
+ "图片模型：%@": [
+  "Image model: %@",
+  "Bildmodell: %@"
+ ],
+ "图片生成失败：%@": [
+  "Image generation failed: %@",
+  "Bilderzeugung fehlgeschlagen: %@"
+ ],
+ "图片生成好了": [
+  "Image is ready",
+  "Bild ist fertig"
+ ],
+ "图生视频": [
+  "Image to video",
+  "Bild zu Video"
+ ],
+ "在 Chrome 的 %@ 输入：%@": [
+  "In Chrome, type into %@: %@",
+  "In Chrome in %@ eingeben: %@"
+ ],
+ "在 Chrome 里点击 %@": [
+  "Click %@ in Chrome",
+  "In Chrome auf %@ klicken"
+ ],
+ "在 GitHub 上查看": [
+  "View on GitHub",
+  "Auf GitHub ansehen"
+ ],
+ "在「%@」按 %@": [
+  "Press %2$@ in “%1$@”",
+  "In „%1$@“ %2$@ drücken"
+ ],
+ "在「%@」点菜单：%@": [
+  "Choose menu in “%@”: %@",
+  "Menü in „%@“ wählen: %@"
+ ],
+ "在「%@」的 %@": [
+  "In “%@”, %@",
+  "In „%@“, %@"
+ ],
+ "在「%@」里点击 %@": [
+  "Click %2$@ in “%1$@”",
+  "In „%1$@“ auf %2$@ klicken"
+ ],
+ "在修图中打开": [
+  "Open in Photo Edit",
+  "In Bildbearbeitung öffnen"
+ ],
+ "在后台运行，不会打开额外的窗口": [
+  "Runs in the background, no extra windows",
+  "Läuft im Hintergrund, ohne zusätzliche Fenster"
+ ],
+ "在对话里输入「/%@ 具体要求」可以直接使用这个技能；AI 也会在合适的时候自己调用。": [
+  "Type “/%@ your request” in a chat to use this skill directly; the AI also uses it on its own when it fits.",
+  "Gib im Chat „/%@ deine Anfrage“ ein, um diesen Skill direkt zu nutzen; die KI nutzt ihn auch selbst, wenn er passt."
+ ],
+ "在当前光标位置": [
+  "At the cursor",
+  "An der Cursorposition"
+ ],
+ "在截图位置 (%lld, %lld) 点击": [
+  "Click at screenshot position (%lld, %lld)",
+  "An Bildschirmfoto-Position (%lld, %lld) klicken"
+ ],
+ "在本机运行对话和修图模型，不需要另外安装 LM Studio": [
+  "Runs chat and photo models on this Mac — no need to install LM Studio",
+  "Führt Chat- und Bildmodelle auf diesem Mac aus – LM Studio wird nicht benötigt"
+ ],
+ "在浏览器里搜索 GitHub": [
+  "Search GitHub in browser",
+  "GitHub im Browser durchsuchen"
+ ],
+ "在网页上点击 %@": [
+  "Click %@ on the web page",
+  "Auf der Webseite %@ anklicken"
+ ],
+ "在网页的 %@ 里输入：%@": [
+  "Type into %1$@ on the web page: %2$@",
+  "Auf der Webseite in %1$@ eingeben: %2$@"
+ ],
+ "在网页输入": [
+  "Type on web page",
+  "Auf Webseite eingeben"
+ ],
+ "在访达中打开": [
+  "Show in Finder",
+  "Im Finder zeigen"
+ ],
+ "在访达中打开图片文件夹": [
+  "Open image folder in Finder",
+  "Bilderordner im Finder öffnen"
+ ],
+ "在访达中打开模型文件夹": [
+  "Open models folder in Finder",
+  "Modellordner im Finder öffnen"
+ ],
+ "在访达中打开视频文件夹": [
+  "Open videos folder in Finder",
+  "Videoordner im Finder öffnen"
+ ],
+ "在访达中显示": [
+  "Show in Finder",
+  "Im Finder zeigen"
+ ],
+ "在访达中显示文件": [
+  "Show files in Finder",
+  "Dateien im Finder zeigen"
+ ],
+ "地址不对": [
+  "Invalid address",
+  "Ungültige Adresse"
+ ],
+ "基础": [
+  "Basic",
+  "Grundeinstellungen"
+ ],
+ "处理密钥或密码": [
+  "Handles keys or passwords",
+  "Verarbeitet Schlüssel oder Passwörter"
+ ],
+ "复制失败：%@": [
+  "Copy failed: %@",
+  "Kopieren fehlgeschlagen: %@"
+ ],
+ "复制设置": [
+  "Copy settings",
+  "Einstellungen kopieren"
+ ],
+ "外观": [
+  "Appearance",
+  "Erscheinungsbild"
+ ],
+ "外观：%@（点一下切换）": [
+  "Appearance: %@ (click to switch)",
+  "Erscheinungsbild: %@ (klicken zum Wechseln)"
+ ],
+ "多张照片": [
+  "Multiple photos",
+  "Mehrere Fotos"
+ ],
+ "夜景：压暗高光防过曝，提亮暗部，色彩干净": [
+  "Night scene: tame highlights, lift shadows, clean colors",
+  "Nachtaufnahme: Lichter bändigen, Schatten aufhellen, saubere Farben"
+ ],
+ "夜间模式": [
+  "Dark",
+  "Dunkel"
+ ],
+ "天空": [
+  "Sky",
+  "Himmel"
+ ],
+ "好": [
+  "OK",
+  "OK"
+ ],
+ "存为常用": [
+  "Save as favorite",
+  "Als Favorit speichern"
+ ],
+ "存成 Lightroom / Photoshop 预设": [
+  "Save as Lightroom / Photoshop preset",
+  "Als Lightroom-/Photoshop-Vorgabe sichern"
+ ],
+ "存成 Lightroom / Photoshop 预设…": [
+  "Save as Lightroom / Photoshop Preset…",
+  "Als Lightroom-/Photoshop-Vorgabe sichern…"
+ ],
+ "安全检查": [
+  "Safety check",
+  "Sicherheitsprüfung"
+ ],
+ "安装 PyTorch 和依赖（约 1 GB，需要几分钟）…": [
+  "Installing PyTorch and dependencies (about 1 GB, takes a few minutes)…",
+  "PyTorch und Abhängigkeiten werden installiert (ca. 1 GB, dauert einige Minuten) …"
+ ],
+ "安装 Python 环境…": [
+  "Setting up Python environment…",
+  "Python-Umgebung wird eingerichtet …"
+ ],
+ "安装 Python…": [
+  "Installing Python…",
+  "Python wird installiert …"
+ ],
+ "安装命令失败（%@，退出码 %@）：%@": [
+  "Install command failed (%@, exit code %@): %@",
+  "Installationsbefehl fehlgeschlagen (%@, Exit-Code %@): %@"
+ ],
+ "安装结果": [
+  "Results",
+  "Ergebnis"
+ ],
+ "完全在本机运行的 AI：聊天、执行命令、整理文件、修图、自动化": [
+  "AI that runs entirely on this Mac: chat, commands, file organizing, photo editing, automation",
+  "KI, die komplett auf diesem Mac läuft: Chat, Befehle, Dateien ordnen, Fotobearbeitung, Automatisierung"
+ ],
+ "完成": [
+  "Done",
+  "Fertig"
+ ],
+ "完成后发通知": [
+  "Notify when finished",
+  "Nach Abschluss benachrichtigen"
+ ],
+ "完成，%lld 张失败": [
+  "Done, %lld failed",
+  "Fertig, %lld fehlgeschlagen"
+ ],
+ "完成，可以在模型列表里使用了": [
+  "Done – ready to use in the model list",
+  "Fertig – in der Modellliste verfügbar"
+ ],
+ "对比": [
+  "Compare",
+  "Vergleich"
+ ],
+ "对比度": [
+  "Contrast",
+  "Kontrast"
+ ],
+ "对话": [
+  "Chat",
+  "Chat"
+ ],
+ "对话 · 修图 · 绘图": [
+  "Chat · Photos · Images",
+  "Chat · Fotos · Bilder"
+ ],
+ "对话和修图模型": [
+  "Chat & Photo Models",
+  "Chat- & Bildbearbeitungsmodelle"
+ ],
+ "对话和修图模型 · 为这台电脑推荐": [
+  "Chat & Photo Models · Recommended for this Mac",
+  "Chat- & Bildbearbeitungsmodelle · Empfohlen für diesen Mac"
+ ],
+ "对话和修图模型：%@": [
+  "Chat & photo model: %@",
+  "Chat- & Bildmodell: %@"
+ ],
+ "导出": [
+  "Export",
+  "Exportieren"
+ ],
+ "导出 %lld/%lld：%@": [
+  "Exporting %1$lld/%2$lld: %3$@",
+  "Exportiere %1$lld/%2$lld: %3$@"
+ ],
+ "导出 JPEG…": [
+  "Export JPEG…",
+  "JPEG exportieren…"
+ ],
+ "导出 JPEG（原尺寸）…": [
+  "Export JPEG (full size)…",
+  "JPEG exportieren (Originalgröße)…"
+ ],
+ "导出 JPEG（长边 2048，适合发图）…": [
+  "Export JPEG (2048 px long edge, for sharing)…",
+  "JPEG exportieren (2048 px lange Kante, zum Teilen)…"
+ ],
+ "导出 LUT…": [
+  "Export LUT…",
+  "LUT exportieren…"
+ ],
+ "导出 LUT（Photoshop / Luminar / 视频软件通用）": [
+  "Export LUT (for Photoshop / Luminar / video apps)",
+  "LUT exportieren (für Photoshop / Luminar / Video-Apps)"
+ ],
+ "导出到这里": [
+  "Export here",
+  "Hierhin exportieren"
+ ],
+ "导出完成，%lld 张失败": [
+  "Export finished, %lld failed",
+  "Export abgeschlossen, %lld fehlgeschlagen"
+ ],
+ "小巧快速，4 步出图，16GB 内存也能跑": [
+  "Small and fast, 4 steps per image, runs even with 16 GB",
+  "Klein und schnell, 4 Schritte pro Bild, läuft schon mit 16 GB"
+ ],
+ "小巧快速，能看图": [
+  "Small and fast, sees images",
+  "Klein und schnell, sieht Bilder"
+ ],
+ "小巧的 Gemma 4，能看图": [
+  "Small Gemma 4, sees images",
+  "Kleines Gemma 4, sieht Bilder"
+ ],
+ "小巧的看图模型": [
+  "Small vision model",
+  "Kleines Bildmodell"
+ ],
+ "小巧的看图模型，适合批量选片": [
+  "Small vision model, good for batch culling",
+  "Kleines Bildmodell, gut für Massenauswahl"
+ ],
+ "小而快": [
+  "Small and fast",
+  "Klein und schnell"
+ ],
+ "局部调整": [
+  "Local Adjustments",
+  "Lokale Anpassungen"
+ ],
+ "屏幕录制": [
+  "Screen Recording",
+  "Bildschirmaufnahme"
+ ],
+ "工作目录：%@": [
+  "Working folder: %@",
+  "Arbeitsordner: %@"
+ ],
+ "工程开发类技能": [
+  "Software engineering skills",
+  "Skills für Softwareentwicklung"
+ ],
+ "已 AI 消除 %lld 处": [
+  "%lld area(s) removed with AI",
+  "%lld Bereich(e) per KI entfernt"
+ ],
+ "已下载": [
+  "Downloaded",
+  "Geladen"
+ ],
+ "已下载的模型": [
+  "Downloaded models",
+  "Geladene Modelle"
+ ],
+ "已保存在钥匙串（输入新的可替换）": [
+  "Saved in Keychain (enter a new one to replace)",
+  "Im Schlüsselbund gesichert (neuen eingeben zum Ersetzen)"
+ ],
+ "已保存技能「%@」，以后可以直接使用（也可以在「技能」页修改）。": [
+  "Saved skill “%@”. You can use it any time (and edit it on the Skills page).",
+  "Skill „%@“ gesichert. Du kannst ihn jederzeit nutzen (und auf der Skill-Seite bearbeiten)."
+ ],
+ "已停止": [
+  "Stopped",
+  "Gestoppt"
+ ],
+ "已允许": [
+  "Allowed",
+  "Erlaubt"
+ ],
+ "已写入 %@": [
+  "Wrote %@",
+  "%@ geschrieben"
+ ],
+ "已删除这条记忆": [
+  "Memory deleted",
+  "Erinnerung gelöscht"
+ ],
+ "已加载到内存": [
+  "Loaded in memory",
+  "Im Speicher geladen"
+ ],
+ "已发送 %lld 张到 %@": [
+  "Sent %1$lld photos to %2$@",
+  "%1$lld Fotos an %2$@ gesendet"
+ ],
+ "已发送 %lld 张到 Lightroom（在导入窗口点「导入」）": [
+  "Sent %lld photos to Lightroom (click “Import” in the import window)",
+  "%lld Fotos an Lightroom gesendet (im Importfenster auf „Importieren“ klicken)"
+ ],
+ "已发送 %lld 张到 Luminar Neo（已带上 AI 的调色）": [
+  "Sent %lld photos to Luminar Neo (with the AI color grade)",
+  "%lld Fotos an Luminar Neo gesendet (mit KI-Farbbearbeitung)"
+ ],
+ "已发送 %lld 张到 Photoshop（会在 Camera Raw 里打开，AI 的参数已经填好）": [
+  "Sent %lld photos to Photoshop (they open in Camera Raw with the AI settings filled in)",
+  "%lld Fotos an Photoshop gesendet (sie öffnen sich in Camera Raw mit den KI-Einstellungen)"
+ ],
+ "已取消": [
+  "Cancelled",
+  "Abgebrochen"
+ ],
+ "已存成预设「%@」（重启 Lightroom / Photoshop 后可见）": [
+  "Saved preset “%@” (visible after restarting Lightroom / Photoshop)",
+  "Vorgabe „%@“ gesichert (nach Neustart von Lightroom / Photoshop sichtbar)"
+ ],
+ "已安装": [
+  "Installed",
+  "Installiert"
+ ],
+ "已导出 %lld 张": [
+  "Exported %lld photos",
+  "%lld Fotos exportiert"
+ ],
+ "已应用方案：%@": [
+  "Applied plan: %@",
+  "Variante angewendet: %@"
+ ],
+ "已找到 MiniMax H3 模型%@": [
+  "MiniMax H3 model found%@",
+  "MiniMax-H3-Modell gefunden%@"
+ ],
+ "已撤销一次消除": [
+  "Undid one removal",
+  "Eine Entfernung rückgängig gemacht"
+ ],
+ "已更新": [
+  "Updated",
+  "Aktualisiert"
+ ],
+ "已有本地模型：%@": [
+  "Local models present: %@",
+  "Vorhandene lokale Modelle: %@"
+ ],
+ "已检测到 LM Studio，Toolula 会直接使用它": [
+  "LM Studio detected — Toolula will use it",
+  "LM Studio erkannt – Toolula verwendet es"
+ ],
+ "已消除（可以继续涂，或撤销）": [
+  "Removed (keep painting, or undo)",
+  "Entfernt (weiter malen oder rückgängig)"
+ ],
+ "已添加": [
+  "Added",
+  "Hinzugefügt"
+ ],
+ "已用 %lld / %lld GB": [
+  "%1$lld / %2$lld GB used",
+  "%1$lld / %2$lld GB belegt"
+ ],
+ "已用 %lld 分 %lld 秒 · 预计共约 %lld 分钟": [
+  "%1$lld min %2$lld s elapsed · about %3$lld min in total",
+  "%1$lld Min. %2$lld s vergangen · insgesamt ca. %3$lld Min."
+ ],
+ "已用 %lld 秒 · 预计约 %lld 秒": [
+  "%lld s elapsed · about %lld s total",
+  "%lld s vergangen · ca. %lld s gesamt"
+ ],
+ "已画好 %lld 张图片：%@（%lld×%lld，模型 %@）。可以在「绘图」页查看。": [
+  "Created %lld image(s): %@ (%lld×%lld, model %@). View them on the Image page.",
+  "%lld Bild(er) erstellt: %@ (%lld×%lld, Modell %@). Auf der Seite „Bild“ ansehen."
+ ],
+ "已经就绪": [
+  "Already set up",
+  "Bereits eingerichtet"
+ ],
+ "已经是最新版本": [
+  "Already up to date",
+  "Bereits aktuell"
+ ],
+ "已经有一个视频在生成了": [
+  "A video is already being generated",
+  "Es wird bereits ein Video erstellt"
+ ],
+ "已经有图片在生成了": [
+  "An image is already being generated",
+  "Es wird bereits ein Bild erzeugt"
+ ],
+ "已经根据这台电脑的配置挑好了合适的模型，点一下就能下载。": [
+  "Models that suit this computer are already picked – one click to download.",
+  "Passende Modelle für diesen Computer sind schon ausgewählt – ein Klick zum Laden."
+ ],
+ "已记住 [%@]：%@": [
+  "Remembered [%1$@]: %2$@",
+  "Gemerkt [%1$@]: %2$@"
+ ],
+ "已识别": [
+  "Analyzed",
+  "Analysiert"
+ ],
+ "已连接云端 API": [
+  "Cloud API connected",
+  "Cloud-API verbunden"
+ ],
+ "带声音": [
+  "With sound",
+  "Mit Ton"
+ ],
+ "常用风格": [
+  "Styles",
+  "Stile"
+ ],
+ "平衡": [
+  "Balance",
+  "Abgleich"
+ ],
+ "废片": [
+  "Reject",
+  "Ausschuss"
+ ],
+ "开始新对话": [
+  "Start a new chat",
+  "Neuen Chat beginnen"
+ ],
+ "强制删除文件的命令": [
+  "Force-deletes files",
+  "Löscht Dateien erzwungen"
+ ],
+ "强度": [
+  "Strength",
+  "Stärke"
+ ],
+ "当前模型看不了图片，请切换到带 👁 的模型": [
+  "This model can’t see images – switch to a model marked 👁",
+  "Dieses Modell kann keine Bilder sehen – wähle ein Modell mit 👁"
+ ],
+ "很小的模型，16GB 内存也能跑": [
+  "Very small model, runs even with 16 GB RAM",
+  "Sehr kleines Modell, läuft schon mit 16 GB RAM"
+ ],
+ "很小的看图模型": [
+  "Very small vision model",
+  "Sehr kleines Bildmodell"
+ ],
+ "忘记一条记忆": [
+  "Forget a memory",
+  "Erinnerung vergessen"
+ ],
+ "快速的编程模型": [
+  "Fast coding model",
+  "Schnelles Programmiermodell"
+ ],
+ "思考": [
+  "Thinking",
+  "Denken"
+ ],
+ "思考中…": [
+  "Thinking…",
+  "Denkt nach…"
+ ],
+ "思考过程": [
+  "Thought process",
+  "Denkprozess"
+ ],
+ "思考：中": [
+  "Thinking: medium",
+  "Denken: mittel"
+ ],
+ "思考：低": [
+  "Thinking: low",
+  "Denken: niedrig"
+ ],
+ "思考：高": [
+  "Thinking: high",
+  "Denken: hoch"
+ ],
+ "想要什么画面": [
+  "What to draw",
+  "Was gezeichnet werden soll"
+ ],
+ "想要什么视频": [
+  "What video do you want",
+  "Welches Video möchtest du"
+ ],
+ "我的 Mac 还剩多少硬盘空间？哪些文件夹最占地方？": [
+  "How much disk space is left on my Mac? Which folders take up the most space?",
+  "Wie viel Speicherplatz ist auf meinem Mac noch frei? Welche Ordner belegen am meisten?"
+ ],
+ "或者粘贴 GitHub 链接（仓库或技能文件夹）": [
+  "Or paste a GitHub link (repository or skill folder)",
+  "Oder GitHub-Link einfügen (Repository oder Skill-Ordner)"
+ ],
+ "或者自己写想要的效果": [
+  "or describe the look you want",
+  "oder den gewünschten Look beschreiben"
+ ],
+ "截屏查看画面（可选，读不出按钮时才用）": [
+  "Take screenshots (optional, only when buttons can't be read)",
+  "Bildschirmfotos (optional, nur wenn Tasten nicht lesbar sind)"
+ ],
+ "手动": [
+  "Manual",
+  "Manuell"
+ ],
+ "手动添加模型名，例如 gpt-5": [
+  "Add a model name manually, e.g. gpt-5",
+  "Modellnamen manuell hinzufügen, z. B. gpt-5"
+ ],
+ "手动添加，例如：我住在德国，常用 Lightroom 修图": [
+  "Add manually, e.g.: I live in Germany and edit photos in Lightroom",
+  "Manuell hinzufügen, z. B.: Ich wohne in Deutschland und bearbeite Fotos in Lightroom"
+ ],
+ "打开": [
+  "Open",
+  "Öffnen"
+ ],
+ "打开 Toolula AI": [
+  "Open Toolula AI",
+  "Toolula AI öffnen"
+ ],
+ "打开后 AI 可以执行命令、读写文件、修图（每条命令会先问你）": [
+  "When on, the AI can run commands, read/write files and edit photos (it asks before each command)",
+  "Wenn an, kann die KI Befehle ausführen, Dateien lesen/schreiben und Fotos bearbeiten (fragt vor jedem Befehl)"
+ ],
+ "打开后，关闭窗口不会退出：Toolula 留在屏幕顶部的菜单栏，自动化照常运行。": [
+  "When on, closing the window doesn’t quit: Toolula stays in the menu bar at the top of the screen and automations keep running.",
+  "Wenn an, beendet das Schließen des Fensters die App nicht: Toolula bleibt in der Menüleiste und Automatisierungen laufen weiter."
+ ],
+ "打开网页": [
+  "Open web page",
+  "Webseite öffnen"
+ ],
+ "打开设置向导": [
+  "Open Setup Assistant",
+  "Einrichtungsassistent öffnen"
+ ],
+ "执行命令": [
+  "Run command",
+  "Befehl ausführen"
+ ],
+ "找不到 AI 脚本 ai_edit.py": [
+  "AI script ai_edit.py not found",
+  "KI-Skript ai_edit.py nicht gefunden"
+ ],
+ "找不到编号 %lld 的元素，请先重新读取页面": [
+  "No element with number %lld – read the page again first",
+  "Kein Element mit Nummer %lld – lies die Seite zuerst neu"
+ ],
+ "找不到编号 %lld 的输入框，请先重新读取页面": [
+  "No input field with number %lld – read the page again first",
+  "Kein Eingabefeld mit Nummer %lld – lies die Seite zuerst neu"
+ ],
+ "找不到这个 GitHub 仓库或路径。": [
+  "Couldn’t find this GitHub repository or path.",
+  "Dieses GitHub-Repository oder dieser Pfad wurde nicht gefunden."
+ ],
+ "技能": [
+  "Skills",
+  "Skills"
+ ],
+ "技能「%@」的步骤：": [
+  "Steps of skill “%@”:",
+  "Schritte des Skills „%@“:"
+ ],
+ "技能内容（SKILL.md）": [
+  "Skill content (SKILL.md)",
+  "Skill-Inhalt (SKILL.md)"
+ ],
+ "技能是一套可以反复使用的做事方法。\n在对话里直接说「把刚才的流程做成技能」，或者在这里手动新建。": [
+  "A skill is a way of doing something that can be reused.\nSay “turn what we just did into a skill” in a chat, or create one here.",
+  "Ein Skill ist eine wiederverwendbare Arbeitsweise.\nSag im Chat „mach daraus einen Skill“ oder lege hier einen an."
+ ],
+ "技能（%lld）": [
+  "Skills (%lld)",
+  "Skills (%lld)"
+ ],
+ "把一个文件夹里的文件按类型分到子文件夹，不删除任何文件": [
+  "Sort the files in a folder into subfolders by type, without deleting anything",
+  "Dateien eines Ordners nach Typ in Unterordner sortieren, ohne etwas zu löschen"
+ ],
+ "把一个文件夹里的照片按指定风格修好并导出": [
+  "Edit the photos in a folder in a chosen style and export them",
+  "Fotos eines Ordners in einem gewählten Stil bearbeiten und exportieren"
+ ],
+ "把修好的照片发送到 Lightroom、Photoshop 或 Luminar Neo 继续编辑": [
+  "Send the edited photos to Lightroom, Photoshop or Luminar Neo to keep editing",
+  "Bearbeitete Fotos an Lightroom, Photoshop oder Luminar Neo senden"
+ ],
+ "把桌面上的照片用日系清新风格修好并导出": [
+  "Edit the photos on my Desktop in a bright, airy Japanese style and export them",
+  "Bearbeite die Fotos auf meinem Schreibtisch im hellen, luftigen japanischen Stil und exportiere sie"
+ ],
+ "把照片或文件夹拖到这里": [
+  "Drag photos or folders here",
+  "Fotos oder Ordner hierher ziehen"
+ ],
+ "把照片拖进窗口 → 在右边选风格 → 点「AI 修图」": [
+  "Drag photos into the window → pick a style on the right → click “AI Edit”",
+  "Fotos ins Fenster ziehen → rechts einen Stil wählen → auf „KI-Bearbeitung“ klicken"
+ ],
+ "拒绝": [
+  "Deny",
+  "Ablehnen"
+ ],
+ "拖入照片，AI 按你想要的风格调色，可发送到 Lightroom、Photoshop 或 Luminar Neo 继续编辑": [
+  "Drop in photos and the AI grades them in your style – then send them to Lightroom, Photoshop or Luminar Neo to keep editing",
+  "Fotos hineinziehen, die KI bearbeitet sie in deinem Stil – dann an Lightroom, Photoshop oder Luminar Neo zum Weiterbearbeiten senden"
+ ],
+ "拖入照片，AI 按你想要的风格调色，可导出或发送到 Lightroom": [
+  "Drop in photos and the AI grades them in your style – export or send to Lightroom",
+  "Fotos hineinziehen, die KI bearbeitet sie in deinem Stil – exportieren oder an Lightroom senden"
+ ],
+ "按 Esc 停止": [
+  "Press Esc to stop",
+  "Esc zum Stoppen"
+ ],
+ "按场景分组（推荐）": [
+  "Group by scene (recommended)",
+  "Nach Szene gruppieren (empfohlen)"
+ ],
+ "按时间或在文件夹有新文件时，让 AI 自动干活": [
+  "Let the AI work on a schedule or when a folder gets new files",
+  "Die KI nach Zeitplan oder bei neuen Dateien im Ordner arbeiten lassen"
+ ],
+ "按这个方案让 AI 精修所有参数": [
+  "Let the AI fine-tune all settings for this plan",
+  "KI alle Einstellungen für diese Variante verfeinern lassen"
+ ],
+ "授权后如果仍显示未允许，请重新打开 Toolula AI。安全规则：不操作密码管理器、钥匙串和系统设置；不往密码框里输入；操作时屏幕顶部会显示提示条，按 Esc 立即停止。": [
+  "If it still shows as not allowed after granting, reopen Toolula AI. Safety rules: never touches password managers, Keychain or System Settings; never types into password fields; a banner shows at the top of the screen while it works — press Esc to stop immediately.",
+  "Falls nach dem Erlauben noch „nicht erlaubt“ steht, Toolula AI neu öffnen. Sicherheitsregeln: keine Passwort-Manager, Schlüsselbund oder Systemeinstellungen; nie in Passwortfelder tippen; oben auf dem Bildschirm erscheint ein Hinweis – Esc stoppt sofort."
+ ],
+ "接下来在哪里继续？": [
+  "Where to continue?",
+  "Wo weiterbearbeiten?"
+ ],
+ "推荐": [
+  "Recommended",
+  "Empfohlen"
+ ],
+ "提交任务…": [
+  "Submitting job…",
+  "Auftrag wird gesendet…"
+ ],
+ "提示": [
+  "Notice",
+  "Hinweis"
+ ],
+ "搜索": [
+  "Search",
+  "Suchen"
+ ],
+ "搜索「%@」的结果：": [
+  "Results for “%@”:",
+  "Ergebnisse für „%@“:"
+ ],
+ "搜索技能，例如 pdf、excel、design、marketing": [
+  "Search skills, e.g. pdf, excel, design, marketing",
+  "Skills suchen, z. B. pdf, excel, design, marketing"
+ ],
+ "搜索更多模型（Hugging Face）": [
+  "Search more models (Hugging Face)",
+  "Weitere Modelle suchen (Hugging Face)"
+ ],
+ "搜索模型，例如 qwen、gemma、llama、coder": [
+  "Search models, e.g. qwen, gemma, llama, coder",
+  "Modelle suchen, z. B. qwen, gemma, llama, coder"
+ ],
+ "撤销上一次消除": [
+  "Undo last removal",
+  "Letzte Entfernung rückgängig"
+ ],
+ "操作电脑": [
+  "Control Mac",
+  "Mac steuern"
+ ],
+ "收起": [
+  "Hide",
+  "Ausblenden"
+ ],
+ "效果": [
+  "Effects",
+  "Effekte"
+ ],
+ "效果 / 左右对比 / 原图": [
+  "Edited / side-by-side / original",
+  "Bearbeitet / Vergleich / Original"
+ ],
+ "教 AI 一套做事方法，以后一句话就能反复使用": [
+  "Teach the AI a way of doing things and reuse it with one sentence",
+  "Bring der KI eine Arbeitsweise bei und nutze sie mit einem Satz immer wieder"
+ ],
+ "整理文件夹": [
+  "Tidy a folder",
+  "Ordner aufräumen"
+ ],
+ "文件夹有新文件时": [
+  "When a folder gets new files",
+  "Bei neuen Dateien im Ordner"
+ ],
+ "新任务": [
+  "New task",
+  "Neue Aufgabe"
+ ],
+ "新对话": [
+  "New chat",
+  "Neuer Chat"
+ ],
+ "新建技能": [
+  "New Skill",
+  "Neuer Skill"
+ ],
+ "新建自动化": [
+  "New automation",
+  "Neue Automatisierung"
+ ],
+ "新技能": [
+  "New skill",
+  "Neuer Skill"
+ ],
+ "新照片自动修图": [
+  "Auto-edit new photos",
+  "Neue Fotos automatisch bearbeiten"
+ ],
+ "无法启动 Python：%@": [
+  "Couldn’t start Python: %@",
+  "Python konnte nicht gestartet werden: %@"
+ ],
+ "无法执行：%@": [
+  "Couldn’t run: %@",
+  "Ausführung nicht möglich: %@"
+ ],
+ "无法生成预览": [
+  "Couldn’t create preview",
+  "Vorschau konnte nicht erstellt werden"
+ ],
+ "无法读取": [
+  "Can’t read",
+  "Nicht lesbar"
+ ],
+ "无法读取 %@": [
+  "Can’t read %@",
+  "%@ nicht lesbar"
+ ],
+ "无法读取参考图": [
+  "Can’t read the reference image",
+  "Referenzbild nicht lesbar"
+ ],
+ "无法读取文件夹：%@": [
+  "Can’t read folder: %@",
+  "Ordner nicht lesbar: %@"
+ ],
+ "无法读取照片": [
+  "Can't read the photo",
+  "Foto kann nicht gelesen werden"
+ ],
+ "无法读取这张照片（macOS 不支持这个格式，或文件已损坏）": [
+  "Can’t read this photo (macOS doesn’t support the format, or the file is damaged)",
+  "Dieses Foto ist nicht lesbar (Format von macOS nicht unterstützt oder Datei beschädigt)"
+ ],
+ "无法读取（不存在或不是文本文件）：%@": [
+  "Can’t read (missing or not a text file): %@",
+  "Nicht lesbar (fehlt oder keine Textdatei): %@"
+ ],
+ "无法输入": [
+  "Can’t type here",
+  "Eingabe nicht möglich"
+ ],
+ "日系清新：明亮通透，低饱和，暗部发灰，略偏青": [
+  "Japanese airy: bright and clear, low saturation, faded shadows, slight cyan",
+  "Japanisch luftig: hell und klar, wenig Sättigung, matte Schatten, leicht cyan"
+ ],
+ "时长": [
+  "Duration",
+  "Dauer"
+ ],
+ "时间": [
+  "Time",
+  "Uhrzeit"
+ ],
+ "明亮度": [
+  "Luminance",
+  "Luminanz"
+ ],
+ "星期": [
+  "Weekday",
+  "Wochentag"
+ ],
+ "暗角": [
+  "Vignette",
+  "Vignette"
+ ],
+ "暗调": [
+  "Darks",
+  "Dunkle Töne"
+ ],
+ "曝光": [
+  "Exposure",
+  "Belichtung"
+ ],
+ "曲线": [
+  "Curve",
+  "Kurve"
+ ],
+ "更多 AI": [
+  "More AI",
+  "Mehr KI"
+ ],
+ "更快": [
+  "Faster",
+  "Schneller"
+ ],
+ "更新到新版本": [
+  "Update to new version",
+  "Auf neue Version aktualisieren"
+ ],
+ "最小最快": [
+  "Smallest and fastest",
+  "Am kleinsten und schnellsten"
+ ],
+ "最快": [
+  "Fastest",
+  "Am schnellsten"
+ ],
+ "最近的对话": [
+  "Recent chats",
+  "Letzte Chats"
+ ],
+ "有新版本": [
+  "New version available",
+  "Neue Version verfügbar"
+ ],
+ "服务商返回错误 %lld：%@": [
+  "The provider returned error %1$lld: %2$@",
+  "Der Anbieter meldet Fehler %1$lld: %2$@"
+ ],
+ "未安装": [
+  "Not installed",
+  "Nicht installiert"
+ ],
+ "未知工具：%@": [
+  "Unknown tool: %@",
+  "Unbekanntes Werkzeug: %@"
+ ],
+ "未知错误": [
+  "Unknown error",
+  "Unbekannter Fehler"
+ ],
+ "本地 AI 在线": [
+  "Local AI online",
+  "Lokale KI online"
+ ],
+ "本地 AI 引擎还没有安装": [
+  "No local AI engine installed yet",
+  "Noch keine lokale KI-Engine installiert"
+ ],
+ "本地 AI 服务": [
+  "Local AI service",
+  "Lokaler KI-Dienst"
+ ],
+ "本地 AI 服务没有运行": [
+  "Local AI service isn’t running",
+  "Lokaler KI-Dienst läuft nicht"
+ ],
+ "本地 AI 离线": [
+  "Local AI offline",
+  "Lokale KI offline"
+ ],
+ "本地 AI 离线（LM Studio 没开）": [
+  "Local AI offline (LM Studio isn’t running)",
+  "Lokale KI offline (LM Studio läuft nicht)"
+ ],
+ "本地图片模型需要 Apple 芯片的 Mac。": [
+  "Local image models need a Mac with Apple silicon.",
+  "Lokale Bildmodelle brauchen einen Mac mit Apple-Chip."
+ ],
+ "本地模型": [
+  "Local models",
+  "Lokale Modelle"
+ ],
+ "本地模型越大越聪明，但需要的内存越多。经验：模型文件大小 ≈ 需要的内存；建议总占用不超过内存的 75%。": [
+  "Bigger local models are smarter but need more memory. Rule of thumb: model file size ≈ memory needed; keep total use under 75% of RAM.",
+  "Größere lokale Modelle sind klüger, brauchen aber mehr Speicher. Faustregel: Modellgröße ≈ benötigter Speicher; insgesamt unter 75 % des RAM bleiben."
+ ],
+ "本地视频模型需要 Apple 芯片的 Mac。这台 Intel Mac 跑不动。": [
+  "Local video models need a Mac with Apple silicon; this Intel Mac can’t run them.",
+  "Lokale Videomodelle brauchen einen Mac mit Apple-Chip; dieser Intel-Mac kann sie nicht ausführen."
+ ],
+ "本对话都允许": [
+  "Allow for this chat",
+  "Für diesen Chat erlauben"
+ ],
+ "本机：%@": [
+  "This Mac: %@",
+  "Dieser Mac: %@"
+ ],
+ "权限": [
+  "Permissions",
+  "Berechtigungen"
+ ],
+ "来自 GitHub": [
+  "From GitHub",
+  "Von GitHub"
+ ],
+ "查看 ~/Downloads，按 图片/文档/安装包/压缩包/视频/其他 分类，把文件移动到 ~/Downloads 下对应的子文件夹里（不要删除任何文件），最后汇报移动了哪些。": [
+  "Look at ~/Downloads, sort the files into Images/Documents/Installers/Archives/Videos/Other, move them into matching subfolders inside ~/Downloads (don’t delete anything), then report what was moved.",
+  "Sieh dir ~/Downloads an, sortiere die Dateien nach Bilder/Dokumente/Installer/Archive/Videos/Sonstiges, verschiebe sie in passende Unterordner in ~/Downloads (nichts löschen) und berichte, was verschoben wurde."
+ ],
+ "查看推荐": [
+  "See recommendations",
+  "Empfehlungen ansehen"
+ ],
+ "查看文件夹": [
+  "List folder",
+  "Ordner ansehen"
+ ],
+ "标准（约 100 万像素）": [
+  "Standard (about 1 MP)",
+  "Standard (ca. 1 MP)"
+ ],
+ "检查更新": [
+  "Check for updates",
+  "Nach Updates suchen"
+ ],
+ "模型": [
+  "Models",
+  "Modelle"
+ ],
+ "模型文件不完整": [
+  "Model files are incomplete",
+  "Modelldateien sind unvollständig"
+ ],
+ "模型服务返回错误 %lld：%@": [
+  "The model service returned error %1$lld: %2$@",
+  "Der Modelldienst meldet Fehler %1$lld: %2$@"
+ ],
+ "模板：%@": [
+  "Template: %@",
+  "Vorlage: %@"
+ ],
+ "橙": [
+  "Orange",
+  "Orange"
+ ],
+ "正在停止…": [
+  "Stopping…",
+  "Wird gestoppt…"
+ ],
+ "正在画图，请等它完成后再生成视频": [
+  "An image is being generated — please wait before making a video",
+  "Es wird gerade ein Bild erzeugt – bitte vor dem Video abwarten"
+ ],
+ "正在运行：%@": [
+  "Running: %@",
+  "Läuft: %@"
+ ],
+ "步骤太多，已停止。": [
+  "Too many steps, stopped.",
+  "Zu viele Schritte, abgebrochen."
+ ],
+ "每 %lld 分钟": [
+  "Every %lld minutes",
+  "Alle %lld Minuten"
+ ],
+ "每个对话都可以在顶部单独选模型。切换模型时 LM Studio 会自动卸载上一个、加载新的（第一次回复会慢几十秒）。修图必须用能看图的模型。": [
+  "Each chat can pick its own model at the top. When switching, LM Studio unloads the old model and loads the new one (the first reply takes a few extra seconds). Photo editing needs a model that can see images.",
+  "Jeder Chat kann oben sein eigenes Modell wählen. Beim Wechsel entlädt LM Studio das alte Modell und lädt das neue (die erste Antwort dauert etwas länger). Fotobearbeitung braucht ein Modell, das Bilder sehen kann."
+ ],
+ "每个对话都可以在顶部单独选模型。切换模型时会自动卸载上一个、加载新的（第一次回复会慢几十秒）。修图必须用能看图的模型。": [
+  "Each chat can pick its own model at the top. Switching models unloads the previous one and loads the new one (the first reply takes a few dozen seconds longer). Photo editing needs a model that can see images.",
+  "Jeder Chat kann oben ein eigenes Modell wählen. Beim Wechsel wird das vorherige Modell entladen und das neue geladen (die erste Antwort dauert einige Sekunden länger). Für die Bildbearbeitung braucht es ein Modell, das Bilder sehen kann."
+ ],
+ "每周": [
+  "Weekly",
+  "Wöchentlich"
+ ],
+ "每周 %@ %@": [
+  "Every %1$@ at %2$@",
+  "Jeden %1$@ um %2$@"
+ ],
+ "每天": [
+  "Daily",
+  "Täglich"
+ ],
+ "每天 %@": [
+  "Daily at %@",
+  "Täglich um %@"
+ ],
+ "每天整理下载文件夹": [
+  "Tidy Downloads daily",
+  "Downloads täglich aufräumen"
+ ],
+ "每张单独分析": [
+  "Analyze each photo",
+  "Jedes Foto einzeln analysieren"
+ ],
+ "每隔一段时间": [
+  "At an interval",
+  "In Intervallen"
+ ],
+ "没找到这条记忆": [
+  "Memory not found",
+  "Erinnerung nicht gefunden"
+ ],
+ "没有上一页": [
+  "No previous page",
+  "Keine vorherige Seite"
+ ],
+ "没有修好的照片可以发送": [
+  "No edited photos to send",
+  "Keine bearbeiteten Fotos zum Senden"
+ ],
+ "没有发现明显的风险": [
+  "No obvious risks found",
+  "Keine offensichtlichen Risiken gefunden"
+ ],
+ "没有安装 %@，没有发送。": [
+  "%@ isn’t installed, nothing was sent.",
+  "%@ ist nicht installiert, nichts gesendet."
+ ],
+ "没有找到 ComfyUI。请先安装 Comfy Desktop。": [
+  "ComfyUI not found. Please install Comfy Desktop first.",
+  "ComfyUI nicht gefunden. Bitte zuerst Comfy Desktop installieren."
+ ],
+ "没有找到 Luminar Neo。安装后这里会自动连接。": [
+  "Luminar Neo wasn’t found. It connects automatically once installed.",
+  "Luminar Neo wurde nicht gefunden. Nach der Installation wird es automatisch verbunden."
+ ],
+ "没有找到 Photoshop。安装后这里会自动连接。": [
+  "Photoshop wasn’t found. It connects automatically once installed.",
+  "Photoshop wurde nicht gefunden. Nach der Installation wird es automatisch verbunden."
+ ],
+ "没有找到可以处理的照片（支持 JPEG/HEIC/PNG/TIFF/RAW）": [
+  "No photos found to process (JPEG/HEIC/PNG/TIFF/RAW supported)",
+  "Keine verarbeitbaren Fotos gefunden (JPEG/HEIC/PNG/TIFF/RAW unterstützt)"
+ ],
+ "没有找到生成的图片": [
+  "Couldn't find the generated image",
+  "Erzeugtes Bild nicht gefunden"
+ ],
+ "没有找到生成的视频文件": [
+  "Couldn’t find the generated video file",
+  "Erzeugte Videodatei nicht gefunden"
+ ],
+ "没有获取到模型": [
+  "No models returned",
+  "Keine Modelle erhalten"
+ ],
+ "没有这个技能。可用的技能：": [
+  "No such skill. Available skills: ",
+  "Diesen Skill gibt es nicht. Verfügbare Skills: "
+ ],
+ "没有适合这台电脑的本地模型，请使用云端 API。": [
+  "No local model suits this computer – please use a cloud API.",
+  "Kein lokales Modell passt zu diesem Computer – bitte eine Cloud-API verwenden."
+ ],
+ "洋红": [
+  "Magenta",
+  "Magenta"
+ ],
+ "涂好了按「消除」或回车": [
+  "Done painting? Press “Remove” or Return",
+  "Fertig gemalt? „Entfernen“ oder Return drücken"
+ ],
+ "消除": [
+  "Remove",
+  "Entfernen"
+ ],
+ "消除失败": [
+  "Removal failed",
+  "Entfernen fehlgeschlagen"
+ ],
+ "消除失败：%@": [
+  "Removal failed: %@",
+  "Entfernen fehlgeschlagen: %@"
+ ],
+ "混合专家模型，又快又聪明": [
+  "Mixture-of-experts model, fast and smart",
+  "Mixture-of-Experts-Modell, schnell und klug"
+ ],
+ "添加": [
+  "Add",
+  "Hinzufügen"
+ ],
+ "添加图片（也可以拖进来）": [
+  "Add images (or drag them in)",
+  "Bilder hinzufügen (oder hineinziehen)"
+ ],
+ "添加局部调整": [
+  "Add Local Adjustment",
+  "Lokale Anpassung hinzufügen"
+ ],
+ "添加服务商": [
+  "Add provider",
+  "Anbieter hinzufügen"
+ ],
+ "添加照片": [
+  "Add photos",
+  "Fotos hinzufügen"
+ ],
+ "添加照片…": [
+  "Add Photos…",
+  "Fotos hinzufügen…"
+ ],
+ "添加照片或文件夹（也可以直接拖进窗口）": [
+  "Add photos or folders (or drag them into the window)",
+  "Fotos oder Ordner hinzufügen (oder ins Fenster ziehen)"
+ ],
+ "添加这个技能": [
+  "Add this skill",
+  "Diesen Skill hinzufügen"
+ ],
+ "清冷氛围：偏蓝冷色调，低饱和，安静": [
+  "Cool mood: bluish cool tones, low saturation, calm",
+  "Kühle Stimmung: bläuliche kühle Töne, wenig Sättigung, ruhig"
+ ],
+ "清晰度": [
+  "Clarity",
+  "Klarheit"
+ ],
+ "清空": [
+  "Clear",
+  "Leeren"
+ ],
+ "清空全部记忆？": [
+  "Clear all memories?",
+  "Alle Erinnerungen löschen?"
+ ],
+ "清除": [
+  "Remove",
+  "Entfernen"
+ ],
+ "清除笔迹": [
+  "Clear strokes",
+  "Pinselstriche löschen"
+ ],
+ "港风复古：暖色调，高对比，浓郁的红绿色，颗粒感": [
+  "Hong Kong retro: warm tones, high contrast, rich reds and greens, grain",
+  "Hongkong-Retro: warme Töne, hoher Kontrast, satte Rot- und Grüntöne, Körnung"
+ ],
+ "点一下选择绘图页默认用的模型。和视频模型共用一个引擎。": [
+  "Click to choose the default model for the Image page. Shares the engine with video models.",
+  "Klicken, um das Standardmodell der Bildseite zu wählen. Nutzt dieselbe Engine wie die Videomodelle."
+ ],
+ "点一下选择视频页默认用的模型。也可以在视频页随时切换。": [
+  "Click to choose the default model for the Video page. You can also switch on the Video page.",
+  "Klicken, um das Standardmodell der Videoseite zu wählen. Auch auf der Videoseite umschaltbar."
+ ],
+ "点击网页元素": [
+  "Click web element",
+  "Web-Element anklicken"
+ ],
+ "照片批量修图": [
+  "Batch photo editing",
+  "Fotos stapelweise bearbeiten"
+ ],
+ "照着这张图的风格调": [
+  "Match the style of this image",
+  "Stil dieses Bildes übernehmen"
+ ],
+ "理解提示词…": [
+  "Understanding the prompt…",
+  "Prompt wird verstanden…"
+ ],
+ "生成 %lld 秒的视频（%lld×%lld，预计约 %lld 分钟，期间会暂时让出对话模型的内存）：%@": [
+  "Generate a %1$lld-second video (%2$lld×%3$lld, about %4$lld min; the chat model’s memory is freed meanwhile): %5$@",
+  "Ein %1$lld-Sekunden-Video erstellen (%2$lld×%3$lld, ca. %4$lld Min.; der Speicher des Chat-Modells wird solange freigegeben): %5$@"
+ ],
+ "生成 LUT 失败": [
+  "Couldn’t create the LUT",
+  "LUT konnte nicht erstellt werden"
+ ],
+ "生成图片": [
+  "Generate Image",
+  "Bild erzeugen"
+ ],
+ "生成失败：%@": [
+  "Generation failed: %@",
+  "Erstellung fehlgeschlagen: %@"
+ ],
+ "生成完释放视频模型内存（约 90GB）": [
+  "Free video model memory after generating (~90 GB)",
+  "Speicher des Videomodells danach freigeben (~90 GB)"
+ ],
+ "生成完释放视频模型占用的内存": [
+  "Free video model memory when done",
+  "Speicher des Videomodells danach freigeben"
+ ],
+ "生成时会暂时让出对话模型占用的内存（视频模型需要约 90GB），对话时会自动重新加载。": [
+  "While generating, the chat model’s memory is freed (the video model needs ~90 GB); it reloads automatically when you chat.",
+  "Beim Erstellen wird der Speicher des Chat-Modells freigegeben (das Videomodell braucht ~90 GB); im Chat wird es automatisch neu geladen."
+ ],
+ "生成时会暂时让出对话模型占用的内存，对话时会自动重新加载。": [
+  "While generating, the chat model's memory is released temporarily; it reloads automatically when you chat.",
+  "Während der Erzeugung wird der Speicher des Chatmodells vorübergehend freigegeben; beim Chatten wird es automatisch neu geladen."
+ ],
+ "生成画面…": [
+  "Generating frames…",
+  "Bilder werden erzeugt…"
+ ],
+ "生成画面：第 %lld/%lld 步": [
+  "Generating frames: step %1$lld/%2$lld",
+  "Bilder werden erzeugt: Schritt %1$lld/%2$lld"
+ ],
+ "生成的图片": [
+  "Generated Images",
+  "Erzeugte Bilder"
+ ],
+ "生成的视频": [
+  "Generated videos",
+  "Erstellte Videos"
+ ],
+ "生成视频": [
+  "Generate video",
+  "Video erstellen"
+ ],
+ "用 df -h / 查看系统盘剩余空间。如果剩余少于 100GB，用 notify_user 提醒我，并列出 ~ 下最大的 5 个文件夹（du -sh ~/* 2>/dev/null | sort -rh | head -5）。": [
+  "Check free space on the system disk with df -h /. If less than 100 GB is free, alert me with notify_user and list the 5 largest folders in ~ (du -sh ~/* 2>/dev/null | sort -rh | head -5).",
+  "Prüfe den freien Speicher der Systemfestplatte mit df -h /. Wenn weniger als 100 GB frei sind, benachrichtige mich mit notify_user und liste die 5 größten Ordner in ~ auf (du -sh ~/* 2>/dev/null | sort -rh | head -5)."
+ ],
+ "用 photo_edit 把这些新照片修成「自动优化，让照片自然好看」的效果并导出，最后用一句话汇报。": [
+  "Use photo_edit to give these new photos an “auto-enhance, natural look” edit and export them, then report in one sentence.",
+  "Bearbeite diese neuen Fotos mit photo_edit im Stil „automatisch optimieren, natürlicher Look“, exportiere sie und berichte in einem Satz."
+ ],
+ "用右边设置的风格修选中的照片 (⌘E)": [
+  "Edit the selected photos with the style set on the right (⌘E)",
+  "Ausgewählte Fotos mit dem rechts eingestellten Stil bearbeiten (⌘E)"
+ ],
+ "用户拒绝了这次点击。": [
+  "The user declined this click.",
+  "Der Nutzer hat diesen Klick abgelehnt."
+ ],
+ "用户拒绝了这次输入。": [
+  "The user declined this input.",
+  "Der Nutzer hat diese Eingabe abgelehnt."
+ ],
+ "用户拒绝写入。": [
+  "The user declined the write.",
+  "Der Nutzer hat das Schreiben abgelehnt."
+ ],
+ "用户拒绝执行这条命令。": [
+  "The user declined this command.",
+  "Der Nutzer hat diesen Befehl abgelehnt."
+ ],
+ "用户没有同意。": [
+  "The user declined.",
+  "Der Nutzer hat abgelehnt."
+ ],
+ "用户没有同意生成视频。": [
+  "The user didn’t agree to generate the video.",
+  "Der Nutzer hat der Videoerstellung nicht zugestimmt."
+ ],
+ "用本机的 MiniMax H3 把文字或图片变成带声音的视频": [
+  "Turn text or images into videos with sound using MiniMax H3 on this Mac",
+  "Mit MiniMax H3 auf diesem Mac Text oder Bilder in Videos mit Ton verwandeln"
+ ],
+ "用本机的 MiniMax H3 生成带声音的视频。\n写下想要的画面，或者给一张图片作为第一帧。": [
+  "Generate videos with sound using MiniMax H3 on this Mac.\nDescribe the scene, or give an image as the first frame.",
+  "Erstelle Videos mit Ton mit MiniMax H3 auf diesem Mac.\nBeschreibe die Szene oder gib ein Bild als erstes Bild vor."
+ ],
+ "用本机的视频模型把文字或图片变成视频。\n写下想要的画面，或者给一张图片作为第一帧。": [
+  "Turn text or images into video with a video model on this Mac.\nDescribe the scene, or give an image as the first frame.",
+  "Verwandle Text oder Bilder mit einem Videomodell auf diesem Mac in Videos.\nBeschreibe die Szene oder gib ein Bild als ersten Frame vor."
+ ],
+ "用本机的视频模型（MiniMax H3、Wan 2.2）把文字或图片变成视频": [
+  "Turn text or images into video with local video models (MiniMax H3, Wan 2.2)",
+  "Text oder Bilder mit lokalen Videomodellen (MiniMax H3, Wan 2.2) in Videos verwandeln"
+ ],
+ "用笔刷涂抹要消除的地方（路人、杂物、电线…）": [
+  "Paint over what to remove (passers-by, clutter, wires…)",
+  "Übermale, was weg soll (Passanten, Kram, Kabel …)"
+ ],
+ "用笔刷涂掉路人、杂物、电线，AI 自动补上背景": [
+  "Paint over passers-by, clutter or wires — the AI fills in the background",
+  "Passanten, Kram oder Kabel übermalen – die KI ergänzt den Hintergrund"
+ ],
+ "用红色显示这个区域": [
+  "Show this area in red",
+  "Diesen Bereich rot anzeigen"
+ ],
+ "用这个提示词": [
+  "Use this prompt",
+  "Diesen Prompt verwenden"
+ ],
+ "用这个方案预览": [
+  "Preview this plan",
+  "Diese Variante ansehen"
+ ],
+ "电影感：青橙色调，暗部偏青，肤色偏暖，略压暗": [
+  "Cinematic: teal & orange, teal shadows, warm skin, slightly darker",
+  "Filmisch: Teal & Orange, Schatten türkis, warme Hauttöne, etwas dunkler"
+ ],
+ "画图中…": [
+  "Drawing…",
+  "Zeichnet …"
+ ],
+ "画图中：第 %lld/%lld 步": [
+  "Drawing: step %lld/%lld",
+  "Zeichnet: Schritt %lld/%lld"
+ ],
+ "画质最好的开源视频模型，画面和声音一起生成": [
+  "Best-quality open video model, generates picture and sound together",
+  "Offenes Videomodell mit bester Qualität, erzeugt Bild und Ton zusammen"
+ ],
+ "画面比例": [
+  "Aspect ratio",
+  "Seitenverhältnis"
+ ],
+ "登录 Mac 时自动打开（让自动化一直运行）": [
+  "Open at login (keeps automations running)",
+  "Bei Anmeldung öffnen (Automatisierungen laufen weiter)"
+ ],
+ "白天模式": [
+  "Light",
+  "Hell"
+ ],
+ "白色色阶": [
+  "Whites",
+  "Weiß"
+ ],
+ "监视 %@": [
+  "Watching %@",
+  "Überwacht %@"
+ ],
+ "目前最好的本地全能模型": [
+  "Currently the best local all-round model",
+  "Derzeit das beste lokale Allround-Modell"
+ ],
+ "看不懂这个链接，请粘贴 GitHub 仓库或技能文件夹的地址": [
+  "Can’t read this link – paste the address of a GitHub repository or skill folder",
+  "Link nicht erkannt – füge die Adresse eines GitHub-Repositorys oder Skill-Ordners ein"
+ ],
+ "看参数": [
+  "Show settings",
+  "Werte zeigen"
+ ],
+ "看图准确的中小模型": [
+  "Accurate small-to-mid vision model",
+  "Präzises kleines bis mittleres Bildmodell"
+ ],
+ "看看下载文件夹里有什么，帮我按类型整理一下": [
+  "Look at what’s in my Downloads folder and sort it by type",
+  "Sieh dir meinen Downloads-Ordner an und sortiere ihn nach Typ"
+ ],
+ "硬盘": [
+  "Disk",
+  "Laufwerk"
+ ],
+ "硬盘剩 %@": [
+  "Disk %@ free",
+  "Disk %@ frei"
+ ],
+ "硬盘空间不够，请取消勾选一些项目": [
+  "Not enough disk space — please untick some items",
+  "Nicht genug Speicherplatz – bitte einige Punkte abwählen"
+ ],
+ "硬盘空间提醒": [
+  "Low disk space alert",
+  "Warnung bei wenig Speicherplatz"
+ ],
+ "硬盘（%@）": [
+  "Disk (%@)",
+  "Festplatte (%@)"
+ ],
+ "离线": [
+  "Offline",
+  "Offline"
+ ],
+ "种子 %@ · 用时 %lld 分钟": [
+  "Seed %1$@ · took %2$lld min",
+  "Seed %1$@ · Dauer %2$lld Min."
+ ],
+ "种子 %lld · 用时 %lld 分钟": [
+  "Seed %1$lld · took %2$lld min",
+  "Seed %1$lld · Dauer %2$lld Min."
+ ],
+ "空白任务": [
+  "Blank task",
+  "Leere Aufgabe"
+ ],
+ "立即运行": [
+  "Run now",
+  "Jetzt ausführen"
+ ],
+ "笔刷大小": [
+  "Brush size",
+  "Pinselgröße"
+ ],
+ "第一次使用：下载消除模型（约 216 MB）…": [
+  "First use: downloading the removal model (about 216 MB)…",
+  "Erste Nutzung: Entfernungsmodell wird geladen (ca. 216 MB) …"
+ ],
+ "第一步：一键安装本地 AI": [
+  "Step 1: Install local AI in one click",
+  "Schritt 1: Lokale KI mit einem Klick installieren"
+ ],
+ "第一步：安装 LM Studio（免费）": [
+  "Step 1: Install LM Studio (free)",
+  "Schritt 1: LM Studio installieren (kostenlos)"
+ ],
+ "简介（AI 靠它判断什么时候用这个技能）": [
+  "Description (the AI uses it to decide when to apply this skill)",
+  "Beschreibung (danach entscheidet die KI, wann der Skill passt)"
+ ],
+ "粘贴": [
+  "Paste",
+  "Einsetzen"
+ ],
+ "粘贴设置": [
+  "Paste settings",
+  "Einstellungen einsetzen"
+ ],
+ "精选 ★4+": [
+  "Picks ★4+",
+  "Favoriten ★4+"
+ ],
+ "紫": [
+  "Purple",
+  "Lila"
+ ],
+ "红": [
+  "Red",
+  "Rot"
+ ],
+ "纯文字": [
+  "Text only",
+  "Nur Text"
+ ],
+ "纹理": [
+  "Texture",
+  "Struktur"
+ ],
+ "纹理（负值柔肤）": [
+  "Texture (negative smooths skin)",
+  "Textur (negativ glättet Haut)"
+ ],
+ "细节与氛围": [
+  "Presence",
+  "Präsenz"
+ ],
+ "绘图": [
+  "Image",
+  "Bild"
+ ],
+ "给 Toolula AI 发消息…（⌘↩ 发送）": [
+  "Message Toolula AI… (⌘↩ to send)",
+  "Nachricht an Toolula AI… (⌘↩ zum Senden)"
+ ],
+ "继续下载": [
+  "Resume",
+  "Fortsetzen"
+ ],
+ "绿": [
+  "Green",
+  "Grün"
+ ],
+ "编辑": [
+  "Edit",
+  "Bearbeiten"
+ ],
+ "网址不对：%@": [
+  "Invalid URL: %@",
+  "Ungültige Adresse: %@"
+ ],
+ "网页调研": [
+  "Web research",
+  "Web-Recherche"
+ ],
+ "背景": [
+  "Background",
+  "Hintergrund"
+ ],
+ "胶片质感：低对比，黑色发灰，偏暖，加颗粒": [
+  "Film look: low contrast, faded blacks, warm, with grain",
+  "Film-Look: wenig Kontrast, matte Schwarztöne, warm, mit Körnung"
+ ],
+ "能流畅运行": [
+  "Runs smoothly",
+  "Läuft flüssig"
+ ],
+ "能流畅运行约 %lld GB 以内的模型": [
+  "Runs models up to about %lld GB smoothly",
+  "Läuft flüssig mit Modellen bis etwa %lld GB"
+ ],
+ "能看图": [
+  "Sees images",
+  "Sieht Bilder"
+ ],
+ "能看图（需要 32GB 内存）": [
+  "Sees images (needs 32 GB RAM)",
+  "Sieht Bilder (braucht 32 GB RAM)"
+ ],
+ "能运行，内存较紧": [
+  "Runs, memory is tight",
+  "Läuft, Speicher knapp"
+ ],
+ "自动优化，让照片自然好看": [
+  "Auto-enhance for a natural, pleasing look",
+  "Automatisch optimieren für einen natürlichen, schönen Look"
+ ],
+ "自动化": [
+  "Automate",
+  "Automatik"
+ ],
+ "自定义": [
+  "Custom",
+  "Eigener"
+ ],
+ "自定义（OpenAI 兼容接口）": [
+  "Custom (OpenAI-compatible API)",
+  "Eigener (OpenAI-kompatible API)"
+ ],
+ "自然饱和度": [
+  "Vibrance",
+  "Dynamik"
+ ],
+ "色温": [
+  "Temp",
+  "Temperatur"
+ ],
+ "色相": [
+  "Hue",
+  "Farbton"
+ ],
+ "色调": [
+  "Tint",
+  "Tönung"
+ ],
+ "色调曲线": [
+  "Tone Curve",
+  "Gradationskurve"
+ ],
+ "英文效果最好；可以加一行 Audio: 描述声音": [
+  "English works best; add a line “Audio:” to describe the sound",
+  "Englisch funktioniert am besten; füge eine Zeile „Audio:“ für den Ton hinzu"
+ ],
+ "获取 Key": [
+  "Get key",
+  "Key holen"
+ ],
+ "获取文件列表失败": [
+  "Couldn’t get the file list",
+  "Dateiliste konnte nicht geladen werden"
+ ],
+ "获取模型列表": [
+  "Fetch models",
+  "Modelle abrufen"
+ ],
+ "营销、文案、SEO 类技能": [
+  "Marketing, copywriting and SEO skills",
+  "Skills für Marketing, Texte und SEO"
+ ],
+ "蓝": [
+  "Blue",
+  "Blau"
+ ],
+ "视图": [
+  "View",
+  "Ansicht"
+ ],
+ "视频": [
+  "Video",
+  "Video"
+ ],
+ "视频已生成：%@（%lld×%lld，%lld 秒，用时 %lld 分钟）。可以在「视频」页播放。": [
+  "Video created: %1$@ (%2$lld×%3$lld, %4$lld s, took %5$lld min). Play it on the Video page.",
+  "Video erstellt: %1$@ (%2$lld×%3$lld, %4$lld s, Dauer %5$lld Min.). Auf der Video-Seite abspielen."
+ ],
+ "视频引擎": [
+  "Video engine",
+  "Video-Engine"
+ ],
+ "视频引擎没有启动": [
+  "Video engine didn’t start",
+  "Video-Engine wurde nicht gestartet"
+ ],
+ "视频引擎没装好，先跳过": [
+  "Video engine isn't installed, skipped",
+  "Video-Engine nicht installiert, übersprungen"
+ ],
+ "视频引擎（ComfyUI）已安装": [
+  "Video engine (ComfyUI) installed",
+  "Video-Engine (ComfyUI) installiert"
+ ],
+ "视频引擎（ComfyUI，开源）": [
+  "Video engine (ComfyUI, open source)",
+  "Video-Engine (ComfyUI, Open Source)"
+ ],
+ "视频模型": [
+  "Video model",
+  "Videomodell"
+ ],
+ "视频模型已下载：%@": [
+  "Video model downloaded: %@",
+  "Videomodell geladen: %@"
+ ],
+ "视频模型：%@": [
+  "Video model: %@",
+  "Videomodell: %@"
+ ],
+ "视频正在生成，请等它完成后再画图": [
+  "A video is being generated — please wait before drawing",
+  "Es wird gerade ein Video erzeugt – bitte vor dem Zeichnen abwarten"
+ ],
+ "视频生成失败：%@": [
+  "Video generation failed: %@",
+  "Videoerstellung fehlgeschlagen: %@"
+ ],
+ "视频生成好了": [
+  "Your video is ready",
+  "Dein Video ist fertig"
+ ],
+ "解码画面和声音…": [
+  "Decoding frames and sound…",
+  "Bilder und Ton werden dekodiert…"
+ ],
+ "解释一下 MLX 和 GGUF 有什么区别": [
+  "Explain the difference between MLX and GGUF",
+  "Erklär den Unterschied zwischen MLX und GGUF"
+ ],
+ "触发方式": [
+  "Trigger",
+  "Auslöser"
+ ],
+ "让 AI 做什么": [
+  "What should the AI do",
+  "Was soll die KI tun"
+ ],
+ "让 AI 帮你做事：聊天、执行命令、整理文件、写代码": [
+  "Let the AI get things done: chat, run commands, organize files, write code",
+  "Lass die KI Dinge erledigen: chatten, Befehle ausführen, Dateien ordnen, Code schreiben"
+ ],
+ "让 AI 操作 Mac 上的程序（快捷指令、AppleScript、点击按钮、输入文字）": [
+  "Let the AI control Mac apps (Shortcuts, AppleScript, clicking buttons, typing)",
+  "KI Mac-Apps steuern lassen (Kurzbefehle, AppleScript, Tasten klicken, tippen)"
+ ],
+ "让对话模型把你的想法扩写成详细的图片提示词": [
+  "Let the chat model expand your idea into a detailed image prompt",
+  "Das Chatmodell macht aus deiner Idee einen ausführlichen Bild-Prompt"
+ ],
+ "让对话模型把你的想法扩写成详细的英文视频提示词": [
+  "Let the chat model expand your idea into a detailed English video prompt",
+  "Das Chat-Modell macht aus deiner Idee einen ausführlichen englischen Video-Prompt"
+ ],
+ "让本地 AI 按时间或在文件夹有新文件时自动干活。\nToolula AI 需要保持打开（可以设成登录时自动打开）。": [
+  "Let the local AI work on a schedule or when a folder gets new files.\nToolula AI needs to stay open (you can set it to open at login).",
+  "Lass die lokale KI nach Zeitplan oder bei neuen Dateien in einem Ordner arbeiten.\nToolula AI muss geöffnet bleiben (kann bei der Anmeldung automatisch starten)."
+ ],
+ "记住": [
+  "Remember",
+  "Merken"
+ ],
+ "记住的内容（%lld 条）": [
+  "Remembered items (%lld)",
+  "Gemerkte Einträge (%lld)"
+ ],
+ "记忆": [
+  "Memory",
+  "Gedächtnis"
+ ],
+ "记忆只保存在这台电脑上。使用云端模型时，记忆会随对话一起发给服务商。": [
+  "Memories are stored only on this Mac. With cloud models, they’re sent to the provider along with the chat.",
+  "Erinnerungen bleiben auf diesem Mac. Bei Cloud-Modellen werden sie mit dem Chat an den Anbieter gesendet."
+ ],
+ "设为修图模型": [
+  "Use for photos",
+  "Für Fotos verwenden"
+ ],
+ "设为对话默认": [
+  "Make chat default",
+  "Als Chat-Standard"
+ ],
+ "设置": [
+  "Settings",
+  "Einstellungen"
+ ],
+ "设置向导": [
+  "Setup Assistant",
+  "Einrichtungsassistent"
+ ],
+ "设置向导…": [
+  "Setup Assistant…",
+  "Einrichtungsassistent …"
+ ],
+ "识别完成：选一个方案预览": [
+  "Analysis done — pick a plan to preview",
+  "Analyse fertig – Variante zur Vorschau wählen"
+ ],
+ "试图改变 AI 的规则": [
+  "Tries to change the AI’s rules",
+  "Versucht, die Regeln der KI zu ändern"
+ ],
+ "试试这些：": [
+  "Try these:",
+  "Probier das aus:"
+ ],
+ "请先写下想要的画面": [
+  "Please describe the picture first",
+  "Bitte zuerst das Bild beschreiben"
+ ],
+ "请先写下想要的视频内容": [
+  "Please describe the video first",
+  "Bitte zuerst das Video beschreiben"
+ ],
+ "请先在照片上涂出要消除的地方": [
+  "Paint over the area to remove first",
+  "Bitte zuerst den zu entfernenden Bereich übermalen"
+ ],
+ "读不到这个页面的内容": [
+  "Can’t read this page",
+  "Diese Seite kann nicht gelesen werden"
+ ],
+ "读取中…": [
+  "Loading…",
+  "Wird geladen…"
+ ],
+ "读取密钥或钥匙串": [
+  "Reads keys or the Keychain",
+  "Liest Schlüssel oder den Schlüsselbund"
+ ],
+ "读取文件": [
+  "Read file",
+  "Datei lesen"
+ ],
+ "读取窗口里的按钮、点击和输入": [
+  "Read buttons in windows, click and type",
+  "Tasten in Fenstern lesen, klicken und tippen"
+ ],
+ "读取网页": [
+  "Read web page",
+  "Webseite lesen"
+ ],
+ "跟随系统": [
+  "System",
+  "System"
+ ],
+ "软件开发方法类技能": [
+  "Software development method skills",
+  "Skills für Entwicklungsmethoden"
+ ],
+ "轻快（反应最快）": [
+  "Light (fastest responses)",
+  "Leicht (schnellste Antworten)"
+ ],
+ "轻量的开源视频模型，32GB 内存也能跑（没有声音）": [
+  "Lightweight open video model, runs with 32 GB RAM (no sound)",
+  "Leichtes offenes Videomodell, läuft mit 32 GB RAM (ohne Ton)"
+ ],
+ "辅助功能": [
+  "Accessibility",
+  "Bedienungshilfen"
+ ],
+ "运行中…": [
+  "Running…",
+  "Läuft…"
+ ],
+ "运行快捷指令「%@」": [
+  "Run shortcut “%@”",
+  "Kurzbefehl „%@“ ausführen"
+ ],
+ "运行脚本：": [
+  "Run script:",
+  "Skript ausführen:"
+ ],
+ "运行记录": [
+  "Run history",
+  "Verlauf"
+ ],
+ "返回上一页": [
+  "Go back",
+  "Zurück"
+ ],
+ "还没安装，点一下打开官网": [
+  "Not installed yet – click to open the website",
+  "Noch nicht installiert – klicken, um die Website zu öffnen"
+ ],
+ "还没有下载 %@ 模型。请在「图片模型」里点下载。": [
+  "%@ isn't downloaded yet. Click Download under “Image Model”.",
+  "%@ ist noch nicht geladen. Unter „Bildmodell“ auf Laden klicken."
+ ],
+ "还没有下载 %@ 模型。请在上面的「视频模型」里点下载。": [
+  "The %@ model isn’t downloaded yet. Click Download under “Video model” above.",
+  "Das Modell %@ ist noch nicht geladen. Klicke oben unter „Videomodell“ auf Laden."
+ ],
+ "还没有下载模型。到「下载新模型」里挑一个推荐给这台电脑的。": [
+  "No models yet. Pick one recommended for this Mac under “Download Models”.",
+  "Noch keine Modelle. Unter „Neue Modelle laden“ ein empfohlenes wählen."
+ ],
+ "还没有图片引擎（ComfyUI）。设置向导可以一键安装。": [
+  "No image engine (ComfyUI) yet. The Setup Assistant can install it in one click.",
+  "Noch keine Bild-Engine (ComfyUI). Der Einrichtungsassistent installiert sie mit einem Klick."
+ ],
+ "还没有对话": [
+  "No chats yet",
+  "Noch keine Chats"
+ ],
+ "还没有本地 AI 引擎": [
+  "No local AI engine yet",
+  "Noch keine lokale KI-Engine"
+ ],
+ "还没有生成过图片": [
+  "No images yet",
+  "Noch keine Bilder"
+ ],
+ "还没有生成过视频": [
+  "No videos generated yet",
+  "Noch keine Videos erstellt"
+ ],
+ "还没有自动化任务": [
+  "No automations yet",
+  "Noch keine Automatisierungen"
+ ],
+ "还没有视频引擎。设置向导可以一键安装（不需要另外装 ComfyUI）。": [
+  "No video engine yet. The Setup Assistant can install it in one click (no separate ComfyUI install needed).",
+  "Noch keine Video-Engine. Der Einrichtungsassistent installiert sie mit einem Klick (keine separate ComfyUI-Installation nötig)."
+ ],
+ "还没有视频引擎。请打开设置向导一键安装。": [
+  "No video engine yet. Please open the Setup Assistant to install it.",
+  "Noch keine Video-Engine. Bitte den Einrichtungsassistenten öffnen, um sie zu installieren."
+ ],
+ "还没有记住任何事。和 AI 聊天时提到你的习惯和偏好，它会自动记下来。": [
+  "Nothing remembered yet. Mention your habits and preferences while chatting and the AI will note them.",
+  "Noch nichts gemerkt. Erwähne im Chat deine Gewohnheiten und Vorlieben, die KI merkt sie sich."
+ ],
+ "还没有调整": [
+  "No changes yet",
+  "Noch keine Änderungen"
+ ],
+ "还没有运行过": [
+  "Hasn’t run yet",
+  "Noch nicht ausgeführt"
+ ],
+ "还没选文件夹": [
+  "No folder chosen yet",
+  "Noch kein Ordner gewählt"
+ ],
+ "还需下载 %@ GB": [
+  "%@ GB left to download",
+  "Noch %@ GB zu laden"
+ ],
+ "这个仓库里没有找到技能（SKILL.md）。": [
+  "No skills (SKILL.md) found in this repository.",
+  "In diesem Repository wurden keine Skills (SKILL.md) gefunden."
+ ],
+ "这台 Mac 已经全部准备好了。": [
+  "This Mac is all set.",
+  "Dieser Mac ist fertig eingerichtet."
+ ],
+ "这台电脑": [
+  "This Mac",
+  "Dieser Mac"
+ ],
+ "这台电脑内存不够在本机生成视频（至少需要 32GB）。其他功能都可以正常使用。": [
+  "This Mac doesn't have enough memory to generate videos locally (needs at least 32 GB). Everything else works normally.",
+  "Dieser Mac hat nicht genug Arbeitsspeicher für lokale Videos (mindestens 32 GB nötig). Alles andere funktioniert normal."
+ ],
+ "这台电脑内存较小，本地模型会很慢。建议连接云端 API（OpenAI、Claude、Gemini、DeepSeek 等），对话和修图都能用。": [
+  "This Mac has little memory, so local models will be slow. We recommend connecting a cloud API (OpenAI, Claude, Gemini, DeepSeek, …) for chat and photo editing.",
+  "Dieser Mac hat wenig Arbeitsspeicher, lokale Modelle wären langsam. Wir empfehlen, eine Cloud-API zu verbinden (OpenAI, Claude, Gemini, DeepSeek …) – für Chat und Bildbearbeitung."
+ ],
+ "这台电脑内存较小，本地模型会很慢或跑不动。建议在「云端 API」里连接一个服务（例如 OpenAI、Claude、Gemini、DeepSeek），日常对话和修图都能用。": [
+  "This computer has little memory, so local models will be very slow or won’t run. Connect a service under “Cloud APIs” (e.g. OpenAI, Claude, Gemini, DeepSeek) for everyday chat and photo editing.",
+  "Dieser Computer hat wenig Speicher, lokale Modelle laufen sehr langsam oder gar nicht. Verbinde unter „Cloud-APIs“ einen Dienst (z. B. OpenAI, Claude, Gemini, DeepSeek) für Chat und Fotobearbeitung."
+ ],
+ "这台电脑内存较小，跑本地图片模型会很慢。": [
+  "This Mac has little memory; local image models will be slow.",
+  "Dieser Mac hat wenig Arbeitsspeicher; lokale Bildmodelle wären langsam."
+ ],
+ "这台电脑内存较小，跑本地视频模型会很慢或跑不动。": [
+  "This computer has little memory; local video models will be very slow or won’t run.",
+  "Dieser Computer hat wenig Speicher; lokale Videomodelle laufen sehr langsam oder gar nicht."
+ ],
+ "这台电脑（%lld GB 内存）推荐：%@": [
+  "Recommended for this computer (%1$lld GB RAM): %2$@",
+  "Empfohlen für diesen Computer (%1$lld GB RAM): %2$@"
+ ],
+ "这张照片里没有找到「%@」": [
+  "No “%@” found in this photo",
+  "Kein „%@“ in diesem Foto gefunden"
+ ],
+ "这是 Intel 芯片的 Mac：本地模型只能用 CPU 运行，速度较慢，所以只推荐小模型。追求效果建议连接云端 API。": [
+  "This is an Intel Mac: local models can only run on the CPU and are slower, so only small models are recommended. For best results, connect a cloud API.",
+  "Dies ist ein Intel-Mac: Lokale Modelle laufen nur auf der CPU und sind langsamer, daher werden nur kleine Modelle empfohlen. Für beste Ergebnisse eine Cloud-API verbinden."
+ ],
+ "这是别人写的技能，添加前请看一下下面的步骤。AI 执行任何命令、写文件、在网页上操作前都会先问你。": [
+  "These skills are written by other people – look over the steps below before adding. The AI asks you before running any command, writing files or acting on web pages.",
+  "Diese Skills stammen von anderen – sieh dir die Schritte unten vor dem Hinzufügen an. Die KI fragt vor jedem Befehl, Schreiben von Dateien oder Handeln auf Webseiten."
+ ],
+ "连不上 LM Studio（127.0.0.1:1234）": [
+  "Can’t reach LM Studio (127.0.0.1:1234)",
+  "LM Studio nicht erreichbar (127.0.0.1:1234)"
+ ],
+ "连不上本地 AI：%@（请确认 LM Studio / Bionic 正在运行）": [
+  "Can’t reach the local AI: %@ (make sure LM Studio / Bionic is running)",
+  "Lokale KI nicht erreichbar: %@ (prüfe, ob LM Studio / Bionic läuft)"
+ ],
+ "连接云端 API": [
+  "Connect a cloud API",
+  "Cloud-API verbinden"
+ ],
+ "退出 Toolula AI": [
+  "Quit Toolula AI",
+  "Toolula AI beenden"
+ ],
+ "退出码 %d": [
+  "Exit code %d",
+  "Exit-Code %d"
+ ],
+ "选一个技能查看内容，确认没问题再添加": [
+  "Pick a skill to see its content and add it once you’re happy with it",
+  "Wähle einen Skill, sieh dir den Inhalt an und füge ihn hinzu, wenn alles passt"
+ ],
+ "选择…": [
+  "Choose…",
+  "Auswählen…"
+ ],
+ "选择对话和修图用的本地模型，查看内存占用": [
+  "Choose local models for chat and photos, and check memory use",
+  "Lokale Modelle für Chat und Fotos wählen und Speichernutzung prüfen"
+ ],
+ "选择导出文件夹（原片不会被改动）": [
+  "Choose an export folder (originals stay untouched)",
+  "Exportordner wählen (Originale bleiben unverändert)"
+ ],
+ "选择文件夹…": [
+  "Choose Folder…",
+  "Ordner wählen…"
+ ],
+ "选择照片…": [
+  "Choose Photos…",
+  "Fotos wählen…"
+ ],
+ "选择照片或文件夹（支持 JPEG / HEIC / PNG / TIFF / RAW）": [
+  "Choose photos or folders (JPEG / HEIC / PNG / TIFF / RAW supported)",
+  "Fotos oder Ordner wählen (JPEG / HEIC / PNG / TIFF / RAW unterstützt)"
+ ],
+ "选择这个对话用的本地模型（👁=能看图，●=已加载）": [
+  "Choose the local model for this chat (👁 = sees images, ● = loaded)",
+  "Lokales Modell für diesen Chat wählen (👁 = sieht Bilder, ● = geladen)"
+ ],
+ "选片 / 关键词": [
+  "Culling / Keywords",
+  "Auswahl / Stichwörter"
+ ],
+ "通义千问最新的图片模型，画质最好，能准确画出中英文文字": [
+  "Qwen's latest image model — best quality, renders Chinese and English text accurately",
+  "Neuestes Qwen-Bildmodell – beste Qualität, schreibt chinesischen und englischen Text korrekt"
+ ],
+ "通用 + 能看图，适合修图和对话": [
+  "General + sees images, good for photos and chat",
+  "Allrounder + sieht Bilder, gut für Fotos und Chat"
+ ],
+ "通用模型": [
+  "General model",
+  "Allround-Modell"
+ ],
+ "通知已发送": [
+  "Notification sent",
+  "Mitteilung gesendet"
+ ],
+ "释放图片模型内存": [
+  "Free Image Model Memory",
+  "Speicher des Bildmodells freigeben"
+ ],
+ "释放对话模型占用的内存…": [
+  "Freeing the chat model’s memory…",
+  "Speicher des Chat-Modells wird freigegeben…"
+ ],
+ "释放视频模型内存": [
+  "Free video model memory",
+  "Speicher des Videomodells freigeben"
+ ],
+ "重新识别": [
+  "Analyze Again",
+  "Erneut analysieren"
+ ],
+ "重置": [
+  "Reset",
+  "Zurücksetzen"
+ ],
+ "重试": [
+  "Retry",
+  "Wiederholen"
+ ],
+ "重试失败的项目": [
+  "Retry Failed Items",
+  "Fehlgeschlagene erneut versuchen"
+ ],
+ "错误：缺少 command": [
+  "Error: missing command",
+  "Fehler: command fehlt"
+ ],
+ "错误：缺少 element_id": [
+  "Error: element_id missing",
+  "Fehler: element_id fehlt"
+ ],
+ "错误：缺少参数": [
+  "Error: missing parameters",
+  "Fehler: Parameter fehlen"
+ ],
+ "长期记忆": [
+  "Long-term memory",
+  "Langzeitgedächtnis"
+ ],
+ "问问 Toolula": [
+  "Ask Toolula",
+  "Frag Toolula"
+ ],
+ "问问 Toolula AI…": [
+  "Ask Toolula AI…",
+  "Frag Toolula AI …"
+ ],
+ "问问 Toolula，或一键开始修图、绘图、生成视频": [
+  "Ask Toolula, or start photo editing, images or video in one click",
+  "Frag Toolula oder starte mit einem Klick Bildbearbeitung, Bilder oder Video"
+ ],
+ "阴影": [
+  "Shadows",
+  "Tiefen"
+ ],
+ "阴影色相": [
+  "Shadow hue",
+  "Tiefen-Farbton"
+ ],
+ "阴影饱和度": [
+  "Shadow saturation",
+  "Tiefen-Sättigung"
+ ],
+ "阿里通义的快速图片模型，写实效果好，32GB 内存就能跑": [
+  "Fast image model from Alibaba Tongyi, great for realism, runs with 32 GB",
+  "Schnelles Bildmodell von Alibaba Tongyi, sehr realistisch, läuft mit 32 GB"
+ ],
+ "附带的文件（%lld）": [
+  "Included files (%lld)",
+  "Enthaltene Dateien (%lld)"
+ ],
+ "随机种子": [
+  "Random seed",
+  "Zufälliger Seed"
+ ],
+ "隐藏废片": [
+  "Hide rejects",
+  "Ausschuss ausblenden"
+ ],
+ "隐藏或动态执行代码": [
+  "Hides or dynamically runs code",
+  "Verbirgt Code oder führt ihn dynamisch aus"
+ ],
+ "需要先安装 Comfy Desktop，并在里面下载 MiniMax H3 模型。": [
+  "Install Comfy Desktop first and download the MiniMax H3 model in it.",
+  "Installiere zuerst Comfy Desktop und lade dort das MiniMax-H3-Modell."
+ ],
+ "需要安装的内容": [
+  "To install",
+  "Zu installieren"
+ ],
+ "需要管理员权限": [
+  "Needs administrator rights",
+  "Braucht Administratorrechte"
+ ],
+ "青": [
+  "Aqua",
+  "Aquamarin"
+ ],
+ "预览由 Toolula 自己的引擎渲染；「发送到 Lightroom」后由 Lightroom 渲染，效果会略有不同。": [
+  "The preview is rendered by Toolula’s own engine; after “Send to Lightroom”, Lightroom renders it, so it may look slightly different.",
+  "Die Vorschau wird von Toolulas eigener Engine berechnet; nach „An Lightroom senden“ rendert Lightroom, daher kann es leicht anders aussehen."
+ ],
+ "预设会出现在 Lightroom「修改照片 → 预设」和 Photoshop「Camera Raw → 预设」里（Toolula AI 修图 分组）。": [
+  "The preset appears in Lightroom (Develop → Presets) and Photoshop (Camera Raw → Presets), in the Toolula AI group.",
+  "Die Vorgabe erscheint in Lightroom (Entwickeln → Vorgaben) und Photoshop (Camera Raw → Vorgaben) in der Gruppe Toolula AI."
+ ],
+ "颗粒": [
+  "Grain",
+  "Körnung"
+ ],
+ "颜色": [
+  "Color",
+  "Farbe"
+ ],
+ "颜色分级": [
+  "Color Grading",
+  "Color Grading"
+ ],
+ "风光通透：压暗天空高光，提亮阴影，增强蓝天和绿植": [
+  "Clear landscape: darker sky highlights, lifted shadows, richer blue sky and greenery",
+  "Klare Landschaft: Himmel abdunkeln, Schatten aufhellen, kräftigeres Blau und Grün"
+ ],
+ "饱和度": [
+  "Saturation",
+  "Sättigung"
+ ],
+ "首帧图片读取失败": [
+  "Couldn’t read the first-frame image",
+  "Bild für das erste Bild nicht lesbar"
+ ],
+ "首帧图片（可选）": [
+  "First frame (optional)",
+  "Erstes Bild (optional)"
+ ],
+ "高光": [
+  "Highlights",
+  "Lichter"
+ ],
+ "高光色相": [
+  "Highlight hue",
+  "Lichter-Farbton"
+ ],
+ "高光饱和度": [
+  "Highlight saturation",
+  "Lichter-Sättigung"
+ ],
+ "高清（约 200 万像素）": [
+  "High (about 2 MP)",
+  "Hoch (ca. 2 MP)"
+ ],
+ "黄": [
+  "Yellow",
+  "Gelb"
+ ],
+ "黑白高对比：去色，强对比，深黑色": [
+  "High-contrast B&W: desaturated, strong contrast, deep blacks",
+  "Kontrastreiches S/W: entsättigt, starker Kontrast, tiefe Schwarztöne"
+ ],
+ "黑色色阶": [
+  "Blacks",
+  "Schwarz"
+ ],
+ "（%lld 性能 + %lld 能效）": [
+  " (%1$lld performance + %2$lld efficiency)",
+  " (%1$lld Performance + %2$lld Effizienz)"
+ ],
+ "（与 %@ 同一场景，使用相同参数）": [
+  "(Same scene as %@, same settings used)",
+  "(Gleiche Szene wie %@, gleiche Einstellungen)"
+ ],
+ "（也可以在「修图」页查看和微调）": [
+  "(You can review and fine-tune them on the Photo page)",
+  "(Auf der Foto-Seite kannst du sie ansehen und feinjustieren)"
+ ],
+ "（出错）": [
+  " (error)",
+  " (Fehler)"
+ ],
+ "（并提交）": [
+  " (and submit)",
+  " (und absenden)"
+ ],
+ "（更冷）": [
+  " (cooler)",
+  " (kühler)"
+ ],
+ "（更暖）": [
+  " (warmer)",
+  " (wärmer)"
+ ],
+ "（未选文件夹）": [
+  "(no folder chosen)",
+  "(kein Ordner gewählt)"
+ ],
+ "（没有输出）": [
+  "(no output)",
+  "(keine Ausgabe)"
+ ],
+ "（然后按回车）": [
+  " (then press Return)",
+  " (dann Return drücken)"
+ ],
+ "（然后提交）": [
+  " (then submit)",
+  " (dann absenden)"
+ ],
+ "（第一次要加载模型）": [
+  " (first run loads the model)",
+  " (beim ersten Mal wird das Modell geladen)"
+ ],
+ "（超过 %lld 秒，已停止）": [
+  "(stopped after %lld seconds)",
+  "(nach %lld Sekunden abgebrochen)"
+ ],
+ "（输出太长，已截断，共 %lld 字）": [
+  "(output too long, truncated; %lld characters total)",
+  "(Ausgabe zu lang, gekürzt; insgesamt %lld Zeichen)"
+ ],
+ "视频生成中 %@": [
+  "Generating video %@",
+  "Video wird erstellt %@"
+ ],
+ "绘图中 %@": [
+  "Drawing %@",
+  "Bild wird erstellt %@"
+ ],
+ "%@ 条消息": [
+  "%@ messages",
+  "%@ Nachrichten"
+ ],
+ "正在回答…": [
+  "Answering…",
+  "Antwortet…"
+ ],
+ "拖入照片开始": [
+  "Drop photos to start",
+  "Fotos hineinziehen, um zu beginnen"
+ ],
+ "%@ 张照片": [
+  "%@ photos",
+  "%@ Fotos"
+ ],
+ "已调 %@ 张": [
+  "%@ edited",
+  "%@ bearbeitet"
+ ],
+ "当前：%@": [
+  "Current: %@",
+  "Aktuell: %@"
+ ],
+ "已选 %@ 张": [
+  "%@ selected",
+  "%@ ausgewählt"
+ ],
+ "正在生成 %@": [
+  "Generating %@",
+  "Wird erstellt %@"
+ ],
+ "约 %@ 秒一张": [
+  "about %@ s per image",
+  "ca. %@ s pro Bild"
+ ],
+ "已生成 %@ 张": [
+  "%@ generated",
+  "%@ erstellt"
+ ],
+ "已生成 %@ 个": [
+  "%@ generated",
+  "%@ erstellt"
+ ],
+ "%@ 个任务": [
+  "%@ tasks",
+  "%@ Aufgaben"
+ ],
+ "%@ 个已开启": [
+  "%@ on",
+  "%@ aktiv"
+ ],
+ "正在运行": [
+  "Running",
+  "Läuft"
+ ],
+ "%@ 个技能": [
+  "%@ skills",
+  "%@ Fähigkeiten"
+ ],
+ "%@ 条记忆": [
+  "%@ memories",
+  "%@ Erinnerungen"
+ ],
+ "记忆已开启": [
+  "Memory on",
+  "Gedächtnis an"
+ ],
+ "记忆已关闭": [
+  "Memory off",
+  "Gedächtnis aus"
+ ],
+ "%@ 个本地对话模型": [
+  "%@ local chat models",
+  "%@ lokale Chat-Modelle"
+ ],
+ "剩约 %@ 分钟": [
+  "about %@ min left",
+  "noch ca. %@ Min."
+ ],
+ "文件夹：%@": [
+  "Folder: %@",
+  "Ordner: %@"
+ ],
+ "正在压缩较早的对话…": [
+  "Compressing earlier messages…",
+  "Ältere Nachrichten werden komprimiert…"
+ ],
+ "上下文 %@ / %@": [
+  "Context %@ / %@",
+  "Kontext %@ / %@"
+ ],
+ "这个对话发给 AI 的内容大约占了模型上下文的 %@%。越长越慢；超过 %@ 时会自动压缩较早的对话（可在模型页关闭）。": [
+  "This chat uses about %@% of the model context. Longer is slower; above %@ earlier messages are compressed automatically (can be turned off on the Models page).",
+  "Dieser Chat nutzt etwa %@% des Modellkontexts. Je länger, desto langsamer; über %@ werden ältere Nachrichten automatisch komprimiert (auf der Modellseite abschaltbar)."
+ ],
+ "上一次回答：开始回答前读提示词用的时间；括号里是直接复用缓存、不用重新读的比例；后面是输出速度。": [
+  "Last answer: time spent reading the prompt before answering; in brackets the share reused from cache; then output speed.",
+  "Letzte Antwort: Zeit zum Lesen des Prompts; in Klammern der Anteil aus dem Cache; danach die Ausgabegeschwindigkeit."
+ ],
+ "取消压缩": [
+  "Undo compression",
+  "Komprimierung aufheben"
+ ],
+ "之后发给 AI 的又是完整对话": [
+  "The full conversation will be sent to the AI again",
+  "Danach wird wieder der ganze Chat an die KI gesendet"
+ ],
+ "压缩对话": [
+  "Compress chat",
+  "Chat komprimieren"
+ ],
+ "让 AI 把较早的对话写成摘要，只保留最近两轮原文，回答更快。至少要有 3 轮对话才能压缩。": [
+  "Let the AI summarize earlier messages and keep only the last two rounds verbatim for faster answers. Needs at least 3 rounds.",
+  "Die KI fasst ältere Nachrichten zusammen und behält nur die letzten zwei Runden wörtlich – schnellere Antworten. Mindestens 3 Runden nötig."
+ ],
+ "读提示 %@ 秒（缓存 %@%）": [
+  "Prompt %@ s (%@% cached)",
+  "Prompt %@ s (%@% aus Cache)"
+ ],
+ "读提示 %@ 秒": [
+  "Prompt %@ s",
+  "Prompt %@ s"
+ ],
+ "%@ token/秒": [
+  "%@ tokens/s",
+  "%@ Token/s"
+ ],
+ "以上对话已压缩成摘要（%@ → %@ token）": [
+  "Messages above were compressed into a summary (%@ → %@ tokens)",
+  "Obige Nachrichten wurden zusammengefasst (%@ → %@ Token)"
+ ],
+ "以上对话已压缩成摘要": [
+  "Messages above were compressed into a summary",
+  "Obige Nachrichten wurden zusammengefasst"
+ ],
+ "压缩失败：%@": [
+  "Compression failed: %@",
+  "Komprimierung fehlgeschlagen: %@"
+ ],
+ "加速": [
+  "Speed-up",
+  "Beschleunigung"
+ ],
+ "提示词缓存": [
+  "Prompt cache",
+  "Prompt-Cache"
+ ],
+ "对话里没变的部分不再重新读，长对话每轮开始回答快很多": [
+  "Unchanged parts of the chat are not re-read, so long chats start answering much faster",
+  "Unveränderte Teile werden nicht neu gelesen – lange Chats antworten viel schneller"
+ ],
+ "推测解码": [
+  "Speculative decoding",
+  "Spekulatives Dekodieren"
+ ],
+ "内置引擎从已有文字里预测接下来的内容（改代码、引用文件时快好几倍），结果和不加速完全一样": [
+  "The built-in engine predicts upcoming text from what is already there (several times faster when editing code or quoting files); results are identical",
+  "Die integrierte Engine sagt kommenden Text aus vorhandenem voraus (beim Code-Bearbeiten mehrfach schneller); Ergebnis identisch"
+ ],
+ "Flash Attention + 8 位缓存": [
+  "Flash Attention + 8-bit cache",
+  "Flash Attention + 8-Bit-Cache"
+ ],
+ "内置引擎读长内容更快，上下文占用内存减半（这台 Mac 可放 %@ token）": [
+  "Built-in engine reads long content faster and context memory is halved (this Mac fits %@ tokens)",
+  "Integrierte Engine liest lange Inhalte schneller, Kontextspeicher halbiert (dieser Mac: %@ Token)"
+ ],
+ "对话太长时自动压缩": [
+  "Compress long chats automatically",
+  "Lange Chats automatisch komprimieren"
+ ],
+ "超过 3.2 万 token（或模型上下文的 75%）时，把较早的对话写成摘要；也可以在对话页随时手动压缩": [
+  "Above 32K tokens (or 75% of the model context) earlier messages are summarized; you can also compress manually in the chat",
+  "Über 32K Token (oder 75 % des Kontexts) werden ältere Nachrichten zusammengefasst; manuell auch im Chat möglich"
+ ],
+ "LM Studio 草稿模型": [
+  "LM Studio draft model",
+  "LM Studio Entwurfsmodell"
+ ],
+ "不使用": [
+  "None",
+  "Keins"
+ ],
+ "给「%@」配一个同系列的小模型先打草稿，输出通常快 1.5–2.5 倍。要和主模型同一系列（例如 Qwen 配 Qwen 的小模型）；不配套时会自动改回不用。能看图的模型在 LM Studio 里可能不支持。": [
+  "Pair “%@” with a small model of the same family that drafts ahead – usually 1.5–2.5× faster output. Must be the same family (e.g. Qwen with a small Qwen); falls back automatically if incompatible. Vision models may not be supported in LM Studio.",
+  "Kombiniere „%@“ mit einem kleinen Modell derselben Familie als Entwurf – meist 1,5–2,5× schneller. Muss dieselbe Familie sein; bei Inkompatibilität wird automatisch darauf verzichtet. Bildmodelle werden in LM Studio evtl. nicht unterstützt."
+ ],
+ "想要更快：选「混合专家（MoE）」模型，例如 Gemma 4 26B-A4B、Qwen3 Coder 30B-A3B。它们每个字只动用一小部分参数，比同级别的普通模型快 3–5 倍。": [
+  "For more speed pick a mixture-of-experts (MoE) model such as Gemma 4 26B-A4B or Qwen3 Coder 30B-A3B – they use only a fraction of their parameters per token and are 3–5× faster than dense models of similar size.",
+  "Noch schneller: ein Mixture-of-Experts-Modell (MoE) wie Gemma 4 26B-A4B oder Qwen3 Coder 30B-A3B – pro Token nur ein Bruchteil der Parameter, 3–5× schneller als gleich große dichte Modelle."
+ ],
+ "已开启": [
+  "On",
+  "An"
+ ],
+ "下载加速文件（%@ GB，出片快很多）": [
+  "Download speed-up file (%@ GB, much faster)",
+  "Beschleunigungsdatei laden (%@ GB, viel schneller)"
+ ],
+ "用蒸馏过的 4 步加速文件，出片快很多，画面细节略少一点": [
+  "Uses a distilled 4-step file: much faster, slightly less detail",
+  "Nutzt eine destillierte 4-Schritt-Datei: viel schneller, etwas weniger Details"
+ ],
+ "⚡︎ 快速模型": [
+  "⚡︎ Fast model",
+  "⚡︎ Schnelles Modell"
+ ],
+ "测速中…": [
+  "Testing…",
+  "Wird gemessen…"
+ ],
+ "测速": [
+  "Speed test",
+  "Tempo messen"
+ ],
+ "在这台 Mac 上实际跑一次：加载时间、读提示速度、输出速度": [
+  "Runs the model once on this Mac: load time, prompt speed, output speed",
+  "Führt das Modell einmal auf diesem Mac aus: Ladezeit, Prompt- und Ausgabetempo"
+ ],
+ "实测输出 %@ token/秒": [
+  "Measured %@ tokens/s",
+  "Gemessen %@ Token/s"
+ ],
+ "开始回答 %@ 秒": [
+  "first token %@ s",
+  "erstes Token %@ s"
+ ],
+ "加载 %@ 秒": [
+  "load %@ s",
+  "Laden %@ s"
+ ],
+ "快慢模型自动分流": [
+  "Route between fast and main model",
+  "Automatisch zwischen schnellem und Hauptmodell wählen"
+ ],
+ "简单的问题（聊天、翻译、问答）交给快模型，写代码、操作电脑、修图、看图仍用对话默认模型": [
+  "Simple questions (chat, translation, Q&A) go to the fast model; coding, computer control, photo editing and images stay on the default model",
+  "Einfache Fragen (Chat, Übersetzen, Fragen) gehen an das schnelle Modell; Code, Computersteuerung, Fotos und Bilder bleiben beim Standardmodell"
+ ],
+ "快速模型": [
+  "Fast model",
+  "Schnelles Modell"
+ ],
+ "还没有第二个模型。到「下载新模型 → 轻快」里下载一个，例如 Gemma 4 26B-A4B（混合专家，又快又聪明）。": [
+  "No second model yet. Download one under “Download → Fast”, e.g. Gemma 4 26B-A4B (mixture of experts, fast and smart).",
+  "Noch kein zweites Modell. Lade eines unter „Herunterladen → Schnell“, z. B. Gemma 4 26B-A4B (MoE, schnell und klug)."
+ ],
+ "选一个比对话默认模型小、快的模型。点模型旁边的「测速」可以看实际速度。": [
+  "Pick a model smaller and faster than the default. Use “Speed test” next to a model to see real speed.",
+  "Wähle ein kleineres, schnelleres Modell als das Standardmodell. „Tempo messen“ zeigt die echte Geschwindigkeit."
+ ],
+ "两个模型会同时留在内存里，切换不用重新加载（两个加起来最好不超过 %@ GB）。": [
+  "Both models stay in memory so switching needs no reload (keep both under %@ GB combined).",
+  "Beide Modelle bleiben im Speicher, kein Neuladen beim Wechsel (zusammen am besten unter %@ GB)."
+ ],
+ "快速模型回答 · %@": [
+  "Answered by fast model · %@",
+  "Vom schnellen Modell beantwortet · %@"
+ ],
+ "这个问题比较简单，自动交给了快速模型（可在模型页的「加速」里关闭）": [
+  "This question was simple, so it went to the fast model (can be turned off under Models → Speed-up)",
+  "Einfache Frage, daher ans schnelle Modell (unter Modelle → Beschleunigung abschaltbar)"
+ ],
+ "准备 Python…": [
+  "Preparing Python…",
+  "Python wird vorbereitet…"
+ ],
+ "安装 MLX 引擎（约 800 MB）…": [
+  "Installing MLX engine (about 800 MB)…",
+  "MLX-Engine wird installiert (ca. 800 MB)…"
+ ],
+ "下载 MTP 预测模块…": [
+  "Downloading MTP predictor…",
+  "MTP-Vorhersagemodul wird geladen…"
+ ],
+ "MTP 加速引擎安装不完整": [
+  "MTP engine installation is incomplete",
+  "Installation der MTP-Engine unvollständig"
+ ],
+ "LM Studio 里找不到 %@ 的 MLX 模型文件": [
+  "Could not find the MLX files for %@ in LM Studio",
+  "MLX-Dateien für %@ in LM Studio nicht gefunden"
+ ],
+ "MTP 加速引擎还没有安装，请在「模型 → 加速」里安装。": [
+  "The MTP engine is not installed yet. Install it under Models → Speed-up.",
+  "Die MTP-Engine ist noch nicht installiert. Unter Modelle → Beschleunigung installieren."
+ ],
+ "MTP 加速引擎启动失败，详情见 mlx.log": [
+  "The MTP engine failed to start; see mlx.log",
+  "Die MTP-Engine konnte nicht starten; siehe mlx.log"
+ ],
+ "MTP 加速引擎": [
+  "MTP speed-up engine",
+  "MTP-Beschleunigung"
+ ],
+ "运行中": [
+  "Running",
+  "Läuft"
+ ],
+ "让 %@ 输出快约 2 倍（写代码、整理格式时 2.3 倍，中文聊天约 1.6 倍），回答质量不变。用 LM Studio 里已经下载的模型文件，不用重新下载。": [
+  "Makes %@ answer about 2× faster (2.3× for code and structured text, about 1.6× for Chinese chat) with the same quality. Reuses the model files already in LM Studio – nothing to re-download.",
+  "Lässt %@ etwa 2× schneller antworten (2,3× bei Code und Struktur, ca. 1,6× im Chat) bei gleicher Qualität. Nutzt die Modelldateien aus LM Studio – kein erneuter Download."
+ ],
+ "需要先在「下载新模型」里下载 Qwen3.8-27B 的 MLX 版本。": [
+  "First download the MLX version of Qwen3.8-27B under “Download”.",
+  "Lade zuerst die MLX-Version von Qwen3.8-27B unter „Herunterladen“."
+ ],
+ "安装并启用（约 1 GB）": [
+  "Install and enable (about 1 GB)",
+  "Installieren und aktivieren (ca. 1 GB)"
+ ],
+ "用于对话和修图": [
+  "Use for chat and photos",
+  "Für Chat und Fotos verwenden"
+ ],
+ "对话和修图已经在用 MTP 加速。": [
+  "Chat and photo editing already use MTP.",
+  "Chat und Fotobearbeitung nutzen bereits MTP."
+ ]
+}

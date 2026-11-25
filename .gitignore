@@ -1,0 +1,22 @@
+# 编译产物
+.build/
+build/
+*.app
+*.appex
+*.dSYM
+.swiftpm/
+# 系统 / 编辑器
+.DS_Store
+*.swp
+xcuserdata/
+# 签名证书与私钥 (绝不提交)
+*.p12
+*.pfx
+*.cer
+*.pem
+*.key
+*.keychain*
+*.mobileprovision
+# 自测/回归产物
+regress-results/
+*.log
