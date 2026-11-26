@@ -134,7 +134,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -164,6 +164,16 @@ extension AppDelegate {
                 store.aiEdit()
                 while store.working { try? await Task.sleep(for: .seconds(1)) }
                 try? await Task.sleep(for: .seconds(1.5))
+            }
+            if let spec = val("--settings"), let item = store.current {
+                // 例: "Exposure2012=0.4,Contrast2012=18" (和发给 Lightroom 的参数一样, 用来对比两边的效果)
+                var st: Settings = [:]
+                for p in spec.split(separator: ",") {
+                    let x = p.split(separator: "=")
+                    if x.count == 2, let v = Double(x[1]) { st[String(x[0])] = v }
+                }
+                for (k, v) in st { item.setValue(k, v) }
+                try? await Task.sleep(for: .seconds(2))
             }
             if let spec = val("--local"), let item = store.current {
                 // 例: "sky:Highlights2012=-60,Exposure2012=-0.3;face:Exposure2012=0.5"
