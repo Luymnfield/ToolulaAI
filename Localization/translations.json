@@ -5162,5 +5162,17 @@
  "注意：涉及的文件夹太大没有整体备份，只恢复了 AI 用写文件/改文件改过的文件；命令做的改动（移动、删除等）没法撤销。": [
   "Note: the folders involved were too large to back up as a whole, so only files the AI wrote or edited were restored; changes made by commands (moves, deletions, etc.) can't be undone.",
   "Hinweis: Die betroffenen Ordner waren zu groß für eine Komplettsicherung; nur von der KI geschriebene/bearbeitete Dateien wurden wiederhergestellt. Änderungen durch Befehle (Verschieben, Löschen …) lassen sich nicht rückgängig machen."
+ ],
+ "已发送 %lld 张到 Lightroom（在导入窗口点「导入」）。其中 %lld 张的局部调整会由 Toolula 插件在导入后自动加成蒙版": [
+  "Sent %lld photos to Lightroom (click “Import” in the import window). For %lld of them, the Toolula plug-in will turn the local adjustments into masks after import",
+  "%lld Fotos an Lightroom gesendet (im Importfenster auf „Importieren“ klicken). Bei %lld davon wandelt das Toolula-Plug-in die lokalen Anpassungen nach dem Import automatisch in Masken um"
+ ],
+ "发送到 Lightroom / Photoshop 时，会发送已经修好的 16 位 TIFF（AI 消除无法写进它们的参数文件）。": [
+  "When sending to Lightroom / Photoshop, a finished 16-bit TIFF is sent (AI removal can't be written into their settings files).",
+  "Beim Senden an Lightroom / Photoshop wird ein fertig bearbeitetes 16-Bit-TIFF gesendet (KI-Entfernen lässt sich nicht in deren Einstellungsdateien schreiben)."
+ ],
+ "发送到 Lightroom 时，局部调整会在导入后由 Toolula 插件自动做成 Lightroom 的 AI 蒙版，可以继续调；发送到 Photoshop 时是修好的 16 位 TIFF。": [
+  "When sent to Lightroom, the Toolula plug-in turns local adjustments into Lightroom AI masks after import, so you can keep adjusting them; Photoshop receives a finished 16-bit TIFF.",
+  "Beim Senden an Lightroom wandelt das Toolula-Plug-in lokale Anpassungen nach dem Import in KI-Masken von Lightroom um, die du weiter anpassen kannst; Photoshop erhält ein fertiges 16-Bit-TIFF."
  ]
 }

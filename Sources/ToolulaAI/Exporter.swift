@@ -116,10 +116,54 @@ enum Exporter {
     }
 
     /// 复制原片到 folder, 写入 Lightroom 修图参数和元数据, 返回副本路径
-    static func prepareForLightroom(_ job: Job, folder: URL) -> (URL?, String?) {
+    /// masks: 局部调整交给 Lightroom 插件做成蒙版 (只有 Lightroom 有插件; Photoshop 收到的还是修好的 TIFF)
+    static func prepareForLightroom(_ job: Job, folder: URL, masks: Bool = false) -> (URL?, String?) {
+        if job.retouched && !masks { return Integrations.renderTIFF(job, to: folder) }
+        let (dest, err) = copyForLightroom(job, folder: folder)
+        // 发的是原片 (不是修好的 TIFF) 又有局部调整: 留任务给 Lightroom 插件加蒙版
+        if masks, let dest, dest.pathExtension.lowercased() == job.url.pathExtension.lowercased(),
+           let text = lightroomMaskJob(job, sent: dest) {
+            let dir = AppPaths.data.appendingPathComponent("LightroomMasks")
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            try? text.write(to: dir.appendingPathComponent(UUID().uuidString + ".txt"), atomically: true, encoding: .utf8)
+        }
+        return (dest, err)
+    }
+
+    /// Toolula 的区域 -> Lightroom 的 AI 蒙版 (人脸没有单独的 AI 蒙版, 用「人物」)
+    static let lightroomMaskType: [MaskKind: String] = [.subject: "subject", .person: "people", .face: "people",
+                                                         .sky: "sky", .background: "background"]
+    /// Toolula 的局部参数 -> Lightroom 蒙版里的滑块 (LrDevelopController 的名字)
+    static let lightroomLocalParam: [String: String] = [
+        "Exposure2012": "local_Exposure", "Contrast2012": "local_Contrast", "Highlights2012": "local_Highlights",
+        "Shadows2012": "local_Shadows", "IncrementalTemperature": "local_Temperature", "Saturation": "local_Saturation",
+        "Clarity2012": "local_Clarity", "Texture": "local_Texture",
+    ]
+
+    /// 给 Lightroom 插件的任务文件 (一行一项, Lua 好读): 没有要加的局部调整返回 nil
+    static func lightroomMaskJob(_ job: Job, sent: URL) -> String? {
+        var masks: [String] = []
+        for l in job.locals {
+            guard let type = lightroomMaskType[l.area] else { continue }
+            let vals = l.settings.sorted { $0.key < $1.key }.compactMap { k, v -> String? in
+                guard v != 0, let name = lightroomLocalParam[k] else { return nil }
+                return name + "=" + (k == "Exposure2012" ? String(format: "%.2f", v) : String(Int(v.rounded())))
+            }
+            if vals.isEmpty { continue }
+            masks.append((["mask=" + type, l.area.rawValue] + vals).joined(separator: "\t"))
+        }
+        if masks.isEmpty { return nil }
+        let size = (try? FileManager.default.attributesOfItem(atPath: sent.path)[.size] as? Int) ?? 0
+        return (["path=" + sent.path, "name=" + sent.lastPathComponent, "size=\(size)",
+                 "created=\(Int(Date().timeIntervalSince1970))"] + masks).joined(separator: "\n") + "\n"
+    }
+
+    private static func copyForLightroom(_ job: Job, folder: URL) -> (URL?, String?) {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        // 有 AI 消除 / 局部调整: Lightroom 的参数文件表达不了, 改成发送已经修好的 16 位 TIFF
-        if job.retouched { return Integrations.renderTIFF(job, to: folder) }
+        // 有 AI 消除: Lightroom 的参数文件表达不了, 改成发送已经修好的 16 位 TIFF.
+        // 局部调整 (人脸/背景/天空…) 不在这里处理: 照常发 RAW + 参数, 另外留一个任务文件,
+        // Lightroom 里的 Toolula 插件看到照片导入后, 用 Lightroom 自己的 AI 蒙版把局部调整加上 (还能继续改)
+        if !job.patches.isEmpty { return Integrations.renderTIFF(job, to: folder) }
         let dest = uniqueURL(folder, job.url.lastPathComponent)
         do { try FileManager.default.copyItem(at: job.url, to: dest) } catch { return (nil, String(localized: "复制失败：\(error.localizedDescription)")) }
         var s = job.settings
@@ -214,14 +258,17 @@ extension Store {
             var outs: [URL] = [], errors: [String] = []
             for (i, job) in jobs.enumerated() {
                 status = String(localized: "准备发送到 Lightroom \(i + 1)/\(jobs.count)")
-                let (u, e) = await Task.detached(operation: { Exporter.prepareForLightroom(job, folder: folder) }).value
+                let (u, e) = await Task.detached(operation: { Exporter.prepareForLightroom(job, folder: folder, masks: true) }).value
                 if let u { outs.append(u) }
                 if let e { errors.append(e) }
             }
             working = false
             if !outs.isEmpty {
                 Exporter.shell("/usr/bin/open", ["-a", "Adobe Lightroom Classic"] + outs.map { $0.path })
-                status = String(localized: "已发送 \(outs.count) 张到 Lightroom（在导入窗口点「导入」）")
+                let masked = jobs.filter { $0.patches.isEmpty && $0.retouched }.count
+                status = masked > 0
+                    ? String(localized: "已发送 \(outs.count) 张到 Lightroom（在导入窗口点「导入」）。其中 \(masked) 张的局部调整会由 Toolula 插件在导入后自动加成蒙版")
+                    : String(localized: "已发送 \(outs.count) 张到 Lightroom（在导入窗口点「导入」）")
             }
             if !errors.isEmpty { alert = errors.joined(separator: "\n") }
         }

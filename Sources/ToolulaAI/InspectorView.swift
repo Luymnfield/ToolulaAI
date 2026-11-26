@@ -415,8 +415,11 @@ struct LocalPanel: View {
                 if !item.patches.isEmpty {
                     Text("已 AI 消除 \(item.patches.count) 处").font(.caption).foregroundStyle(.secondary)
                 }
-                if item.retouched {
-                    Text("发送到 Lightroom / Photoshop 时，会发送已经修好的 16 位 TIFF（局部调整和消除无法写进它们的参数文件）。")
+                if !item.patches.isEmpty {
+                    Text("发送到 Lightroom / Photoshop 时，会发送已经修好的 16 位 TIFF（AI 消除无法写进它们的参数文件）。")
+                        .font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
+                } else if item.retouched {
+                    Text("发送到 Lightroom 时，局部调整会在导入后由 Toolula 插件自动做成 Lightroom 的 AI 蒙版，可以继续调；发送到 Photoshop 时是修好的 16 位 TIFF。")
                         .font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
                 }
             }

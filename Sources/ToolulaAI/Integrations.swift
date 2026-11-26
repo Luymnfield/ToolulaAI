@@ -260,7 +260,7 @@ extension Store {
         var outs: [URL] = []
         for job in jobs {
             let r: (URL?, String?) = await Task.detached {
-                app == .luminar ? Integrations.renderTIFF(job, to: folder) : Exporter.prepareForLightroom(job, folder: folder)
+                app == .luminar ? Integrations.renderTIFF(job, to: folder) : Exporter.prepareForLightroom(job, folder: folder, masks: app == .lightroom)
             }.value
             if let u = r.0 { outs.append(u) }
         }
