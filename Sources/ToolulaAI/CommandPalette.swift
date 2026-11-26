@@ -81,6 +81,13 @@ struct CommandPalette: View {
         c.append(.init(id: "diag", kind: .action, icon: "stethoscope", title: String(localized: "导出诊断报告"), keywords: "diagnostics log") {
             Diagnostics.exportAndReveal()
         })
+        for o in Lang.options where o.code != Lang.current.code {
+            c.append(.init(id: "lang-\(o.code)", kind: .setting, icon: "globe", title: String(localized: "界面语言：\(o.name)"),
+                           subtitle: String(localized: "重新打开 Toolula 后生效"), keywords: "language lang 语言 \(o.code)") {
+                Lang.override = o.code
+                Lang.relaunch()
+            })
+        }
         for a in AppAppearance.allCases {
             c.append(.init(id: "appearance-\(a.rawValue)", kind: .setting, icon: "circle.lefthalf.filled", title: String(localized: "外观：\(a.title)"), keywords: "appearance theme dark light") {
                 AppAppearance.apply(a)

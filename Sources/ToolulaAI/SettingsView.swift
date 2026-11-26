@@ -62,11 +62,9 @@ struct GeneralSettings: View {
             }
             .onChange(of: appearance) { _, v in AppAppearance.apply(v) }
             Section("语言") {
-                Text("界面语言跟随系统（简体中文、English、Deutsch）。想单独给 Toolula 换语言：系统设置 → 通用 → 语言与地区 → 应用程序。")
+                LanguagePicker()
+                Text("支持简体中文、繁體中文、English、日本語、한국어、Deutsch、Français、Español、Português、Русский。AI 默认也用这种语言回答。")
                     .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Button("打开「语言与地区」") {
-                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Localization-Settings.extension")!)
-                }
             }
             Section("启动") {
                 Toggle("登录 Mac 时自动打开", isOn: Binding(get: { automations.launchAtLogin }, set: { automations.setLaunchAtLogin($0) }))

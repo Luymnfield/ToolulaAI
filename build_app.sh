@@ -38,7 +38,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleSupportedPlatforms</key><array><string>MacOSX</string></array>
-  <key>CFBundleLocalizations</key><array><string>zh-Hans</string><string>en</string><string>de</string></array>
+  <key>CFBundleLocalizations</key><array><string>zh-Hans</string><string>zh-Hant</string><string>en</string><string>ja</string><string>ko</string><string>de</string><string>fr</string><string>es</string><string>pt-BR</string><string>pt</string><string>ru</string></array>
   <key>CFBundleIdentifier</key><string>com.toolula.ai-photo-edit</string>
   <key>CFBundleExecutable</key><string>ToolulaAI</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
@@ -106,15 +106,23 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   </array>
 </dict></plist>
 PLIST
-# 服务菜单的英文 / 德文名字
-for L in en de; do
-  case $L in
-    en) S1="Summarize with Toolula"; S2="Edit with Toolula"; S3="Make a Video with Toolula"; S4="Ask Toolula" ;;
-    de) S1="Mit Toolula zusammenfassen"; S2="Mit Toolula bearbeiten"; S3="Mit Toolula als Video"; S4="Toolula fragen" ;;
-  esac
+# 服务菜单 (访达右键) 在各语言里的名字
+while IFS='|' read -r L S1 S2 S3 S4; do
+  [[ -z "$L" ]] && continue
   mkdir -p "$APP/Contents/Resources/$L.lproj"
   printf '"用 Toolula 总结" = "%s";\n"用 Toolula 修图" = "%s";\n"用 Toolula 做成视频" = "%s";\n"问 Toolula" = "%s";\n' "$S1" "$S2" "$S3" "$S4" > "$APP/Contents/Resources/$L.lproj/ServicesMenu.strings"
-done
+done <<'SERVICES'
+en|Summarize with Toolula|Edit with Toolula|Make a Video with Toolula|Ask Toolula
+de|Mit Toolula zusammenfassen|Mit Toolula bearbeiten|Mit Toolula als Video|Toolula fragen
+zh-Hant|用 Toolula 摘要|用 Toolula 修圖|用 Toolula 製作影片|問 Toolula
+ja|Toolulaで要約|Toolulaで編集|Toolulaでビデオを作成|Toolulaに質問
+ko|Toolula로 요약|Toolula로 편집|Toolula로 비디오 만들기|Toolula에게 묻기
+fr|Résumer avec Toolula|Modifier avec Toolula|Créer une vidéo avec Toolula|Demander à Toolula
+es|Resumir con Toolula|Editar con Toolula|Crear un video con Toolula|Preguntar a Toolula
+pt-BR|Resumir com o Toolula|Editar com o Toolula|Criar vídeo com o Toolula|Perguntar ao Toolula
+pt|Resumir com o Toolula|Editar com o Toolula|Criar vídeo com o Toolula|Perguntar ao Toolula
+ru|Кратко с Toolula|Изменить в Toolula|Создать видео в Toolula|Спросить Toolula
+SERVICES
 # 快捷指令动作的元数据 (AppIntents): swift build 已经导出了编译器的常量信息 (.swiftconstvalues), 用它生成 Metadata.appintents
 INT=.build/intents; mkdir -p $INT
 SCRATCH=.build; (( SELFTEST )) && SCRATCH=.build-selftest
@@ -158,7 +166,7 @@ cat > "$WX/Contents/Info.plist" <<PLIST
   <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleSupportedPlatforms</key><array><string>MacOSX</string></array>
-  <key>CFBundleLocalizations</key><array><string>zh-Hans</string><string>en</string><string>de</string></array>
+  <key>CFBundleLocalizations</key><array><string>zh-Hans</string><string>zh-Hant</string><string>en</string><string>ja</string><string>ko</string><string>de</string><string>fr</string><string>es</string><string>pt-BR</string><string>pt</string><string>ru</string></array>
   <key>CFBundleIdentifier</key><string>com.toolula.ai-photo-edit.widget</string>
   <key>CFBundleExecutable</key><string>ToolulaWidget</string>
   <key>CFBundlePackageType</key><string>XPC!</string>

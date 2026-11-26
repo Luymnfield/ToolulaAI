@@ -63,6 +63,7 @@ enum AIBridge {
         var env = ProcessInfo.processInfo.environment
         if let m = UserDefaults.standard.string(forKey: "photoModel"), !m.isEmpty { env["TOOLULA_MODEL"] = m }
         env["TOOLULA_LANG"] = Lang.scriptLanguage
+        env["TOOLULA_LANG_NAME"] = Lang.aiLanguage
         // 修图模型可以是云端 API
         let d = UserDefaults.standard
         if let base = d.string(forKey: "photoAPIBase"), !base.isEmpty {

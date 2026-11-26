@@ -274,9 +274,21 @@ def main():
     for k, where in sorted(missing.items(), key=lambda x: x[1][0]):
         print(f"{where[0]}: 缺少翻译: {k!r}" + (f" (另有 {len(where) - 1} 处)" if len(where) > 1 else ""))
     print(f"检查了 {len(found)} 条界面文字，缺少翻译 {len(missing)} 条", file=sys.stderr)
+    # 其他语言 (zh-Hant / ja / ko / fr / es / pt / ru): translations.json 里有、这个语言还没翻的
+    lang_missing = 0
+    for code in ["zh-Hant", "ja", "ko", "fr", "es", "pt", "ru"]:
+        p = os.path.join(ROOT, "Localization", code + ".json")
+        if not os.path.exists(p):
+            print(f"{code}: 还没有语言文件", file=sys.stderr); lang_missing += len(TABLE); continue
+        tr = json.load(open(p, encoding="utf-8"))
+        miss = [k for k in TABLE if not tr.get(k)]
+        lang_missing += len(miss)
+        if miss:
+            print(f"{code}: 缺少 {len(miss)} 条（编译时用英文顶上），例如 {miss[0]!r}", file=sys.stderr)
+    missing_total = len(missing) + lang_missing
     if "--warn" in sys.argv:
         return 0
-    return 1 if missing else 0
+    return 1 if missing_total else 0
 
 
 if __name__ == "__main__":

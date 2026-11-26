@@ -139,7 +139,7 @@ struct RailButton: View {
                 Image(systemName: section.icon).font(.system(size: [18, 20, 22][size], weight: selected ? .semibold : .regular))
                     .frame(height: [21, 24, 26][size])
                 Text(section.rawValue.locKey).font(.system(size: [10, 11.5, 12][size], weight: selected ? .semibold : .regular))
-                    .lineLimit(1).minimumScaleFactor(0.8)
+                    .lineLimit(1).minimumScaleFactor(0.6).allowsTightening(true)
             }
             .frame(width: [60, 68, 70][size], height: [46, 54, 60][size])
             .foregroundStyle(selected ? Color.toolula : (hover ? Color.primary : Color.secondary))

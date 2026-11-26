@@ -4742,5 +4742,29 @@
  "释放其他模型占用的内存…": [
   "Freeing memory used by other models…",
   "Speicher anderer Modelle wird freigegeben …"
+ ],
+ "界面语言": [
+  "Language",
+  "Sprache"
+ ],
+ "重新打开 Toolula 后生效。": [
+  "Takes effect after reopening Toolula.",
+  "Wird nach dem erneuten Öffnen von Toolula wirksam."
+ ],
+ "立即重新打开": [
+  "Reopen Now",
+  "Jetzt neu öffnen"
+ ],
+ "支持简体中文、繁體中文、English、日本語、한국어、Deutsch、Français、Español、Português、Русский。AI 默认也用这种语言回答。": [
+  "Available in 简体中文, 繁體中文, English, 日本語, 한국어, Deutsch, Français, Español, Português and Русский. The AI answers in this language by default too.",
+  "Verfügbar in 简体中文, 繁體中文, English, 日本語, 한국어, Deutsch, Français, Español, Português und Русский. Die KI antwortet standardmäßig ebenfalls in dieser Sprache."
+ ],
+ "界面语言：%@": [
+  "Language: %@",
+  "Sprache: %@"
+ ],
+ "重新打开 Toolula 后生效": [
+  "Takes effect after reopening Toolula",
+  "Wird nach dem Neustart von Toolula wirksam"
  ]
 }
