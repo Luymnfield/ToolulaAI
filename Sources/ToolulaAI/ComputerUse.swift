@@ -205,7 +205,7 @@ final class ComputerControl: ObservableObject {
         // 菜单栏只列出顶层名字, 用 app_menu 操作
         if let bar = Self.attr(root, kAXMenuBarAttribute), let items = Self.attr(bar as! AXUIElement, kAXChildrenAttribute) as? [AXUIElement] {
             let names = items.compactMap { Self.str($0, kAXTitleAttribute) }.filter { !$0.isEmpty && $0 != "Apple" }
-            lines.append(String(localized: "菜单栏：\(names.joined(separator: " | "))（用 app_menu 点菜单）"))
+            lines.append(String(localized: "菜单栏：\(names.joined(separator: " | "))（用 app_key 的 menu 参数点菜单）"))
         }
         elements = map
         elementsApp = app.processIdentifier
@@ -537,7 +537,7 @@ enum MacAutomation {
     }
 
     static func openApp(_ name: String) -> String {
-        guard let url = appURL(name) else { return String(localized: "找不到叫「\(name)」的程序。可以用 list_apps 看看正在运行的程序。") }
+        guard let url = appURL(name) else { return String(localized: "找不到叫「\(name)」的程序。可以用 open_app（name 留空）看看正在运行的程序。") }
         let (code, out) = Exporter.shell("/usr/bin/open", [url.path])
         let shown = FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: "")
         return code == 0 ? String(localized: "已打开「\(shown)」。") : String(localized: "打不开「\(name)」：\(out)")

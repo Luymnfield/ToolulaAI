@@ -197,7 +197,7 @@ enum AutomationRunner {
         var messages = [ChatMessage(role: "user", text: task.prompt + extra)]
         var log = ""
         let info = ModelManager.shared.model(task.model)
-        let tools = (info?.toolUse ?? true) ? Tools.definitions(photo: photoStore != nil) : nil
+        let tools = (info?.toolUse ?? true) ? Tools.definitions(photo: photoStore != nil, automation: true) : nil
         let policy = "\n请用\(Lang.aiLanguage)写结果。" + (task.allowActions
             ? "\n这是一个无人值守的自动化任务，用户已授权你直接执行命令和写文件，不会有人确认；只做任务需要的操作，避免任何删除或破坏性操作。"
             : "\n这是一个无人值守的自动化任务。你只能查看信息（列目录、读文件、只读命令会被拒绝执行），不能执行命令或写文件；需要这些操作时请在结果里说明。")

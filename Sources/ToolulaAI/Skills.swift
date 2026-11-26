@@ -99,10 +99,10 @@ final class SkillStore: ObservableObject {
         let on = skills.filter { $0.enabled }
         var s = "\n\n【技能】"
         if !on.isEmpty {
-            s += "你掌握这些技能，任务符合某个技能时，先调用 use_skill 读取它的详细步骤再照做：\n"
+            s += "任务符合时先 use_skill 读步骤再照做：\n"
             s += on.map { "- \($0.name)：\($0.description)" }.joined(separator: "\n")
         }
-        s += "\n当用户教你一套新的做事方法、或说「记住这个流程/做成技能」时，用 create_skill 保存成技能。"
+        s += "\n用户教你新流程或说「做成技能」时，用 use_skill 带上 description 和 instructions 保存。"
         return s
     }
 

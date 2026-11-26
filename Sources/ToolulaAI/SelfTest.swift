@@ -134,7 +134,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -317,6 +317,22 @@ extension AppDelegate {
                 }
                 log += "roots: \(VideoModels.modelRoots.map(\.path)) installed: \(VideoModels.shared.installed)\n"
                 log += "video-model: \(VideoModels.shared.selected.name) ready=\(VideoModels.shared.isReady(VideoModels.shared.selected)) recommended=\(VideoModels.shared.recommended?.name ?? "-")\n"
+            }
+            if let dp = val("--dump-prompt") {
+                // 导出实际发给模型的系统提示和工具定义 (操作电脑关 / 开两种), 用来统计 token 和对比工具调用
+                let cc = ComputerControl.shared
+                let was = cc.enabled
+                var out: [String: Any] = [:]
+                for on in [false, true] {
+                    cc.enabled = on
+                    out[on ? "cu" : "base"] = ["system": Agent.systemPrompt(workDir: NSHomeDirectory(), tools: true),
+                                               "tools": Tools.definitions(photo: true)]
+                }
+                cc.enabled = was
+                if let d = try? JSONSerialization.data(withJSONObject: out, options: [.sortedKeys, .prettyPrinted]) {
+                    try? d.write(to: URL(fileURLWithPath: dp))
+                }
+                log += "dump-prompt: \(dp)\n"
             }
             if let page = val("--comfy-warmup") {
                 if page == "image", let mid = val("--image-model") { ImageModels.shared.scan(); ImageModels.shared.selectedId = mid }

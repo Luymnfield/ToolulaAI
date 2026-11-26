@@ -10,121 +10,116 @@ struct ToolContext {
 }
 
 enum Tools {
+    /// 给模型看的工具说明。
+    ///
+    /// 新对话第一次要把这些说明全部读一遍 (qwen3.8-27b 约 160 token/秒), 所以写得尽量短:
+    /// 文字精简, 同类工具合并成一个 (比如 browser_open 不填 url 就是重读当前页), 运行时由 normalize 换回原来的工具。
+    /// 旧的工具名照样可以调用 (旧对话、自定义模型不受影响)。
+    /// automation: 自动化任务才提供 notify_user
     @MainActor
-    static func definitions(photo: Bool) -> [[String: Any]] {
-        func fn(_ name: String, _ desc: String, _ props: [String: Any], _ required: [String]) -> [String: Any] {
-            ["type": "function", "function": ["name": name, "description": desc,
-                                              "parameters": ["type": "object", "properties": props, "required": required]]]
+    static func definitions(photo: Bool, automation: Bool = false) -> [[String: Any]] {
+        func fn(_ name: String, _ desc: String, _ props: [String: Any], _ required: [String] = []) -> [String: Any] {
+            var params: [String: Any] = ["type": "object", "properties": props]
+            if !required.isEmpty { params["required"] = required }
+            return ["type": "function", "function": ["name": name, "description": desc, "parameters": params]]
         }
+        let str: [String: Any] = ["type": "string"], int: [String: Any] = ["type": "integer"], bool: [String: Any] = ["type": "boolean"]
+        func described(_ d: String) -> [String: Any] { ["type": "string", "description": d] }
+        func choice(_ v: [String]) -> [String: Any] { ["type": "string", "enum": v] }
+
         var defs: [[String: Any]] = [
-            fn("run_shell", "在用户的 Mac 上用 zsh 执行一条命令并返回输出 (可用 ls, find, du, df, mv, cp, mkdir, python3, curl, git, brew 等). 有副作用的命令会先让用户确认.",
-               ["command": ["type": "string", "description": "要执行的命令"],
-                "timeout_seconds": ["type": "integer", "description": "超时秒数, 默认 120"]], ["command"]),
-            fn("list_directory", "列出文件夹内容 (名称、大小、修改时间)",
-               ["path": ["type": "string", "description": "文件夹路径, 支持 ~"]], ["path"]),
-            fn("read_file", "读取文本文件内容 (最多 20000 字)",
-               ["path": ["type": "string"]], ["path"]),
-            fn("write_file", "创建或覆盖一个文本文件 (会先让用户确认)",
-               ["path": ["type": "string"], "content": ["type": "string"]], ["path", "content"]),
-            fn("notify_user", "给用户发一条 macOS 通知 (适合自动化任务汇报结果)",
-               ["title": ["type": "string"], "message": ["type": "string"]], ["title", "message"]),
+            fn("run_shell", "用 zsh 执行命令并返回输出。有副作用的命令会先问用户", ["command": str, "timeout_seconds": int], ["command"]),
+            fn("list_directory", "列出文件夹内容（大小、修改时间）", ["path": str], ["path"]),
+            fn("read_file", "读文本文件（最多 2 万字）", ["path": str], ["path"]),
+            fn("write_file", "创建或覆盖文本文件（会先问用户）", ["path": str, "content": str], ["path", "content"]),
         ]
+        if automation {
+            defs.append(fn("notify_user", "发 macOS 通知", ["title": str, "message": str], ["title", "message"]))
+        }
         if photo {
-            defs.append(fn("photo_edit",
-                           "用 Toolula AI 修图处理照片: AI 看图调色并导出 JPEG (原片不变). 适合 \"把这些照片修成日系风格\" 之类的请求.",
-                           ["paths": ["type": "array", "items": ["type": "string"], "description": "照片或文件夹路径"],
-                            "style": ["type": "string", "description": "想要的风格/要求, 例如 日系清新"],
-                            "export_folder": ["type": "string", "description": "导出文件夹, 默认 ~/Pictures/Toolula AI 修图/导出"],
-                            "open_in": ["type": "string", "enum": ["none", "lightroom", "photoshop", "luminar"],
-                                        "description": "修好后发送到哪个软件继续编辑 (lightroom / photoshop 带可调参数, luminar 是调好色的 16 位 TIFF)"]],
-                           ["paths", "style"]))
+            defs.append(fn("photo_edit", "修已有的照片：AI 调色并导出 JPEG，原片不变",
+                           ["paths": ["type": "array", "items": ["type": "string"]], "style": described("如 日系清新"), "export_folder": str,
+                            "open_in": choice(["none", "lightroom", "photoshop", "luminar"])], ["paths", "style"]))
         }
-        // 视频 (MiniMax H3, 通过 ComfyUI)
         if ComfyEngine.installed {
-            defs.append(fn("generate_video",
-                           "用本机的 MiniMax H3 生成带声音的视频 (需要 10~60 分钟, 会先征求用户同意). 提示词最好用英文, 可以带一行 Audio: 描述声音.",
-                           ["prompt": ["type": "string", "description": "视频内容 (英文效果最好)"],
-                            "seconds": ["type": "number", "description": "时长 2~15 秒, 默认 5"],
-                            "quality": ["type": "string", "enum": ["480p", "720p", "768p"], "description": "默认 480p (快)"],
-                            "aspect": ["type": "string", "enum": ["16:9", "9:16", "1:1"], "description": "默认 16:9"],
-                            "image_path": ["type": "string", "description": "可选: 作为第一帧的图片路径"]], ["prompt"]))
+            defs.append(fn("generate_video", "生成带声音的视频（10~60 分钟，会先问用户）。英文提示词，可加一行 Audio: 声音",
+                           ["prompt": str, "seconds": ["type": "number"], "quality": choice(["480p", "720p", "768p"]),
+                            "aspect": choice(["16:9", "9:16", "1:1"]), "image_path": described("首帧图")], ["prompt"]))
+            defs.append(fn("generate_image", "按文字画新图（几十秒），图中文字放引号里",
+                           ["prompt": str, "aspect": choice(["1:1", "16:9", "9:16", "4:3", "3:4"]), "count": int, "high_res": bool], ["prompt"]))
         }
-        // 图片
-        if ComfyEngine.installed {
-            defs.append(fn("generate_image",
-                           "用本机的图片模型根据文字画图 (几十秒). 想在图里出现的文字放在引号里. 画好的图保存在「图片/Toolula AI」.",
-                           ["prompt": ["type": "string", "description": "画面描述, 中英文都可以"],
-                            "aspect": ["type": "string", "enum": ["1:1", "16:9", "9:16", "4:3", "3:4"], "description": "默认 1:1"],
-                            "count": ["type": "integer", "description": "画几张, 1~4, 默认 1"],
-                            "high_res": ["type": "boolean", "description": "高清 (约 200 万像素, 更慢)"]], ["prompt"]))
+        // 浏览器 (不变的部分放前面: 提示词缓存从开头算起, 开关「操作电脑」只影响后面)
+        defs += [
+            fn("web_search", "上网搜索，返回前 10 条结果", ["query": str], ["query"]),
+            fn("browser_open", "内置浏览器打开网页，返回正文和编号元素；url 留空=重读当前页，\"back\"=后退", ["url": str]),
+            fn("browser_click", "点网页编号元素；给了 text 就改为输入", ["element_id": int, "text": str, "submit": bool], ["element_id"]),
+        ]
+        if MemoryStore.shared.enabled {
+            defs.append(fn("memory_save", "记下一条关于用户的长期信息；给 delete_id 则删除该条", ["text": str, "delete_id": str]))
         }
+        defs.append(fn("use_skill", "读取技能步骤；同时给 description 和 instructions 则保存为新技能",
+                       ["name": str, "description": str, "instructions": str], ["name"]))
         // 操作电脑上的程序 (默认关闭, 在助手页右上角打开)
         if ComputerControl.shared.enabled {
             defs += [
-                fn("list_apps", "列出正在运行的程序", [:], []),
-                fn("open_app", "打开 (或切换到) 一个程序, 例如 备忘录、Finder、Safari、微信",
-                   ["name": ["type": "string"]], ["name"]),
-                fn("list_shortcuts", "列出用户的「快捷指令」 (能用快捷指令完成的事优先用它, 最稳)", [:], []),
-                fn("run_shortcut", "运行一个快捷指令 (会先问用户)",
-                   ["name": ["type": "string"], "input": ["type": "string", "description": "可选: 传给快捷指令的文字"]], ["name"]),
-                fn("run_applescript", "运行 AppleScript (或 JavaScript for Automation) 控制支持脚本的程序, 例如 Finder、邮件、日历、备忘录、提醒事项、Safari、音乐 (会先问用户). 返回脚本结果.",
-                   ["script": ["type": "string"], "language": ["type": "string", "enum": ["applescript", "javascript"]]], ["script"]),
-                fn("app_read", "读取某个程序当前窗口里的按钮、输入框、文字等元素 (带编号). 操作任何程序前先用它看界面; 界面变化后要重新读取.",
-                   ["app": ["type": "string", "description": "程序名, 留空 = 最前面的程序"]], []),
-                fn("app_click", "点击 app_read 列出的某个编号的元素 (会先问用户)",
-                   ["id": ["type": "integer"]], ["id"]),
-                fn("app_type", "在某个编号的输入框里输入文字 (会先问用户; 不能输入密码). 不填 id 就输入到当前光标位置.",
-                   ["id": ["type": "integer"], "text": ["type": "string"],
-                    "replace": ["type": "boolean", "description": "先清空原有内容"], "submit": ["type": "boolean", "description": "输入后按回车"]], ["text"]),
-                fn("app_key", "按快捷键, 例如 cmd+s、cmd+shift+n、return、esc、tab、down (会先问用户)",
-                   ["keys": ["type": "string"], "app": ["type": "string", "description": "可选: 先切换到这个程序"]], ["keys"]),
-                fn("app_menu", "点击程序的菜单, 例如 path=\"文件 > 导出…\" (会先问用户)",
-                   ["app": ["type": "string"], "path": ["type": "string"]], ["path"]),
-                fn("screenshot", "截取某个程序窗口 (或整个屏幕) 的画面给你看. 只在 app_read 读不出需要的元素时使用.",
-                   ["app": ["type": "string", "description": "程序名, 留空 = 整个主屏幕"]], []),
-                fn("chrome_tabs", "列出用户 Chrome 浏览器里打开的所有标签页 (标题和网址)", [:], []),
-                fn("chrome_open", "在用户自己的 Chrome 里打开网址 (用户已登录的网站可以直接用), 返回页面内容和带编号的元素",
-                   ["url": ["type": "string"], "new_tab": ["type": "boolean", "description": "默认 true: 新开标签"]], ["url"]),
-                fn("chrome_read", "读取 Chrome 当前标签页的正文和带编号的可点击 / 可输入元素",
-                   ["tab": ["type": "integer", "description": "可选: 先切换到当前窗口的第几个标签 (从 1 开始)"]], []),
-                fn("chrome_click", "点击 Chrome 页面里某个编号的元素 (按钮会先问用户)", ["id": ["type": "integer"]], ["id"]),
-                fn("chrome_type", "在 Chrome 页面某个编号的输入框里输入文字 (会先问用户; 不能输入密码)",
-                   ["id": ["type": "integer"], "text": ["type": "string"], "submit": ["type": "boolean"]], ["id", "text"]),
-                fn("chrome_back", "Chrome 当前标签页后退", [:], []),
-                fn("mouse_click", "按最近一次截图里的位置点击. x, y 是 0~1000 的相对坐标 (左上角 0,0, 右下角 1000,1000) (会先问用户)",
-                   ["x": ["type": "number"], "y": ["type": "number"], "double": ["type": "boolean"], "right": ["type": "boolean"]], ["x", "y"]),
+                fn("open_app", "打开或切换到程序；name 留空则列出运行中的程序", ["name": str]),
+                fn("run_shortcut", "运行快捷指令（会先问用户）；name 留空则列出全部", ["name": str, "input": str]),
+                fn("run_applescript", "运行 AppleScript/JXA 控制 Finder、邮件、日历、备忘录、提醒事项、音乐等（会先问用户）",
+                   ["script": str, "language": choice(["applescript", "javascript"])], ["script"]),
+                fn("app_read", "读程序窗口的元素（带编号）。界面变化后重读", ["app": described("留空=最前面的程序")]),
+                fn("app_click", "点击 app_read 的编号元素；给了 text 就改为在该输入框输入（不填 id 输入到光标处）",
+                   ["id": int, "text": str, "replace": bool, "submit": bool]),
+                fn("app_key", "按快捷键或点菜单：keys 如 cmd+s、return；menu 如 \"文件 > 导出…\"", ["keys": str, "menu": str, "app": str]),
+                fn("screenshot", "截图看画面", ["app": described("留空=整个屏幕")]),
+                fn("mouse_click", "按最近截图的 0~1000 相对坐标点击", ["x": ["type": "number"], "y": ["type": "number"], "double": bool, "right": bool], ["x", "y"]),
+                fn("chrome_open", "用用户的 Chrome（带登录状态）：url 打开网址；留空读当前页；\"tabs\" 列出标签页；\"back\" 后退",
+                   ["url": str, "tab": int, "new_tab": bool]),
+                fn("chrome_click", "点 Chrome 页面编号元素；给了 text 就改为输入", ["id": int, "text": str, "submit": bool], ["id"]),
             ]
         }
-        // 浏览器
-        defs += [
-            fn("web_search", "上网搜索 (DuckDuckGo), 返回前 10 条结果的标题、网址和摘要. 需要最新信息、查资料时使用.",
-               ["query": ["type": "string"]], ["query"]),
-            fn("browser_open", "在 Toolula 浏览器里打开网页, 返回页面正文和带编号的可点击/可输入元素",
-               ["url": ["type": "string"]], ["url"]),
-            fn("browser_click", "点击页面上某个编号的元素 (按钮会先让用户确认)",
-               ["element_id": ["type": "integer"]], ["element_id"]),
-            fn("browser_type", "在某个编号的输入框里输入文字 (会先让用户确认; 不能输入密码)",
-               ["element_id": ["type": "integer"], "text": ["type": "string"],
-                "submit": ["type": "boolean", "description": "输入后是否按回车/提交"]], ["element_id", "text"]),
-            fn("browser_back", "返回上一页", [:], []),
-            fn("browser_read", "重新读取当前页面 (页面变化后用)", [:], []),
-        ]
-        // 记忆
-        if MemoryStore.shared.enabled {
-            defs += [
-                fn("memory_save", "把关于用户的一条长期有用的信息记下来 (一句话)", ["text": ["type": "string"]], ["text"]),
-                fn("memory_delete", "删除一条记忆 (用记忆前面的 id)", ["id": ["type": "string"]], ["id"]),
-            ]
-        }
-        // 技能
-        defs += [
-            fn("use_skill", "读取一个技能的详细步骤", ["name": ["type": "string"]], ["name"]),
-            fn("create_skill", "把一套做事方法保存成技能, 以后可以反复使用",
-               ["name": ["type": "string", "description": "简短的名字"],
-                "description": ["type": "string", "description": "一句话说明什么时候用"],
-                "instructions": ["type": "string", "description": "具体步骤"]], ["name", "description", "instructions"]),
-        ]
         return defs
+    }
+
+    /// 把合并后的工具写法换回原来的工具 (见 definitions)。旧写法原样返回。
+    static func normalize(_ call: ToolCall) -> ToolCall {
+        var a = call.args
+        func text(_ k: String) -> String? { (a[k] as? String).flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 } }
+        var name = call.name
+        switch call.name {
+        case "browser_open":
+            switch text("url")?.lowercased() {
+            case nil: name = "browser_read"
+            case "back": name = "browser_back"
+            default: break
+            }
+        case "browser_click":
+            if text("text") != nil { name = "browser_type" }
+        case "memory_save":
+            if let id = text("delete_id") { name = "memory_delete"; a = ["id": id] }
+        case "use_skill":
+            if text("instructions") != nil && text("description") != nil { name = "create_skill" }
+        case "open_app":
+            if text("name") == nil { name = "list_apps" }
+        case "run_shortcut":
+            if text("name") == nil { name = "list_shortcuts" }
+        case "app_click":
+            if text("text") != nil { name = "app_type" }
+        case "app_key":
+            if let m = text("menu"), text("keys") == nil { name = "app_menu"; a["path"] = m; a["menu"] = nil }
+        case "chrome_open":
+            switch text("url")?.lowercased() {
+            case nil: name = "chrome_read"
+            case "tabs": name = "chrome_tabs"
+            case "back": name = "chrome_back"
+            default: break
+            }
+        case "chrome_click":
+            if text("text") != nil { name = "chrome_type" }
+        default: break
+        }
+        guard name != call.name || a.count != call.args.count else { return call }
+        let json = (try? JSONSerialization.data(withJSONObject: a, options: [.sortedKeys])).map { String(decoding: $0, as: UTF8.self) } ?? call.arguments
+        return ToolCall(id: call.id, name: name, arguments: json)
     }
 
     static func expand(_ path: String, base: URL) -> URL {
@@ -138,7 +133,8 @@ enum Tools {
 
     /// 执行一个工具调用, 返回给模型的文字结果
     @MainActor
-    static func run(_ call: ToolCall, ctx: ToolContext) async -> String {
+    static func run(_ original: ToolCall, ctx: ToolContext) async -> String {
+        let call = normalize(original)
         let a = call.args
         switch call.name {
         case "run_shell":

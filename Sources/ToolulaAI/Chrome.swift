@@ -122,7 +122,7 @@ final class ChromeControl {
     func click(_ id: Int) async -> String {
         let (ok, r) = await Self.runJS(BrowserController.clickJS(id))
         guard ok else { return Self.explain(r) }
-        if r != "ok" { return String(localized: "找不到编号 \(id) 的元素，请先用 chrome_read 重新读取页面") }
+        if r != "ok" { return String(localized: "找不到编号 \(id) 的元素，请先用 chrome_open（url 留空）重新读取页面") }
         try? await Task.sleep(for: .milliseconds(1500))
         return await read(tab: nil)
     }
@@ -132,7 +132,7 @@ final class ChromeControl {
         guard let js = BrowserController.typeJS(id, text: text, submit: submit) else { return String(localized: "无法输入") }
         let (ok, r) = await Self.runJS(js)
         guard ok else { return Self.explain(r) }
-        if r != "ok" { return String(localized: "找不到编号 \(id) 的输入框，请先用 chrome_read 重新读取页面") }
+        if r != "ok" { return String(localized: "找不到编号 \(id) 的输入框，请先用 chrome_open（url 留空）重新读取页面") }
         try? await Task.sleep(for: .milliseconds(submit ? 2000 : 500))
         return await read(tab: nil)
     }

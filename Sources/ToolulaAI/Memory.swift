@@ -53,14 +53,14 @@ final class MemoryStore: ObservableObject {
         guard enabled else { return "" }
         var s = "\n\n【长期记忆】"
         if items.isEmpty {
-            s += "（目前还没有记住任何事）"
+            s += "（暂无）"
         } else {
-            s += "以下是你之前记住的关于用户的信息（[id] 内容），回答时自然地用上，不要逐条复述：\n"
+            s += "关于用户的信息（[id] 内容），回答时自然地用上，不要逐条复述：\n"
             s += items.prefix(80).map { "- [\($0.shortId)] \($0.text)" }.joined(separator: "\n")
         }
         if autoSave {
-            s += "\n当用户透露了以后也有用的信息（身份、所在地、设备、偏好、习惯、正在做的项目、重要的人和约定）时，用 memory_save 记下来（一句话一条，不重复）；"
-            s += "信息过时或用户要求忘记时用 memory_delete 删除。绝对不要记密码、验证码、银行卡号、身份证号等敏感信息。"
+            s += "\n用户透露以后有用的信息（身份、所在地、偏好、设备、项目、重要的人和约定）时用 memory_save 记一句，不重复；"
+            s += "过时或用户要求忘记时用 memory_save 的 delete_id 删除。不记密码、验证码、证件号、卡号等。"
         }
         return s
     }

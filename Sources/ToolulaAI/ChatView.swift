@@ -378,6 +378,7 @@ struct ToolCallCard: View {
     @State private var open = false
 
     var title: String {
+        let call = Tools.normalize(self.call)   // 合并写法 (如 browser_open 不填 url) 显示成实际做的事
         let a = call.args
         switch call.name {
         case "run_shell": return String(localized: "执行命令") + "  " + (a["command"] as? String ?? "")
