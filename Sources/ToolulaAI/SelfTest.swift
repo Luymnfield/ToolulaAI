@@ -290,6 +290,61 @@ extension AppDelegate {
                 } catch { log += "diagnostics error: \(error.localizedDescription)\n" }
             }
             if let pq = val("--palette-query") { CommandPalette.seed = pq }
+            if args.contains("--markdown-demo") {
+                // 显示一条包含各种 Markdown 的回答, 截图后删掉
+                app.section = .chat
+                let id = chat.newConversation()
+                let md = """
+                # 一级标题
+                ## 二级标题：对比 **MLX** 和 *GGUF*
+                普通段落，带 `行内代码`、[链接](https://example.com) 和公式 $E=mc^2$、\\(\\alpha + \\beta \\leq \\frac{1}{2}\\)。价格 $5 和 $10 不是公式。
+
+                | 格式 | 速度 | 内存 | 说明 |
+                |:---|:---:|---:|---|
+                | MLX | 快 | 16 GB | Apple 芯片原生 |
+                | GGUF | 中 | 18 GB | 通用，`llama.cpp` |
+
+                - 第一项
+                - 第二项，**加粗**
+                  - 子项目
+                1. 有序一
+                2. 有序二
+                - [x] 已完成的任务
+                - [ ] 未完成的任务
+
+                > 引用：本地模型不联网，数据留在自己的 Mac 上。
+
+                ---
+
+                ```swift
+                // 计算平方
+                func square(_ x: Int) -> Int {
+                    let s = "结果"
+                    return x * x  // 42
+                }
+                ```
+
+                ```json
+                {"model": "qwen3.8-27b", "ctx": 262144, "mtp": true}
+                ```
+
+                $$
+                \\sum_{i=1}^{n} x_i^2 = \\sqrt{\\frac{a}{b}} \\times \\pi
+                $$
+                """
+                chat.update(id) { c in
+                    c.title = "Markdown 自测"
+                    c.messages = [ChatMessage(role: "user", text: "展示一下 Markdown"), ChatMessage(role: "assistant", text: md)]
+                }
+                try? await Task.sleep(for: .seconds(2))
+                if let w = NSApp.windows.first(where: { $0.identifier?.rawValue.contains("main") == true }), let v = w.contentView,
+                   let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds) {
+                    v.cacheDisplay(in: v.bounds, to: rep)
+                    try? rep.representation(using: .png, properties: [:])?.write(to: out.deletingPathExtension().appendingPathExtension("markdown.png"))
+                }
+                log += "markdown blocks: \(MarkdownParser.parse(md).map { "\($0)".prefix(20) })\n"
+                chat.delete(id)
+            }
             if let spec = val("--keys") {
                 // 模拟键盘操作 (需要辅助功能权限), 例: "cmd+k|text:模型|down|return"
                 NSApp.activate(ignoringOtherApps: true)

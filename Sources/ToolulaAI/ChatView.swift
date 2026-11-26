@@ -446,69 +446,6 @@ struct ApprovalCard: View {
     }
 }
 
-/// 简单的 Markdown: 行内格式 + ``` 代码块
-struct MarkdownText: View {
-    let text: String
-
-    /// 解析好的段落 (同一段文字只解析一次)
-    final class Parsed { let blocks: [(code: Bool, text: String, attr: AttributedString)]; init(_ b: [(code: Bool, text: String, attr: AttributedString)]) { blocks = b } }
-    nonisolated(unsafe) static let cache: NSCache<NSString, Parsed> = { let c = NSCache<NSString, Parsed>(); c.countLimit = 400; return c }()
-
-    var parsed: Parsed {
-        if let p = Self.cache.object(forKey: text as NSString) { return p }
-        let p = Parsed(blocks().map { ($0.code, $0.text, $0.code ? AttributedString($0.text) : attributed($0.text)) })
-        Self.cache.setObject(p, forKey: text as NSString)
-        return p
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(Array(parsed.blocks.enumerated()), id: \.offset) { _, b in
-                if b.code {
-                    ScrollView(.horizontal) {
-                        Text(b.text).font(.system(.callout, design: .monospaced)).textSelection(.enabled).padding(10)
-                    }
-                    .background(Color.black.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                } else {
-                    Text(b.attr).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                }
-            }
-        }
-    }
-
-    func attributed(_ s: String) -> AttributedString {
-        let lines = s.split(separator: "\n", omittingEmptySubsequences: false).map { line -> String in
-            var l = String(line)
-            if l.hasPrefix("### ") { l = "**" + l.dropFirst(4) + "**" }
-            else if l.hasPrefix("## ") { l = "**" + l.dropFirst(3) + "**" }
-            else if l.hasPrefix("# ") { l = "**" + l.dropFirst(2) + "**" }
-            if l.hasPrefix("- ") || l.hasPrefix("* ") { l = "• " + l.dropFirst(2) }
-            return l
-        }
-        let joined = lines.joined(separator: "\n")
-        return (try? AttributedString(markdown: joined, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
-            ?? AttributedString(joined)
-    }
-
-    func blocks() -> [(code: Bool, text: String)] {
-        var out: [(Bool, String)] = []
-        let parts = text.components(separatedBy: "```")
-        for (i, p) in parts.enumerated() {
-            if i % 2 == 1 {
-                var lines = p.split(separator: "\n", omittingEmptySubsequences: false)
-                if let first = lines.first, !first.contains(" "), first.count < 20 { lines.removeFirst() }  // 语言标记
-                out.append((true, lines.joined(separator: "\n").trimmingCharacters(in: .newlines)))
-            } else {
-                let t = p.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !t.isEmpty { out.append((false, t)) }
-            }
-        }
-        return out
-    }
-}
-
-
 /// 助手页右上角: 操作电脑 开关 + 权限
 struct ComputerControlButton: View {
     @ObservedObject var cc = ComputerControl.shared
