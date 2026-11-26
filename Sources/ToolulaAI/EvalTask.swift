@@ -29,6 +29,8 @@ enum EvalTask {
             if let m = spec.model, !m.isEmpty { c.model = m }
         }
         var denied: [String] = [], approved: [String] = []
+        AgentVerifier.reports = []
+        let autoBefore = Set(AutomationStore.shared?.tasks.map(\.id) ?? [])
         let t0 = Date()
         var timedOut = false
         chat.send(spec.prompt, to: id)
@@ -61,11 +63,19 @@ enum EvalTask {
             msgs.append(o)
         }
         let answer = c?.messages.last(where: { $0.role == "assistant" && !$0.text.isEmpty })?.text ?? ""
+        // 题目里建的自动化: 记进结果, 然后删掉 (不留在用户的自动化列表里)
+        var autos: [[String: Any]] = []
+        for t in AutomationStore.shared?.tasks ?? [] where !autoBefore.contains(t.id) {
+            if let d = try? JSONEncoder().encode(t), let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] { autos.append(o) }
+            AutomationStore.shared?.delete(t.id)
+        }
         let result: [String: Any] = [
             "answer": answer, "messages": msgs, "tool_calls": calls, "tool_errors": errors,
             "seconds": secs, "timed_out": timedOut, "denied": denied, "approved": approved,
             "models": Array(models).sorted(), "main_model": c?.model ?? "",
             "error": c?.messages.last?.error ?? "",
+            "automations": autos,
+            "verifier": AgentVerifier.reports,
         ]
         if let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]) {
             try? data.write(to: URL(fileURLWithPath: spec.out))
@@ -80,6 +90,8 @@ enum EvalTask {
         let a = call.args
         let home = NSHomeDirectory()
         switch call.name {
+        case "create_automation":
+            return true   // 建好后会被删掉
         case "write_file", "edit_file":
             let p = Tools.expand(a["path"] as? String ?? "", base: URL(fileURLWithPath: sandbox)).standardizedFileURL.path
             return p.hasPrefix(sandbox + "/") || ("/private" + p).hasPrefix(sandbox + "/")

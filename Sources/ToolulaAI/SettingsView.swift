@@ -69,6 +69,11 @@ struct GeneralSettings: View {
                 Text("支持简体中文、繁體中文、English、日本語、한국어、Deutsch、Français、Español、Português、Русский。AI 默认也用这种语言回答。")
                     .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
+            Section("助手") {
+                Toggle("做完会改动文件的任务后，自动核查结果", isOn: Binding(get: { AgentVerifier.enabled }, set: { AgentVerifier.enabled = $0 }))
+                Text("另开一个只能查看、不能修改的助手，检查结果是否真的符合要求；发现问题会让助手先修好再汇报。每个任务多花十几秒。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("启动") {
                 Toggle("登录 Mac 时自动打开", isOn: Binding(get: { automations.launchAtLogin }, set: { automations.setLaunchAtLogin($0) }))
                 BackgroundToggle()

@@ -68,6 +68,29 @@ struct TaskEditor: View {
 
     var body: some View {
         Form {
+            if let a = auto.approval {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label(String(localized: "「\(a.taskName)」想做一个超出允许范围的操作，允许吗？"), systemImage: "exclamationmark.shield").font(.headline)
+                        Text(verbatim: a.summary).font(.system(.callout, design: .monospaced)).textSelection(.enabled)
+                        HStack {
+                            Button("允许") { auto.answer(true) }.buttonStyle(.borderedProminent).tint(.green)
+                            Button("拒绝", role: .cancel) { auto.answer(false) }
+                        }
+                    }
+                    .padding(4)
+                }
+            }
+            if task.trial == true {
+                Section {
+                    Label("下一次运行是试运行：只查看、列出打算做的事，不会改动任何东西。看过试运行结果、确认没问题后再正式执行。", systemImage: "testtube.2")
+                        .font(.callout).foregroundStyle(.secondary)
+                    HStack {
+                        Button("现在试运行") { auto.run(taskId) }.disabled(auto.runningTask != nil)
+                        Button("跳过试运行") { auto.confirmTrial(taskId) }
+                    }
+                }
+            }
             Section {
                 TextField("名称", text: bind(\.name))
                 Toggle("启用", isOn: bind(\.enabled))
@@ -134,6 +157,25 @@ struct TaskEditor: View {
                      ? Text("⚠️ AI 会在无人确认的情况下执行命令。只给你信任的任务打开，并在任务里写清楚不要删除文件。")
                      : Text("关闭时 AI 只能查看文件夹、读文件、修图和发通知，不能执行命令或改文件。"))
                     .font(.caption).foregroundStyle(task.allowActions ? .orange : .secondary)
+                if task.allowActions {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("只允许改动这些文件夹（不填 = 不限）")
+                        ForEach(task.allowedFolders ?? [], id: \.self) { f in
+                            HStack {
+                                Image(systemName: "folder").foregroundStyle(.secondary)
+                                Text(verbatim: f).lineLimit(1).truncationMode(.middle)
+                                Spacer()
+                                Button { auto.setAllowedFolders(taskId, (task.allowedFolders ?? []).filter { $0 != f }) } label: { Image(systemName: "minus.circle") }
+                                    .buttonStyle(.borderless).accessibilityLabel(Text("移除"))
+                            }
+                        }
+                        Button("添加文件夹…") {
+                            let p = NSOpenPanel(); p.canChooseDirectories = true; p.canChooseFiles = false; p.allowsMultipleSelection = true
+                            if p.runModal() == .OK { auto.setAllowedFolders(taskId, (task.allowedFolders ?? []) + p.urls.map(\.path)) }
+                        }
+                        Text("超出这些文件夹的操作不会直接执行，而是发通知请你确认。").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
                 Toggle("完成后发通知", isOn: bind(\.notify))
             }
             Section {
@@ -146,10 +188,16 @@ struct TaskEditor: View {
                     Button("删除任务", role: .destructive) { auto.delete(taskId) }
                 }
             }
+            if let n = task.notes, !n.isEmpty {
+                Section("运行笔记（AI 记下的进度，下次运行会带上）") {
+                    Text(verbatim: n).font(.callout).textSelection(.enabled)
+                    Button("清空笔记") { auto.update(taskId) { $0.notes = nil } }
+                }
+            }
             Section("运行记录") {
                 let runs = auto.runs.filter { $0.taskId == taskId }.prefix(20)
                 if runs.isEmpty { Text("还没有运行过").foregroundStyle(.secondary) }
-                ForEach(Array(runs)) { r in RunRow(run: r) }
+                ForEach(Array(runs)) { r in RunRow(run: r, confirmTrial: r.trial == true && task.trial == true && r.id == runs.first?.id ? { auto.confirmTrial(taskId) } : nil) }
             }
         }
         .formStyle(.grouped)
@@ -158,19 +206,29 @@ struct TaskEditor: View {
 
 struct RunRow: View {
     let run: AutomationRun
+    var confirmTrial: (() -> Void)?
     @State private var open = false
     var body: some View {
         DisclosureGroup(isExpanded: $open) {
             VStack(alignment: .leading, spacing: 6) {
                 MarkdownText(text: run.output)
+                HStack {
+                    if let confirmTrial {
+                        Button("确认，以后正式执行") { confirmTrial() }.buttonStyle(.borderedProminent).tint(.green)
+                    }
+                    UndoButton(turn: run.id)
+                }
                 if !run.log.isEmpty {
                     Text(run.log).font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary).textSelection(.enabled)
                 }
             }
         } label: {
             HStack {
-                Image(systemName: run.ok ? "checkmark.circle.fill" : "xmark.octagon.fill").foregroundStyle(run.ok ? .green : .red)
+                Image(systemName: run.trial == true ? "testtube.2" : run.ok ? "checkmark.circle.fill" : "xmark.octagon.fill")
+                    .foregroundStyle(run.trial == true ? .blue : run.ok ? .green : .red)
                 Text(run.date, format: .dateTime.month().day().hour().minute())
+                if run.trial == true { Text("试运行").font(.caption).foregroundStyle(.blue) }
+                if (run.attempts ?? 1) > 1 { Text("重试过").font(.caption).foregroundStyle(.orange) }
                 Text(run.output.replacingOccurrences(of: "\n", with: " ")).lineLimit(1).foregroundStyle(.secondary)
             }
         }

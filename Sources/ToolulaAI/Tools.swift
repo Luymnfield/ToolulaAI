@@ -11,6 +11,10 @@ struct ToolContext {
     var delegate: (@MainActor (String) async -> String)?
     /// 子助手每做一步告诉界面 (显示在「正在思考」那一行)
     var progress: (@MainActor (String) -> Void)?
+    /// 要改动文件之前调用 (先备份, 以后可以撤销)
+    var beforeChange: (@MainActor (ToolCall) async -> Void)?
+    /// 自动化任务记笔记 (下次运行带上)
+    var saveNotes: (@MainActor (String) -> Void)?
 }
 
 enum Tools {
@@ -43,12 +47,22 @@ enum Tools {
             fn("plan", "多步任务先列计划，每做完一步再调用更新 current", ["steps": ["type": "array", "items": ["type": "string"]],
                "current": described("正在做第几步（从 1 开始）；全部做完填 0")], ["steps", "current"]),
         ]
+        if delegate && !automation {
+            defs.append(fn("create_automation", "建一个自动化任务：以后按时间或事件自动运行（会先问用户）。prompt 写清楚每次要做什么",
+                           ["name": str, "prompt": str, "trigger": choice(["daily", "weekly", "interval", "folder", "disk", "app", "wake", "manual"]),
+                            "time": described("HH:MM，daily/weekly 用"), "weekday": described("1=周一 … 7=周日，weekly 用"),
+                            "interval_minutes": int, "folder": described("trigger=folder 时要监视的文件夹"), "app_name": described("trigger=app 时的程序名"),
+                            "allow_actions": ["type": "boolean", "description": "是否允许执行命令、改文件（否则只能查看）"],
+                            "allowed_folders": ["type": "array", "items": ["type": "string"], "description": "只允许改动这些文件夹"]],
+                           ["name", "prompt", "trigger"]))
+        }
         if delegate {
             defs.append(fn("delegate", "把一个独立的子任务交给子助手（全新的对话、同样的工具），只拿回它的结论。适合要读很多文件或网页的部分，能让对话保持简短",
                            ["task": described("写清楚背景、要做什么、要返回什么（子助手看不到前面的对话）")], ["task"]))
         }
         if automation {
             defs.append(fn("notify_user", "发 macOS 通知", ["title": str, "message": str], ["title", "message"]))
+            defs.append(fn("save_notes", "记下下次运行要用的进度（处理过哪些、做到哪），会覆盖上次的笔记", ["text": str], ["text"]))
         }
         if photo {
             defs.append(fn("photo_edit", "修已有的照片：AI 调色并导出 JPEG，原片不变",
@@ -145,7 +159,10 @@ enum Tools {
 
     /// 命令会直接删除文件 (rm、find -delete、shred …), 不进废纸篓
     static func permanentDelete(_ cmd: String) -> Bool {
-        cmd.range(of: #"(^|[;&|(`$\s])(sudo\s+)?(rm|unlink|shred|srm)\s|\s-delete\b"#, options: .regularExpression) != nil
+        // rm 已经改成移到废纸篓; 绕过它的写法 (/bin/rm、sudo rm、xargs rm、find -exec rm、find -delete、unlink、shred) 才是真删除
+        if safeShellPreamble.isEmpty, cmd.range(of: #"(^|[;&|(`$\s])rm\s"#, options: .regularExpression) != nil { return true }
+        return cmd.range(of: #"/bin/rm\b|\b(sudo|xargs|command|exec)\s+(-\S+\s+)*rm\b|-exec\s+rm\b|(^|[;&|(`$\s])(unlink|shred|srm)\s|\s-delete\b"#,
+                         options: .regularExpression) != nil
     }
 
     /// 工具结果看起来是出错了 (第一行里有「错误/无法/失败/拒绝」或 shell 的退出码不为 0)
@@ -163,9 +180,35 @@ enum Tools {
         s.count > n ? String(s.prefix(n)) + "\n…" + String(localized: "（输出太长，已截断，共 \(s.count) 字）") : s
     }
 
-    /// 执行一个工具调用, 返回给模型的文字结果
+    /// 执行一个工具调用, 返回给模型的文字结果。
+    /// 会改动文件的 (命令、写文件、改文件): 先备份 (可撤销), 执行前后对比相关文件夹, 把实际变化附在结果后面。
     @MainActor
     static func run(_ original: ToolCall, ctx: ToolContext) async -> String {
+        let name = normalize(original).name
+        guard ChangeTracker.tracked.contains(name) else { return await runTool(original, ctx: ctx) }
+        let roots = ChangeTracker.roots(for: original, workDir: ctx.workDir)
+        await ctx.beforeChange?(original)
+        let before = await Task.detached { ChangeTracker.snapshot(roots) }.value
+        let out = await runTool(original, ctx: ctx)
+        let denied = [String(localized: "用户拒绝执行这条命令。"), String(localized: "用户拒绝写入。")].contains(out)
+        guard let before, !denied else { return out }
+        // 写文件/改文件本身出错: 什么都没改, 不用再报
+        if name != "run_shell", looksLikeError(out) { return out }
+        guard let after = await Task.detached(operation: { ChangeTracker.snapshot(roots) }).value else { return out }
+        let change = ChangeTracker.describe(before: before, after: after, roots: roots)
+        // 只是查看的命令 (ls、cat…) 没变化就不啰嗦
+        if change.contains("没有任何文件变化"), name == "run_shell", !mayChangeFiles(original.args["command"] as? String ?? "") { return out }
+        return out + change
+    }
+
+    /// 命令看起来会改动文件
+    static func mayChangeFiles(_ cmd: String) -> Bool {
+        cmd.range(of: #"(^|[;&|(\s])(mv|cp|rm|rmdir|mkdir|touch|trash|ln|chmod|tee|unzip|zip|tar|ditto|rsync|sips|ffmpeg|python3?|node|swift|git|npm|pip3?|curl|wget|sed\s+-i|perl\s+-i)\b|>"#,
+                  options: .regularExpression) != nil
+    }
+
+    @MainActor
+    private static func runTool(_ original: ToolCall, ctx: ToolContext) async -> String {
         let raw = original.arguments.trimmingCharacters(in: .whitespacesAndNewlines)
         if !raw.isEmpty, !((try? JSONSerialization.jsonObject(with: Data(raw.utf8))) is [String: Any]) {
             return "错误：参数不是合法的 JSON 对象（收到的是：\(raw.prefix(300))）。请重新调用，参数写成 {\"名字\": 值} 的形式。"
@@ -237,6 +280,18 @@ enum Tools {
             let cur = PlanState.current(a)
             if cur == 0 || cur > steps.count { return "计划已全部完成。核对一下结果，然后向用户汇报。" }
             return "已记下计划（共 \(steps.count) 步）。现在做第 \(cur) 步：\(steps[cur - 1])"
+
+        case "save_notes":
+            guard let save = ctx.saveNotes else { return "错误：只有自动化任务能记笔记" }
+            save(a["text"] as? String ?? "")
+            return "已记下，下次运行时会带上。"
+
+        case "create_automation":
+            guard let store = AutomationStore.shared else { return "错误：自动化不可用" }
+            let name = a["name"] as? String ?? ""
+            let summary = String(localized: "新建自动化「\(name)」") + "\n" + (a["prompt"] as? String ?? "") + "\n" + "trigger: \(a["trigger"] as? String ?? "") \(a["time"] as? String ?? "") \((a["allow_actions"] as? Bool) == true ? "allow_actions" : "")"
+            guard await ctx.approve(call, summary) else { return "用户没有同意新建这个自动化。" }
+            return store.create(from: a).1
 
         case "delegate":
             guard let task = a["task"] as? String, !task.isEmpty else { return "错误：缺少 task" }
@@ -459,11 +514,20 @@ enum Tools {
         }
     }
 
+    /// AI 执行的命令里, rm 改成「移到废纸篓」(还能找回): 模型就算写了 rm -rf, 文件也不会真的没了。
+    /// (直接写 /bin/rm、xargs rm、find -delete 绕得过去, 这些在确认框里会标成永久删除)
+    static var safeShellPreamble: String {
+        guard FileManager.default.isExecutableFile(atPath: "/usr/bin/trash") else { return "" }
+        return #"rm() { local force=0 x; local -a files hit; for x in "$@"; do case "$x" in --) ;; -*) [[ "$x" == *f* ]] && force=1 ;; *) files+=("$x") ;; esac; done; "#
+            + #"for x in "${files[@]}"; do if [[ -e "$x" || -L "$x" ]]; then hit+=("$x"); elif (( ! force )); then print -u2 "rm: $x: No such file or directory"; return 1; fi; done; "#
+            + #"(( ${#hit} )) && /usr/bin/trash "${hit[@]}" 2>/dev/null; return 0; }; "#
+    }
+
     /// 执行 shell 命令 (同步, 后台线程调用)
     static func shell(_ command: String, cwd: URL, timeout: TimeInterval) -> String {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        p.arguments = ["-lc", command]
+        p.arguments = ["-lc", safeShellPreamble + command]
         p.currentDirectoryURL = cwd
         let pipe = Pipe()
         p.standardOutput = pipe

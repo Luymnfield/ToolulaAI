@@ -5030,5 +5030,137 @@
  "这台电脑上暂时用不了语音识别": [
   "Speech recognition isn't available on this Mac right now",
   "Spracherkennung ist auf diesem Mac gerade nicht verfügbar"
+ ],
+ "第二次尝试": [
+  "Second attempt",
+  "Zweiter Versuch"
+ ],
+ "「%@」试运行完成，请看一下打算做的事": [
+  "Trial run of “%@” finished — please review what it plans to do",
+  "Testlauf von „%@“ fertig – bitte prüfe, was geplant ist"
+ ],
+ "（没有完成）": [
+  " (not completed)",
+  " (nicht abgeschlossen)"
+ ],
+ "「%@」需要你确认一个操作": [
+  "“%@” needs you to approve an action",
+  "„%@“ braucht deine Bestätigung für eine Aktion"
+ ],
+ "核查结果": [
+  "Checking the result",
+  "Ergebnis prüfen"
+ ],
+ "核查发现：": [
+  "Check found: ",
+  "Prüfung ergab: "
+ ],
+ "只允许改动这些文件夹（不填 = 不限）": [
+  "Only allow changes in these folders (empty = no limit)",
+  "Änderungen nur in diesen Ordnern erlauben (leer = keine Begrenzung)"
+ ],
+ "移除": [
+  "Remove",
+  "Entfernen"
+ ],
+ "添加文件夹…": [
+  "Add Folder…",
+  "Ordner hinzufügen …"
+ ],
+ "超出这些文件夹的操作不会直接执行，而是发通知请你确认。": [
+  "Actions outside these folders won't run directly; you'll get a notification to approve them.",
+  "Aktionen außerhalb dieser Ordner laufen nicht direkt; du bekommst eine Mitteilung zur Bestätigung."
+ ],
+ "运行笔记（AI 记下的进度，下次运行会带上）": [
+  "Run notes (progress saved by the AI, used next time)",
+  "Laufnotizen (vom KI gespeicherter Fortschritt, beim nächsten Mal verwendet)"
+ ],
+ "清空笔记": [
+  "Clear Notes",
+  "Notizen löschen"
+ ],
+ "确认，以后正式执行": [
+  "Looks good — run it for real from now on",
+  "Passt – ab jetzt richtig ausführen"
+ ],
+ "试运行": [
+  "Trial run",
+  "Testlauf"
+ ],
+ "重试过": [
+  "Retried",
+  "Wiederholt"
+ ],
+ "「%@」想做一个超出允许范围的操作，允许吗？": [
+  "“%@” wants to do something outside its allowed folders. Allow it?",
+  "„%@“ möchte etwas außerhalb der erlaubten Ordner tun. Erlauben?"
+ ],
+ "下一次运行是试运行：只查看、列出打算做的事，不会改动任何东西。看过试运行结果、确认没问题后再正式执行。": [
+  "The next run is a trial: it only looks and lists what it plans to do, without changing anything. Review the trial result and confirm before it runs for real.",
+  "Der nächste Lauf ist ein Test: Er schaut nur nach und listet, was er vorhat, ohne etwas zu ändern. Prüfe das Ergebnis und bestätige, bevor es richtig läuft."
+ ],
+ "现在试运行": [
+  "Run Trial Now",
+  "Jetzt testen"
+ ],
+ "跳过试运行": [
+  "Skip Trial",
+  "Test überspringen"
+ ],
+ "正在核查结果…": [
+  "Checking the result…",
+  "Ergebnis wird geprüft …"
+ ],
+ "核查：": [
+  "Check: ",
+  "Prüfung: "
+ ],
+ "撤销这次的文件改动": [
+  "Undo this task's file changes",
+  "Dateiänderungen dieser Aufgabe rückgängig machen"
+ ],
+ "撤销这次任务对文件做的所有改动？": [
+  "Undo all file changes made by this task?",
+  "Alle Dateiänderungen dieser Aufgabe rückgängig machen?"
+ ],
+ "撤销改动": [
+  "Undo Changes",
+  "Änderungen rückgängig"
+ ],
+ "这些文件夹会恢复成任务开始前的样子：%@。现在的内容移到废纸篓。": [
+  "These folders will go back to how they were before the task: %@. The current contents move to the Trash.",
+  "Diese Ordner werden auf den Stand vor der Aufgabe zurückgesetzt: %@. Der aktuelle Inhalt kommt in den Papierkorb."
+ ],
+ "AI 写过、改过的文件会恢复成原来的样子，现在的版本移到废纸篓。": [
+  "Files the AI wrote or edited will be restored; the current versions move to the Trash.",
+  "Von der KI geschriebene oder bearbeitete Dateien werden wiederhergestellt; die aktuellen Versionen kommen in den Papierkorb."
+ ],
+ "做完会改动文件的任务后，自动核查结果": [
+  "Automatically check results after tasks that change files",
+  "Ergebnis nach Aufgaben, die Dateien ändern, automatisch prüfen"
+ ],
+ "另开一个只能查看、不能修改的助手，检查结果是否真的符合要求；发现问题会让助手先修好再汇报。每个任务多花十几秒。": [
+  "A separate read-only assistant checks whether the result really meets the request; if it finds a problem, the assistant fixes it before reporting. Adds about 10–20 seconds per task.",
+  "Ein separater, nur lesender Assistent prüft, ob das Ergebnis wirklich der Anfrage entspricht; bei Problemen behebt der Assistent sie vor dem Bericht. Kostet pro Aufgabe etwa 10–20 Sekunden."
+ ],
+ "新建自动化「%@」": [
+  "Create automation “%@”",
+  "Automatisierung „%@“ anlegen"
+ ],
+ "没有可以撤销的改动": [
+  "Nothing to undo",
+  "Nichts rückgängig zu machen"
+ ],
+ "已撤销这次任务的文件改动（改动后的内容在废纸篓里，需要时可以找回）。": [
+  "Undid this task's file changes (the changed versions are in the Trash if you need them).",
+  "Dateiänderungen dieser Aufgabe rückgängig gemacht (die geänderten Versionen liegen im Papierkorb)."
+ ],
+ "这些没能恢复：%@": [
+  "Couldn't restore: %@",
+  "Nicht wiederhergestellt: %@"
+ ],
+ "注意：涉及的文件夹太大没有整体备份，只恢复了 AI 用写文件/改文件改过的文件；命令做的改动（移动、删除等）没法撤销。": [
+  "Note: the folders involved were too large to back up as a whole, so only files the AI wrote or edited were restored; changes made by commands (moves, deletions, etc.) can't be undone.",
+  "Hinweis: Die betroffenen Ordner waren zu groß für eine Komplettsicherung; nur von der KI geschriebene/bearbeitete Dateien wurden wiederhergestellt. Änderungen durch Befehle (Verschieben, Löschen …) lassen sich nicht rückgängig machen."
  ]
 }

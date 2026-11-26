@@ -10,6 +10,7 @@ struct AgentGuard {
     private(set) var consecutiveErrors = 0
     private(set) var loops = 0
     private var nudged = false
+    private var calcNudged = false
 
     /// 这一轮是不是卡住了 (界面上会建议换更强的模型)
     var stuck: Bool { consecutiveErrors >= 3 || loops >= 2 }
@@ -56,6 +57,26 @@ struct AgentGuard {
         return output
     }
 
+    /// 问题要计算 (日期差、求和、几岁……), 模型却没用工具就报了数: 要它用 python 算一遍 (只提醒一次)
+    mutating func calcNudge(_ turn: [ChatMessage]) -> String? {
+        guard !calcNudged, let q = turn.first(where: { $0.role == "user" && $0.hidden != true })?.text,
+              let a = turn.last(where: { $0.role == "assistant" })?.text,
+              !turn.contains(where: { !$0.toolCalls.isEmpty }),
+              a.range(of: #"\d"#, options: .regularExpression) != nil, Self.needsCalc(q) else { return nil }
+        calcNudged = true
+        return "（系统提醒）这个问题要算准，请用 run_shell 运行 python3 把答案算出来（日期用 datetime），确认后再回答，不要心算。"
+    }
+
+    static func needsCalc(_ q: String) -> Bool {
+        let t = q.lowercased()
+        let words = ["计算", "算一下", "多少天", "几天", "多少周", "多少小时", "统计", "总共", "合计", "求和", "之和", "平均", "百分之", "利息", "汇率",
+                     "how many days", "calculate", "sum of", "average"]
+        if words.contains(where: { t.contains($0) }) { return true }
+        // 题目里有两个以上的数字, 又在问「多少 / 几」: 多半要算
+        let numbers = (try? NSRegularExpression(pattern: #"\d+(\.\d+)?"#))?.numberOfMatches(in: t, range: NSRange(t.startIndex..., in: t)) ?? 0
+        return numbers >= 2 && (t.contains("多少") || t.contains("几") || t.contains("how many") || t.contains("how much"))
+    }
+
     /// 模型准备结束时调用 (只看这一轮的消息): 计划没做完就返回一段提醒 (只提醒一次)
     mutating func finishNudge(_ turn: [ChatMessage]) -> String? {
         guard !nudged, let p = PlanState.latest(turn), p.current > 0, p.current <= p.steps.count else { return nil }
@@ -100,5 +121,86 @@ extension ToolCall {
         guard !calls.isEmpty else { return nil }
         let rest = re.stringByReplacingMatches(in: content, range: NSRange(location: 0, length: ns.length), withTemplate: "")
         return (calls, rest.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+}
+
+
+/// 独立核查: 会改动文件的任务做完后, 另开一个只能查看的助手, 对照「用户的要求」检查实际结果。
+/// 专门防「其实没做好却说做好了」(本地模型常见); 发现问题就让原来的助手先修好再汇报。
+enum AgentVerifier {
+    /// 最近几次核查的结论 (诊断、评测用)
+    @MainActor static var reports: [String] = []
+
+    static var enabled: Bool {
+        get { UserDefaults.standard.object(forKey: "verifyTasks") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "verifyTasks") }
+    }
+
+    /// 这一轮动过文件 (写文件、改文件、看起来会改文件的命令)
+    static func changedFiles(_ turn: [ChatMessage]) -> Bool {
+        turn.flatMap(\.toolCalls).contains { c in
+            let n = Tools.normalize(c).name
+            return n == "write_file" || n == "edit_file" || (n == "run_shell" && Tools.mayChangeFiles(c.args["command"] as? String ?? ""))
+        }
+    }
+
+    /// 返回发现的问题; 没问题 (或核查本身没做成) 返回 nil
+    @MainActor
+    static func check(turn: [ChatMessage], model: String, workDir: String, progress: ((String) -> Void)? = nil) async -> String? {
+        guard let request = turn.first(where: { $0.role == "user" && $0.hidden != true }),
+              let answer = turn.last(where: { $0.role == "assistant" && !$0.text.isEmpty })?.text else { return nil }
+        let changes = turn.filter { $0.role == "tool" }.compactMap { m -> String? in
+            guard let r = m.text.range(of: "【实际变化】") else { return nil }
+            return String(m.text[r.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }.filter { !$0.hasPrefix("没有任何") }.joined(separator: "\n")
+        let readOnly: Set<String> = ["list_directory", "read_file", "search_files", "run_shell"]
+        let tools = Tools.definitions(photo: false).filter { readOnly.contains((($0["function"] as? [String: Any])?["name"] as? String) ?? "") }
+        let system = Agent.systemPrompt(workDir: workDir, tools: true, extra: "\n\n你是核查员：只检查、不修改任何东西，也不要提问。")
+        let prompt = """
+            用户的要求：\((request.expanded ?? request.text).prefix(3000))
+
+            助手做完后的汇报：\(answer.prefix(3000))
+
+            程序记录到的实际文件变化：\(changes.isEmpty ? "（没有记录）" : String(changes.prefix(3000)))
+
+            请用 list_directory、read_file、search_files，以及只读命令（run_shell 只能用 ls、cat、wc、file、sips -g、md5、unzip -l、grep 这类查看命令）检查实际结果是否真的满足用户的要求：该有的文件在不在、位置对不对、内容对不对、汇报里的数字和事实是否属实。只检查要求里明确提到的事，不挑写法和风格。数字和计算结果只有用工具实际查到不一样时才算错，不能靠心算判定；代码是否正确以文件现在的内容为准（修好后原来的 bug 本来就不在了）。
+            最后单独一行写结论：「核查通过」，或「核查未通过：具体哪里不对」。
+            """
+        var ctx = ToolContext(workDir: URL(fileURLWithPath: workDir), approve: { call, _ in
+            Tools.normalize(call).name == "run_shell" && ReadOnlyShell.allowed(call.args["command"] as? String ?? "")
+        }, photoStore: nil)
+        ctx.progress = progress
+        let r = await AgentRunner.run(prompt: prompt, model: model, system: system, tools: tools, ctx: ctx, maxSteps: 10)
+        reports.append(r.text.split(separator: "\n").last.map(String.init) ?? "")
+        guard r.ok, let line = r.text.split(separator: "\n").last(where: { $0.contains("核查") }) else { return nil }
+        guard line.contains("未通过") else { return nil }
+        let reason = line.split(separator: "：", maxSplits: 1).dropFirst().first.map(String.init) ?? String(line)
+        return reason.trimmingCharacters(in: .whitespaces)
+    }
+}
+
+
+/// 只查看、不改动任何东西的命令 (给核查员用)
+enum ReadOnlyShell {
+    static let commands: Set<String> = ["ls", "cat", "head", "tail", "wc", "file", "stat", "du", "df", "md5", "shasum", "grep", "egrep", "rg", "find",
+                                        "sort", "uniq", "cut", "tr", "awk", "diff", "cmp", "echo", "printf", "pwd", "date", "basename", "dirname",
+                                        "sips", "mdls", "unzip", "zipinfo", "tar", "plutil", "jq", "xxd", "column", "nl", "comm", "test", "[", "realpath", "readlink"]
+
+    static func allowed(_ cmd: String) -> Bool {
+        // 不许: 写文件的重定向 (除了 2>/dev/null)、命令替换、后台
+        let stripped = cmd.replacingOccurrences(of: #"\d?>\s*/dev/null"#, with: "", options: .regularExpression)
+        if stripped.contains(">") || stripped.contains("`") || stripped.contains("$(") || stripped.contains("&") && !stripped.contains("&&") { return false }
+        // 会改东西的选项
+        if cmd.range(of: #"\s-(delete|exec|execdir|ok|fprint)\b|\bsips\b.*\s-(s|z|Z|r|f|c|p|-out|o)\b|\bunzip\b(?!.*\s-l)|\btar\b(?!.*\s-?t)|\bplutil\b.*\s-(convert|insert|replace|remove)\b|\bsort\b.*\s-o\b"#,
+                     options: .regularExpression) != nil { return false }
+        let segments = cmd.split(whereSeparator: { $0 == "|" || $0 == ";" || $0 == "&" || $0 == "\n" })
+        for seg in segments {
+            let words = seg.split(separator: " ").map(String.init).filter { !$0.contains("=") || $0.hasPrefix("-") }
+            guard let first = words.first else { continue }
+            let name = (first as NSString).lastPathComponent
+            if name == "cd" { continue }
+            if !commands.contains(name) { return false }
+        }
+        return true
     }
 }

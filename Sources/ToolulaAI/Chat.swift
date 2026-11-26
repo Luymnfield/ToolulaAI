@@ -411,6 +411,7 @@ final class ChatStore: ObservableObject {
     private func runLoop(_ id: UUID) async {
         var turnModel: String?
         var guardrail = AgentGuard()
+        var verified = false
         // 步数上限: 平时 30 步; 列了计划的长任务按步骤数放宽 (每步 10 次工具调用, 最多 150)
         var budget = Self.maxSteps, step = 0
         let started = Date()
@@ -425,7 +426,13 @@ final class ChatStore: ObservableObject {
                 // 分流时两个模型都要留在内存里, 避免来回加载
                 if turnModel != conv.model { await ModelManager.shared.ensureLoaded(turnModel!); await ModelManager.shared.ensureLoaded(conv.model) }
             }
-            let model = turnModel ?? conv.model
+            var model = turnModel ?? conv.model
+            // 刚拿到截图, 主模型又看不了图: 这一步交给能看图的模型 (快模型 Gemma 能看图, 而且本来就在内存里)
+            if !(ModelManager.shared.model(model)?.vision ?? true), let helper = ModelManager.shared.visionHelper(excluding: model),
+               conv.messages.reversed().prefix(while: { $0.role == "tool" }).contains(where: { !$0.images.isEmpty }) {
+                await ModelManager.shared.ensureLoaded(helper)
+                model = helper
+            }
             let info = ModelManager.shared.model(model)
             let useTools = conv.agent && (info?.toolUse ?? true)
             let system = Agent.systemPrompt(workDir: conv.workDir, tools: useTools)
@@ -479,9 +486,27 @@ final class ChatStore: ObservableObject {
                     let turn = conversations.first { $0.id == id }.map { c in
                         Array(c.messages.suffix(from: (c.messages.lastIndex { $0.role == "user" && $0.hidden != true } ?? 0)))
                     } ?? []
-                    if let nudge = guardrail.finishNudge(turn) {
+                    if let nudge = guardrail.finishNudge(turn) ?? (useTools ? guardrail.calcNudge(turn) : nil) {
                         update(id) { var m = ChatMessage(role: "user", text: nudge); m.hidden = true; $0.messages.append(m) }
                         continue
+                    }
+                    // 动过文件: 另开一个只能查看的助手核查结果 (每轮一次)
+                    if useTools, !verified, AgentVerifier.enabled, AgentVerifier.changedFiles(turn) {
+                        verified = true
+                        live.setStatus(id, String(localized: "正在核查结果…"))
+                        let problem = await AgentVerifier.check(turn: turn, model: conv.model, workDir: conv.workDir) { [weak self] s in
+                            self?.live.setStatus(id, String(localized: "核查：") + s)
+                        }
+                        live.setStatus(id, nil)
+                        if Task.isCancelled { return }
+                        if let problem {
+                            update(id) { c in
+                                var m = ChatMessage(role: "user", text: "（核查发现问题）\(problem)\n请先把这个问题修好，修好后核对一遍再重新汇报；如果你确认核查说错了，说明理由。")
+                                m.hidden = true
+                                c.messages.append(m)
+                            }
+                            continue
+                        }
                     }
                     if guardrail.stuck { markStuck(id) }
                     notifyIfLong(id, started: started)
@@ -492,6 +517,7 @@ final class ChatStore: ObservableObject {
                     return await self.askApproval(id, call, summary)
                 }, photoStore: photoStore)
                 ctx.delegate = { [weak self] task in await self?.runSubAgent(id, task) ?? "" }
+                ctx.beforeChange = Self.undoHook(conv)
                 if let p = result.toolCalls.last(where: { $0.name == "plan" }) {
                     budget = max(budget, min(150, 10 + PlanState.steps(p.args).count * 10))
                 }
@@ -533,6 +559,27 @@ final class ChatStore: ObservableObject {
         notifyIfLong(id, started: started)
     }
 
+    /// 这一轮 (最近一条用户消息) 改文件之前先备份, 以后可以一键撤销
+    static func undoHook(_ conv: Conversation) -> (@MainActor (ToolCall) async -> Void) {
+        let turn = conv.messages.last { $0.role == "user" && $0.hidden != true }?.id ?? conv.id
+        let workDir = URL(fileURLWithPath: conv.workDir)
+        return { call in await UndoStore.shared.prepare(turn: turn, conversation: conv.id, workDir: workDir, call: call) }
+    }
+
+    /// 每一轮最后那条回答 -> 这一轮的用户消息 id (撤销按钮放在最后那条回答下面)
+    static func turnEnds(_ c: Conversation) -> [UUID: UUID] {
+        var out: [UUID: UUID] = [:]
+        var turn: UUID?
+        let visible = c.messages.filter { $0.hidden != true }
+        for (i, m) in visible.enumerated() {
+            if m.role == "user" { turn = m.id; continue }
+            guard m.role == "assistant", m.toolCalls.isEmpty, !m.text.isEmpty, let t = turn else { continue }
+            let next = visible[(i + 1)...].first { $0.role != "tool" }
+            if next == nil || next?.role == "user" { out[m.id] = t }
+        }
+        return out
+    }
+
     /// 子助手: 在全新的上下文里完成一个子任务, 只把结论交回 (需要确认的操作照样问用户)
     private func runSubAgent(_ id: UUID, _ task: String) async -> String {
         guard let conv = conversations.first(where: { $0.id == id }) else { return "错误：对话不存在" }
@@ -544,6 +591,7 @@ final class ChatStore: ObservableObject {
             await self?.askApproval(id, call, summary) ?? false
         }, photoStore: photoStore)
         ctx.progress = { [weak self] s in self?.live.setStatus(id, String(localized: "子助手：") + s) }
+        ctx.beforeChange = Self.undoHook(conv)
         let r = await AgentRunner.run(prompt: task, model: conv.model, system: system, tools: Tools.definitions(photo: photoStore != nil), ctx: ctx, maxSteps: 25)
         live.setStatus(id, nil)
         return (r.ok ? "" : "（子助手没能完成）") + String(r.text.prefix(6000)) + "\n（子助手用了 \(r.steps) 步）"

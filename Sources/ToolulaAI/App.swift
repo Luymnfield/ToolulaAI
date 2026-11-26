@@ -44,6 +44,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if let p = URLActions.query(u, "prompt"), !p.isEmpty { VideoStore.shared.prompt = p; GenQueue.shared.addVideos([p]) }
         case "tasks":
             app.showTasks = true
+        case "automation":
+            app.section = .automation
+            if parts.count > 1, let id = UUID(uuidString: parts[1]) { AutomationStore.shared?.selected = id }
         case "models": app.section = .models
         default: app.section = .home
         }
@@ -204,6 +207,7 @@ struct ToolulaAIApp: App {
         QuickAsk.shared.setup(chat: chat, app: app)
         TextAssist.shared.setup(chat: chat, app: app)
         IntentRunner.app = app; IntentRunner.store = store
+        AutomationStore.shared = automations
         // 访达右键菜单 (服务)
         ServiceProvider.shared.chat = chat; ServiceProvider.shared.app = app; ServiceProvider.shared.store = store
         NSApp.servicesProvider = ServiceProvider.shared

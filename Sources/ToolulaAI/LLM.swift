@@ -142,6 +142,13 @@ final class ModelManager: ObservableObject {
     @Published var benchmarking: String?
 
     /// 分流用的快模型 (设置了、还在、而且不是主模型本身)
+    /// 能看图、又能用工具的本地模型 (先用快模型: 它通常已经在内存里)
+    func visionHelper(excluding main: String) -> String? {
+        let local = localChatModels.filter { $0.id != main && $0.vision && $0.toolUse && !$0.isCloud }
+        if let f = local.first(where: { $0.id == fastModel }) { return f.id }
+        return local.first(where: { $0.loaded })?.id
+    }
+
     func fastModel(for main: String) -> String? {
         guard autoRoute, !fastModel.isEmpty, fastModel != main, model(fastModel) != nil, !main.hasPrefix("cloud:") else { return nil }
         return fastModel

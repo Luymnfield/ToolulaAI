@@ -689,4 +689,23 @@ class _:
         return used and has_num(r["answer"], 37) and has_num(r["answer"], 512), ("用了外部工具 " if used else "没用外部工具 ") + r["answer"][:80]
 
 
+# ───────────────────────── 自动化 (第二阶段) ─────────────────────────
+
+@task("auto_create", "自动化", "以后每天早上 8:30，帮我把 ~/Downloads 里超过 30 天没动过的安装包（.dmg 和 .pkg）移到废纸篓。建一个自动化来做，只允许它改动下载文件夹。")
+class _:
+    def setup(d):
+        pass
+
+    def check(d, r):
+        autos = r.get("automations") or []
+        if len(autos) != 1:
+            return False, f"建了 {len(autos)} 个自动化"
+        a = autos[0]
+        folders = a.get("allowedFolders") or []
+        ok = (a.get("kind") == "每天" and a.get("hour") == 8 and a.get("minute") == 30 and a.get("allowActions") is True
+              and a.get("trial") is True and any(f.rstrip("/").endswith("/Downloads") for f in folders)
+              and ".dmg" in a.get("prompt", "") and "30" in a.get("prompt", ""))
+        return ok, f"{a.get('kind')} {a.get('hour')}:{a.get('minute')} actions={a.get('allowActions')} trial={a.get('trial')} folders={folders}"
+
+
 TASKS_BY_ID = {t["id"]: t for t in TASKS}

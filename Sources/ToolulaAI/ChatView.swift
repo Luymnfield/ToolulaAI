@@ -202,6 +202,7 @@ struct ConversationView: View {
                         if conv.messages.isEmpty { suggestions }
                         let results = toolResults(conv)
                         let skillable = Self.skillWorthy(conv)
+                        let turnEnds = ChatStore.turnEnds(conv)
                         ForEach(conv.messages.filter { $0.hidden != true }) { m in
                             LiveMessage(live: chat.live, message: m,
                                         toolResult: m.toolCalls.isEmpty ? [:] : results.filter { k, _ in m.toolCalls.contains { $0.id == k } },
@@ -213,6 +214,7 @@ struct ConversationView: View {
                                             branch: { chat.branch(conversationId, upTo: m.id) },
                                             retry: { chat.retryLast() },
                                             retryWith: { chat.retry(with: $0) },
+                                            undoTurn: turnEnds[m.id],
                                             saveSkill: skillable == m.id ? { chat.send(String(localized: "把刚才完成这个任务的做法总结成一个以后可以反复使用的技能并保存（用 use_skill，同时给 name、description 和 instructions；步骤写得通用一些，具体的文件名、数字换成「用户指定的…」这类说法）。")) } : nil))
                                 .id(m.id)
                             if m.id == conv.summaryUntil, let s = conv.summary { CompressedDivider(conversationId: conversationId, summary: s, tokens: conv.compressedTokens) }
@@ -416,7 +418,7 @@ struct MessageView: View, Equatable {
 
     static func == (a: MessageView, b: MessageView) -> Bool {
         a.message == b.message && a.toolResult == b.toolResult && a.actions.busy == b.actions.busy && a.actions.isLast == b.actions.isLast
-            && (a.actions.saveSkill == nil) == (b.actions.saveSkill == nil)
+            && (a.actions.saveSkill == nil) == (b.actions.saveSkill == nil) && a.actions.undoTurn == b.actions.undoTurn
     }
 
     func copy(_ s: String) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(s, forType: .string) }
@@ -519,6 +521,7 @@ struct MessageView: View, Equatable {
                     }
                 }
                 if message.stuck == true, actions.isLast, !actions.busy, let retryWith = actions.retryWith { StuckBar(retryWith: retryWith) }
+                if let t = actions.undoTurn, !actions.busy { UndoButton(turn: t) }
                 if let save = actions.saveSkill, !actions.busy {
                     Button { save() } label: { Label("把这次的做法存成技能，下次一句话就能用", systemImage: "sparkles") }
                         .buttonStyle(.link).font(.callout)
@@ -849,6 +852,7 @@ struct MessageActions {
     var branch: (() -> Void)?
     var retry: (() -> Void)?
     var retryWith: ((String) -> Void)?
+    var undoTurn: UUID?
     var saveSkill: (() -> Void)?
 }
 
@@ -954,6 +958,31 @@ struct DictationPreview: View {
                 Spacer()
             }
             .padding(.horizontal, 4)
+        }
+    }
+}
+
+
+/// 撤销这一轮任务的文件改动 (先确认)
+struct UndoButton: View {
+    @ObservedObject var undo = UndoStore.shared
+    let turn: UUID
+    @State private var confirm = false
+    @State private var result: String?
+
+    var body: some View {
+        if let r = undo.record(for: turn) {
+            Button { confirm = true } label: { Label("撤销这次的文件改动", systemImage: "arrow.uturn.backward") }
+                .buttonStyle(.link).font(.callout)
+                .confirmationDialog(Text("撤销这次任务对文件做的所有改动？"), isPresented: $confirm) {
+                    Button("撤销改动", role: .destructive) { result = undo.undo(turn) }
+                    Button("取消", role: .cancel) {}
+                } message: {
+                    Text(!r.dirs.isEmpty ? String(localized: "这些文件夹会恢复成任务开始前的样子：\(r.dirs.keys.sorted().map { ($0 as NSString).lastPathComponent }.joined(separator: "、"))。现在的内容移到废纸篓。")
+                                       : String(localized: "AI 写过、改过的文件会恢复成原来的样子，现在的版本移到废纸篓。"))
+                }
+        } else if let result {
+            Text(result).font(.caption).foregroundStyle(.secondary)
         }
     }
 }

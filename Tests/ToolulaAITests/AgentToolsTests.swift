@@ -179,11 +179,21 @@ final class AgentToolsTests: XCTestCase {
     }
 
     func testPermanentDeleteDetection() {
-        XCTAssertTrue(Tools.permanentDelete("rm -rf images"))
-        XCTAssertTrue(Tools.permanentDelete("cd x && rm a.txt"))
+        // 普通 rm 会被改成移到废纸篓, 不算永久删除
+        XCTAssertFalse(Tools.permanentDelete("rm -rf images"))
+        XCTAssertTrue(Tools.permanentDelete("/bin/rm -rf images"))
+        XCTAssertTrue(Tools.permanentDelete("ls | xargs rm"))
+        XCTAssertTrue(Tools.permanentDelete("find . -name '*.tmp' -exec rm {} +"))
         XCTAssertTrue(Tools.permanentDelete("find . -name '*.tmp' -delete"))
+        XCTAssertTrue(Tools.permanentDelete("sudo rm x"))
         XCTAssertFalse(Tools.permanentDelete("trash a.txt"))
         XCTAssertFalse(Tools.permanentDelete("ls ~/Documents/rm-notes"))
+    }
+
+    func testRmIsRedirectedToTrash() async throws {
+        // 不真的删东西: 只确认 AI 的命令里 rm 已经是「移到废纸篓」的函数
+        let out = Tools.shell("whence -w rm", cwd: dir, timeout: 10)
+        XCTAssertTrue(out.contains("rm: function"), out)
     }
 
     func testNotFoundPointsToWorkDir() async throws {
