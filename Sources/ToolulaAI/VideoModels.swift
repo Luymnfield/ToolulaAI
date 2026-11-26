@@ -24,6 +24,12 @@ struct VideoModelSpec: Identifiable, Hashable {
     let quality: Int           // 画质排序
 
     var downloadGB: Double { files.filter { !$0.optional }.reduce(0) { $0 + $1.sizeGB } }
+    /// 加速 LoRA
+    var loraFile: VideoModelFile? { files.first { $0.dir == "loras" } }
+    /// 出预览用的轻量解码器
+    var previewDecoder: VideoModelFile? { files.first { $0.dir == "vae_approx" } }
+    /// 更快的完整解码器 (H3 的 Sol VAE)
+    var fastDecoder: VideoModelFile? { files.first { $0.dir == "vae" && $0.names[0].contains("sol_vae") } }
 
     static func == (a: VideoModelSpec, b: VideoModelSpec) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }
@@ -42,6 +48,12 @@ struct VideoModelSpec: Identifiable, Hashable {
                            url: "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_audio_vae_fp32.safetensors", sizeGB: 0.6),
             VideoModelFile(dir: "loras", names: ["minimax_h3_fl2v_turbo_4step_v1.0_768p_comfyui_bf16.safetensors", "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors"],
                            url: "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/loras/minimax_h3_fl2v_turbo_4step_v1.0_768p_comfyui_bf16.safetensors", sizeGB: 2.0, optional: true),
+            // 加速组件 (可选): 轻量解码器几秒出预览; Sol-H3 VAE 是官方蒸馏的解码器, 画质接近原版, 解码快 4~7 倍
+            // (ComfyUI 按文件名识别轻量解码器, 名字必须正好是 taeh3.safetensors)
+            VideoModelFile(dir: "vae_approx", names: ["taeh3.safetensors"],
+                           url: "https://huggingface.co/OzzyGT/taeh3/resolve/main/taeh3.safetensors", sizeGB: 0.02, optional: true),
+            VideoModelFile(dir: "vae", names: ["minimax_h3_sol_vae_fp16.safetensors"],
+                           url: "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_sol_vae_fp16.safetensors", sizeGB: 3.6, optional: true),
         ],
         qualities: [.p480, .p576, .p720, .p768], maxSeconds: 15, quality: 100)
 
@@ -58,6 +70,9 @@ struct VideoModelSpec: Identifiable, Hashable {
             // 4 步蒸馏加速 (Wan2.2-TI2V-5B-Turbo, Kijai 转成 LoRA): 不需要 CFG, 采样快约 10 倍
             VideoModelFile(dir: "loras", names: ["Wan22_TI2V_5B_Turbo_lora_rank_64_fp16.safetensors"],
                            url: "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/LoRAs/Wan22-Turbo/Wan22_TI2V_5B_Turbo_lora_rank_64_fp16.safetensors", sizeGB: 0.33, optional: true),
+            // 轻量解码器 (lightx2v LightTAE v2, 可选): 1~2 秒出预览。ComfyUI 按文件名识别, 必须叫 lighttaew2_2.safetensors
+            VideoModelFile(dir: "vae_approx", names: ["lighttaew2_2.safetensors"],
+                           url: "https://huggingface.co/lightx2v/Autoencoders/resolve/main/lighttaew2_2_v2.safetensors", sizeGB: 0.05, optional: true),
         ],
         qualities: [.p480, .p576, .p720], maxSeconds: 8, quality: 70)
 
@@ -146,6 +161,11 @@ final class VideoModels: ObservableObject {
     }
 
     func file(_ s: VideoModelSpec, _ f: VideoModelFile) -> String? { installed[s.id]?[f.id] }
+
+    /// 还没下载的可选组件 (加速 LoRA、轻量解码器等)
+    func missingOptionalGB(_ s: VideoModelSpec) -> Double {
+        s.files.filter { installed[s.id]?[$0.id] == nil && $0.optional }.reduce(0) { $0 + $1.sizeGB }
+    }
 
     func missingGB(_ s: VideoModelSpec) -> Double {
         s.files.filter { installed[s.id]?[$0.id] == nil && !$0.optional }.reduce(0) { $0 + $1.sizeGB }
@@ -242,24 +262,25 @@ extension VideoModelSpec {
     }
 
     /// 预计时间 (分钟). H3 依据实测: 864×480、5 秒、4 步采样约 9 分钟
-    func estimate(w: Int, h: Int, frames: Int, steps: Int, loaded: Bool) -> Double {
+    /// fastConv: ComfyUI 是 Toolula 用启动包装启动的 (conv3d 加速); fastVAE: H3 装了 Sol VAE
+    func estimate(w: Int, h: Int, frames: Int, steps: Int, loaded: Bool, fastConv: Bool = false, fastVAE: Bool = false) -> Double {
         let work = Double(w * h * frames) / Double(864 * 480 * 124)
         switch id {
         case "wan22-5b":
-            // 实测 M3 Max: 864×480×45 帧, 20 步 = 采样 4.9 分钟 + 加载/解码约 0.8 分钟
+            // 实测 M3 Max: 864×480×121 帧, 4 步加速 = 采样 2.15 分钟; 解码 6.9 分钟 (conv3d 加速后 1.8 分钟)
             let cfgFactor = steps <= 4 ? 0.5 : 1.0      // 加速模式 CFG=1, 每步只算一次
-            return 3.3 * pow(work, 1.2) * Double(steps) / 4 * cfgFactor + 0.4 * work + (loaded ? 0.2 : 0.9)
+            return 4.4 * pow(work, 1.2) * Double(steps) / 4 * cfgFactor + (fastConv ? 1.8 : 6.9) * work + (loaded ? 0.2 : 0.9)
         default:
-            return VideoMath.estimate(w: w, h: h, frames: frames, steps: steps, loaded: loaded)
+            return VideoMath.estimate(w: w, h: h, frames: frames, steps: steps, loaded: loaded, fastVAE: fastVAE)
         }
     }
 
     func graph(_ p: VideoJobParams, files: [String: String]) -> [String: Any]? {
         func name(_ i: Int) -> String? { files[self.files[i].id] }
+        let lora = loraFile.flatMap { files[$0.id] }
         switch id {
         case "wan22-5b":
             guard let unet = name(0), let te = name(1), let vae = name(2) else { return nil }
-            let lora = name(3)
             let turbo = p.turbo && lora != nil
             var latent: [String: Any] = ["vae": ["3", 0], "width": p.width, "height": p.height, "length": frames(p.seconds), "batch_size": 1]
             var g: [String: Any] = [
@@ -290,7 +311,6 @@ extension VideoModelSpec {
 
         default: // MiniMax H3 (和 ComfyUI 官方模板同样的节点)
             guard let unet = name(0), let clip = name(1), let vv = name(2), let av = name(3) else { return nil }
-            let lora = name(4)
             let useTurbo = p.turbo && lora != nil
             var g: [String: Any] = [
                 "1": ["class_type": "UNETLoader", "inputs": ["unet_name": unet, "weight_dtype": "default"]],
@@ -317,11 +337,39 @@ extension VideoModelSpec {
                 h3["first_frame"] = ["10", 0]
             }
             g["6"] = ["class_type": "MiniMaxH3ImageToVideo", "inputs": h3]
+            // 有 Sol-H3 VAE 就用它解码 (编码首帧仍用原版 VAE)
+            if let sol = fastDecoder.flatMap({ files[$0.id] }) {
+                g["21"] = ["class_type": "VAELoader", "inputs": ["vae_name": sol]]
+                g["13"] = ["class_type": "VAEDecode", "inputs": ["samples": ["12", 0], "vae": ["21", 0]]]
+            }
             g["9"] = ["class_type": "BasicScheduler", "inputs": ["model": model, "scheduler": "simple",
                                                                  "steps": steps(turbo: p.turbo, lora: lora), "denoise": 1.0]]
             g["11"] = ["class_type": "BasicGuider", "inputs": ["model": model, "conditioning": ["6", 0]]]
             return g
         }
+    }
+
+    /// 预览工作流: 和完整工作流前半段完全相同 (ComfyUI 会缓存这些节点的结果, 之后提交完整工作流时不用重新采样),
+    /// 只是用轻量解码器解码, 几秒就能看到结果。没装轻量解码器时返回 nil。
+    func previewGraph(from full: [String: Any], files: [String: String]) -> [String: Any]? {
+        guard let tae = previewDecoder.flatMap({ files[$0.id] }) else { return nil }
+        var g = full
+        let samples: [Any]
+        var video: [String: Any] = ["fps": 24]
+        if id == "wan22-5b" {
+            samples = ["8", 0]
+            for k in ["9", "15", "16"] { g[k] = nil }
+        } else {
+            samples = ["12", 0]
+            video["audio"] = ["14", 0]
+            for k in ["13", "15", "16", "21"] { g[k] = nil }
+        }
+        video["images"] = ["18", 0]
+        g["17"] = ["class_type": "VAELoader", "inputs": ["vae_name": tae]]
+        g["18"] = ["class_type": "VAEDecode", "inputs": ["samples": samples, "vae": ["17", 0]]]
+        g["19"] = ["class_type": "CreateVideo", "inputs": video]
+        g["20"] = ["class_type": "SaveVideo", "inputs": ["video": ["19", 0], "filename_prefix": "Toolula/preview", "format": "auto", "codec": "auto"]]
+        return g
     }
 
     /// Wan 官方模板里的负面提示词
@@ -333,6 +381,8 @@ extension VideoModelSpec {
 struct VideoModelPicker: View {
     @ObservedObject var vm = VideoModels.shared
     @ObservedObject var info = SystemInfo.shared
+
+    static func sizeText(_ gb: Double) -> String { gb >= 1 ? String(format: "%.1f GB", gb) : "\(max(1, Int((gb * 1000).rounded()))) MB" }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -372,6 +422,17 @@ struct VideoModelPicker: View {
                 Text(String(format: "%.1f GB", s.downloadGB)).font(.caption).foregroundStyle(.secondary).monospacedDigit()
                 if ready {
                     Label("已安装", systemImage: "checkmark.circle.fill").font(.caption).foregroundStyle(.green)
+                    let extra = vm.missingOptionalGB(s)
+                    if extra > 0 {
+                        if let job = vm.downloading[s.id], !job.done && !job.failed {
+                            DownloadMini(job: job)
+                            Button("取消") { vm.cancel(s) }.controlSize(.mini)
+                        } else {
+                            Button("下载加速组件（\(Self.sizeText(extra))）") { vm.download(s) }
+                                .controlSize(.small)
+                                .help(Text("轻量解码器几秒就能出预览，并加快高清解码"))
+                        }
+                    }
                 } else if let job = vm.downloading[s.id], !job.done && !job.failed {
                     DownloadMini(job: job)
                     Button("取消") { vm.cancel(s) }.controlSize(.mini)

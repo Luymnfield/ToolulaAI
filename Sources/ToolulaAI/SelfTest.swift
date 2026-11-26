@@ -134,7 +134,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -335,8 +335,15 @@ extension AppDelegate {
             if let vp = val("--video") {
                 let vs = VideoStore.shared
                 vs.autoFree = false
-                let item = await vs.generate(prompt: vp, seconds: 2, quality: .p480, aspect: .wide)
-                log += "video: \(item.map { "\($0.path) \($0.width)x\($0.height) \(Int($0.elapsed))s" } ?? "failed: \(vs.error ?? "-")")\n"
+                let secs = val("--video-seconds").flatMap(Double.init) ?? 2
+                let t0 = Date()
+                var previewAt: Double?
+                let watch = Task { @MainActor in
+                    while !Task.isCancelled { if previewAt == nil, vs.previewPath != nil { previewAt = Date().timeIntervalSince(t0) }; try? await Task.sleep(for: .milliseconds(500)) }
+                }
+                let item = await vs.generate(prompt: vp, seconds: secs, quality: .p480, aspect: .wide)
+                watch.cancel()
+                log += "video: \(item.map { "\($0.path) \($0.width)x\($0.height) \(Int($0.elapsed))s" } ?? "failed: \(vs.error ?? "-")") preview=\(previewAt.map { "\(Int($0))s" } ?? "-") est=\(String(format: "%.1f", vs.estimateMinutes))min patched=\(ComfyEngine.shared.patched)\n"
                 vs.autoFree = true
             }
             if let dd = val("--diagnostics") {

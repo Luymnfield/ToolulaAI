@@ -19,6 +19,10 @@ final class ComfyEngine: ObservableObject {
     @Published var audioVAE: String?
     @Published var lora: String?
     private var process: Process?
+    /// 是 Toolula 用启动包装启动的 (带 conv3d 加速); 用户自己开着的 Comfy Desktop 没有
+    @Published var patched = false
+    /// 是 Toolula 自己启动的进程 (可以在空闲时关掉)
+    var owned: Bool { process?.isRunning == true }
 
     var base: URL { URL(string: "http://127.0.0.1:\(port)")! }
     var ready: Bool { online && unet != nil && clip != nil && videoVAE != nil && audioVAE != nil }
@@ -101,7 +105,10 @@ final class ComfyEngine: ObservableObject {
             let p = Process()
             p.executableURL = inst.python
             p.currentDirectoryURL = inst.dir
-            var args = ["-s", "ComfyUI/main.py", "--listen", "127.0.0.1", "--port", "8188"]
+            // 用 Toolula 自带的启动包装: 在 Apple GPU 上把很慢的 conv3d 换成等价的 conv2d (视频解码快约 4 倍)
+            let launcher = Bundle.main.url(forResource: "toolula_comfy_launch", withExtension: "py")
+            let script = launcher?.path ?? "ComfyUI/main.py"
+            var args = ["-s", script, "--listen", "127.0.0.1", "--port", "8188"]
             if !inst.managed { args.append("--enable-manager") }
             if let c = inst.config { args += ["--extra-model-paths-config", c.path] }
             if let i = inst.input { args += ["--input-directory", i.path] }
@@ -111,7 +118,8 @@ final class ComfyEngine: ObservableObject {
             FileManager.default.createFile(atPath: log.path, contents: nil)
             if let h = try? FileHandle(forWritingTo: log) { p.standardOutput = h; p.standardError = h }
             do { try p.run(); process = p } catch { message = error.localizedDescription; return }
-            ProcessJanitor.register("comfyui", pid: p.processIdentifier, signature: "ComfyUI/main.py --listen 127.0.0.1 --port 8188")
+            patched = launcher != nil
+            ProcessJanitor.register("comfyui", pid: p.processIdentifier, signature: (launcher?.lastPathComponent ?? "ComfyUI/main.py") + " --listen 127.0.0.1 --port 8188")
             port = 8188
         } else if !Self.simulateMissing && FileManager.default.fileExists(atPath: "/Applications/Comfy Desktop.app") {
             NSWorkspace.shared.open(URL(fileURLWithPath: "/Applications/Comfy Desktop.app"))
@@ -131,6 +139,7 @@ final class ComfyEngine: ObservableObject {
     func stopOwned() {
         if let p = process, p.isRunning { p.terminate() }
         process = nil
+        patched = false
         ProcessJanitor.unregister("comfyui")
     }
 
@@ -263,10 +272,11 @@ enum VideoMath {
     }
 
     /// 估算时间 (分钟). 依据: 这台 M3 Max 上 864×480、5 秒、4 步 = 采样约 9 分钟
-    static func estimate(w: Int, h: Int, frames: Int, steps: Int, loaded: Bool) -> Double {
+    /// 解码实测: 原版 VAE 5 秒 480p 约 4 分钟, Sol-H3 VAE 约 0.8 分钟
+    static func estimate(w: Int, h: Int, frames: Int, steps: Int, loaded: Bool, fastVAE: Bool = false) -> Double {
         let work = Double(w * h * frames) / Double(864 * 480 * 124)
         let sampling = 9.2 * pow(work, 1.25) * Double(steps) / 4
-        let decode = 0.6 * work
+        let decode = (fastVAE ? 0.8 : 4.0) * work
         let load = loaded ? 0.3 : 5
         return sampling + decode + load
     }
@@ -329,8 +339,9 @@ final class VideoStore: ObservableObject {
     var currentEstimate: Double {
         let (w, h) = currentSize
         let spec = VideoModels.shared.selected
-        let lora = VideoModels.shared.file(spec, spec.files.last!)
-        return spec.estimate(w: w, h: h, frames: spec.frames(seconds), steps: spec.steps(turbo: turbo, lora: lora), loaded: modelsLoaded)
+        let lora = spec.loraFile.flatMap { VideoModels.shared.file(spec, $0) }
+        return spec.estimate(w: w, h: h, frames: spec.frames(seconds), steps: spec.steps(turbo: turbo, lora: lora), loaded: modelsLoaded,
+                             fastConv: ComfyEngine.shared.patched || !ComfyEngine.shared.online, fastVAE: spec.fastDecoder.flatMap { VideoModels.shared.file(spec, $0) } != nil)
     }
 
     /// 生成视频. 返回生成好的视频 (失败返回 nil, 错误在 error 里)
@@ -378,18 +389,76 @@ final class VideoStore: ObservableObject {
         }()
         let length = spec.frames(secs)
         let s = randomSeed ? Int.random(in: 1...999_999_999) : seed
-        let lora = models.file(spec, spec.files.last!)
-        estimateMinutes = spec.estimate(w: w, h: h, frames: length, steps: spec.steps(turbo: turbo, lora: lora), loaded: modelsLoaded)
+        let lora = spec.loraFile.flatMap { models.file(spec, $0) }
+        estimateMinutes = spec.estimate(w: w, h: h, frames: length, steps: spec.steps(turbo: turbo, lora: lora), loaded: modelsLoaded,
+                             fastConv: ComfyEngine.shared.patched || !ComfyEngine.shared.online, fastVAE: spec.fastDecoder.flatMap { VideoModels.shared.file(spec, $0) } != nil)
         guard let g = spec.graph(VideoJobParams(prompt: text, width: w, height: h, seconds: secs, seed: s, turbo: turbo, firstFrame: uploaded),
                                  files: models.installed[spec.id] ?? [:]) else {
             error = String(localized: "模型文件不完整"); return nil
         }
 
+        let files = models.installed[spec.id] ?? [:]
+        let previewG = spec.previewGraph(from: g, files: files)
+
         let clientId = UUID().uuidString
         listen(clientId: clientId)
-        defer { socket?.cancel(with: .goingAway, reason: nil); socket = nil }
+        defer { socket?.cancel(with: .goingAway, reason: nil); socket = nil; clearPreview() }
 
         stage = String(localized: "提交任务…")
+        // 装了轻量解码器: 分两次提交。先用它解码出预览 (几秒), 再提交完整工作流出高清版;
+        // 两次的前半段完全相同, ComfyUI 直接用缓存的采样结果, 不会重新生成
+        if let previewG {
+            guard let f = await runPrompt(previewG, output: "20", clientId: clientId, firstStage: true) else { return nil }
+            if let url = await outputFile(f, saveTo: nil) {
+                previewPath = url.path
+                previewFile = f
+                stage = String(localized: "预览已生成，正在解码高清版…")
+            }
+        }
+        guard let f = await runPrompt(g, output: "16", clientId: clientId, firstStage: previewG == nil),
+              let fname = f["filename"] as? String else { return nil }
+        let dest = Self.videosFolder.appendingPathComponent(fname)
+        _ = await outputFile(f, saveTo: dest)
+        var item = VideoItem(prompt: text, path: dest.path, width: w, height: h, seconds: Double(length) / 24, seed: s,
+                             fromImage: uploaded != nil, elapsed: Date().timeIntervalSince(startedAt ?? Date()))
+        item.model = spec.name
+        items.insert(item, at: 0)
+        selected = item.id
+        save()
+        modelsLoaded = true
+        lastSpec = spec.id
+        if autoFree {
+            await engine.free()
+            modelsLoaded = false
+        }
+        Notifier.send(title: String(localized: "视频生成好了"), body: String(text.prefix(80)))
+        return item
+    }
+
+    /// 生成高清版期间显示的预览视频 (ComfyUI 输出文件夹里的文件, 完成后删掉)
+    @Published var previewPath: String?
+    private var previewFile: [String: Any]?
+
+    private func clearPreview() {
+        if let p = previewPath, let f = previewFile, let name = f["filename"] as? String,
+           let out = Self.comfyOutput(f), out.lastPathComponent == name, p == out.path {
+            try? FileManager.default.removeItem(at: out)
+        } else if let p = previewPath, p.hasPrefix(AppPaths.support.path) {
+            try? FileManager.default.removeItem(atPath: p)
+        }
+        previewPath = nil
+        previewFile = nil
+    }
+
+    /// ComfyUI 输出文件夹里这个文件的位置
+    private static func comfyOutput(_ f: [String: Any]) -> URL? {
+        guard let name = f["filename"] as? String else { return nil }
+        return ComfyEngine.findInstall()?.output?.appendingPathComponent(f["subfolder"] as? String ?? "").appendingPathComponent(name)
+    }
+
+    /// 提交一个工作流并等它完成, 返回指定输出节点保存的第一个文件 (失败返回 nil, 错误写在 error 里)
+    private func runPrompt(_ g: [String: Any], output: String, clientId: String, firstStage: Bool) async -> [String: Any]? {
+        let engine = ComfyEngine.shared
         var req = URLRequest(url: engine.base.appendingPathComponent("prompt"))
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -400,11 +469,10 @@ final class VideoStore: ObservableObject {
             return nil
         }
         if let ne = obj["node_errors"] as? [String: Any], !ne.isEmpty { error = "\(ne)"; return nil }
-        stage = modelsLoaded ? String(localized: "准备中…") : String(localized: "加载视频模型（约 90GB，第一次要几分钟）…")
+        if firstStage { stage = modelsLoaded ? String(localized: "准备中…") : String(localized: "加载视频模型（约 90GB，第一次要几分钟）…") }
 
-        // 等结果
         while true {
-            try? await Task.sleep(for: .seconds(3))
+            try? await Task.sleep(for: .seconds(2))
             guard let (hd, _) = try? await URLSession.shared.data(from: engine.base.appendingPathComponent("history/\(pid)")),
                   let hist = (try? JSONSerialization.jsonObject(with: hd) as? [String: Any])?[pid] as? [String: Any] else { continue }
             let status = hist["status"] as? [String: Any]
@@ -415,41 +483,33 @@ final class VideoStore: ObservableObject {
                 return nil
             }
             guard status?["completed"] as? Bool == true else { continue }
-            let outputs = hist["outputs"] as? [String: Any]
-            let saved = outputs?["16"] as? [String: Any]
+            let saved = (hist["outputs"] as? [String: Any])?[output] as? [String: Any]
             let files = (saved?["images"] ?? saved?["videos"] ?? saved?["gifs"]) as? [[String: Any]] ?? []
-            guard let f = files.first, let fname = f["filename"] as? String else {
+            guard let f = files.first, f["filename"] is String else {
                 error = String(localized: "没有找到生成的视频文件"); return nil
             }
-            let sub = f["subfolder"] as? String ?? ""
-            let dest = Self.videosFolder.appendingPathComponent(fname)
-            // 优先直接从 ComfyUI 的输出文件夹复制, 不行再下载
-            if let out = ComfyEngine.findInstall()?.output?.appendingPathComponent(sub).appendingPathComponent(fname),
-               FileManager.default.fileExists(atPath: out.path) {
-                try? FileManager.default.removeItem(at: dest)
-                try? FileManager.default.copyItem(at: out, to: dest)
-            }
-            if !FileManager.default.fileExists(atPath: dest.path) {
-                var c = URLComponents(url: engine.base.appendingPathComponent("view"), resolvingAgainstBaseURL: false)!
-                c.queryItems = [URLQueryItem(name: "filename", value: fname), URLQueryItem(name: "subfolder", value: sub),
-                                URLQueryItem(name: "type", value: "output")]
-                if let (vd, _) = try? await URLSession.shared.data(from: c.url!) { try? vd.write(to: dest) }
-            }
-            var item = VideoItem(prompt: text, path: dest.path, width: w, height: h, seconds: Double(length) / 24, seed: s,
-                                 fromImage: uploaded != nil, elapsed: Date().timeIntervalSince(startedAt ?? Date()))
-            item.model = spec.name
-            items.insert(item, at: 0)
-            selected = item.id
-            save()
-            modelsLoaded = true
-            lastSpec = spec.id
-            if autoFree {
-                await engine.free()
-                modelsLoaded = false
-            }
-            Notifier.send(title: String(localized: "视频生成好了"), body: String(text.prefix(80)))
-            return item
+            return f
         }
+    }
+
+    /// 取得 ComfyUI 保存的文件: saveTo 为空时直接用 ComfyUI 输出文件夹里的文件 (没有就下载到临时位置)
+    private func outputFile(_ f: [String: Any], saveTo dest: URL?) async -> URL? {
+        guard let fname = f["filename"] as? String else { return nil }
+        let out = Self.comfyOutput(f)
+        let exists = out.map { FileManager.default.fileExists(atPath: $0.path) } ?? false
+        if dest == nil, exists { return out }
+        let target = dest ?? AppPaths.support.appendingPathComponent("preview-" + fname)
+        if exists, let out {
+            try? FileManager.default.removeItem(at: target)
+            try? FileManager.default.copyItem(at: out, to: target)
+        }
+        if !FileManager.default.fileExists(atPath: target.path) {
+            var c = URLComponents(url: ComfyEngine.shared.base.appendingPathComponent("view"), resolvingAgainstBaseURL: false)!
+            c.queryItems = [URLQueryItem(name: "filename", value: fname), URLQueryItem(name: "subfolder", value: f["subfolder"] as? String ?? ""),
+                            URLQueryItem(name: "type", value: "output")]
+            if let (vd, _) = try? await URLSession.shared.data(from: c.url!) { try? vd.write(to: target) }
+        }
+        return FileManager.default.fileExists(atPath: target.path) ? target : nil
     }
 
     func cancel() {
@@ -489,8 +549,9 @@ final class VideoStore: ObservableObject {
                 case "1", "2", "3": stage = String(localized: "准备模型…")
                 case "5", "6": stage = String(localized: "理解提示词…")
                 case "8": stage = String(localized: "生成画面…")
-                case "9": stage = String(localized: "解码画面和声音…")
+                case "9": stage = previewPath == nil ? String(localized: "解码画面…") : String(localized: "预览已生成，正在解码高清版…")
                 case "15", "16": stage = String(localized: "保存视频…")
+                case "17", "18", "19", "20": stage = String(localized: "生成预览…")
                 default: break
                 }
                 return
@@ -499,8 +560,9 @@ final class VideoStore: ObservableObject {
             case "1", "2", "3", "4", "5": stage = modelsLoaded ? String(localized: "准备模型…") : String(localized: "加载视频模型（约 90GB，第一次要几分钟）…")
             case "6": stage = String(localized: "理解提示词…")
             case "12": stage = String(localized: "生成画面…")
-            case "13", "14": stage = String(localized: "解码画面和声音…")
+            case "13", "14": stage = previewPath == nil ? String(localized: "解码画面和声音…") : String(localized: "预览已生成，正在解码高清版…")
             case "15", "16": stage = String(localized: "保存视频…")
+            case "17", "18", "19", "20": stage = String(localized: "生成预览…")
             default: break
             }
         case "progress":

@@ -20,6 +20,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/ToolulaAI"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp ../AIPhotoEdit.lrplugin/ai_edit.py "$APP/Contents/Resources/ai_edit.py"
+cp Resources/toolula_comfy_launch.py "$APP/Contents/Resources/toolula_comfy_launch.py"
 mkdir -p "$APP/Contents/Resources/AIPhotoEdit.lrplugin" && cp ../AIPhotoEdit.lrplugin/*.lua ../AIPhotoEdit.lrplugin/ai_edit.py ../AIPhotoEdit.lrplugin/desktop_process.py "$APP/Contents/Resources/AIPhotoEdit.lrplugin/"
 # 翻译检查: 有没翻译的界面文字时给警告 (不中断编译)
 MISSING=$(/usr/bin/python3 scripts/check_translations.py 2>&1 >/dev/null | grep -o '缺少翻译 [0-9]*' | grep -o '[0-9]*')

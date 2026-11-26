@@ -64,6 +64,13 @@ struct VideoView: View {
             Color(nsColor: .underPageBackgroundColor)
             if store.running {
                 VStack(spacing: 14) {
+                    if let p = store.previewPath {
+                        PlayerView(url: URL(fileURLWithPath: p))
+                            .aspectRatio(16 / 9, contentMode: .fit)
+                            .frame(maxWidth: 640, maxHeight: 360)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        Text("预览（快速解码，画质略低）。高清版完成后会自动替换。").font(.caption).foregroundStyle(.secondary)
+                    }
                     ProgressView(value: store.steps > 0 ? Double(store.step) / Double(store.steps) : nil)
                         .frame(width: 320)
                     Text(store.stage).font(.headline)

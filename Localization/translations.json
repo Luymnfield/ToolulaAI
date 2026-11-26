@@ -4110,5 +4110,29 @@
  "诊断": [
   "Diagnostics",
   "Diagnose"
+ ],
+ "预览已生成，正在解码高清版…": [
+  "Preview ready, decoding full quality…",
+  "Vorschau fertig, volle Qualität wird dekodiert…"
+ ],
+ "解码画面…": [
+  "Decoding frames…",
+  "Bilder werden dekodiert…"
+ ],
+ "生成预览…": [
+  "Creating preview…",
+  "Vorschau wird erstellt…"
+ ],
+ "下载加速组件（%@）": [
+  "Download speed-up components (%@)",
+  "Beschleunigungskomponenten laden (%@)"
+ ],
+ "轻量解码器几秒就能出预览，并加快高清解码": [
+  "A lightweight decoder shows a preview within seconds and speeds up full-quality decoding",
+  "Ein leichter Decoder zeigt in Sekunden eine Vorschau und beschleunigt die Dekodierung in voller Qualität"
+ ],
+ "预览（快速解码，画质略低）。高清版完成后会自动替换。": [
+  "Preview (fast decode, slightly lower quality). It is replaced automatically when the full-quality version is done.",
+  "Vorschau (schnell dekodiert, etwas geringere Qualität). Sie wird automatisch ersetzt, sobald die Version in voller Qualität fertig ist."
  ]
 }
