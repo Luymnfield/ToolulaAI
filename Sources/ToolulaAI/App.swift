@@ -106,6 +106,14 @@ struct ToolulaAIApp: App {
         }
         .windowToolbarStyle(.unified)
 
+        // 统一设置 (⌘,)
+        SwiftUI.Settings {
+            SettingsView()
+                .environmentObject(chat)
+                .environmentObject(automations)
+                .environmentObject(app)
+        }
+
         // 后台常驻时菜单栏里的图标
         MenuBarExtra(isInserted: $backgroundMode) {
             MenuBarContent()

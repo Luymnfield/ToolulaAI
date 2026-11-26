@@ -345,6 +345,25 @@ extension AppDelegate {
                 log += "markdown blocks: \(MarkdownParser.parse(md).map { "\($0)".prefix(20) })\n"
                 chat.delete(id)
             }
+            if args.contains("--settings-shots") {
+                // 打开设置窗口, 每个标签截一张
+                NSApp.activate(ignoringOtherApps: true)
+                try? await Task.sleep(for: .seconds(0.5))
+                SelfTestKeys.post("cmd+,")      // 和用户一样按 ⌘,
+                try? await Task.sleep(for: .seconds(1.5))
+                for t in SettingsTab.allCases {
+                    UserDefaults.standard.set(t.rawValue, forKey: "settingsTab")
+                    try? await Task.sleep(for: .seconds(1.2))
+                    if let w = NSApp.windows.first(where: { $0.isVisible && $0.identifier?.rawValue.contains("Settings") == true }), let v = w.contentView?.superview ?? w.contentView,
+                       let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds) {
+                        v.cacheDisplay(in: v.bounds, to: rep)
+                        try? rep.representation(using: .png, properties: [:])?.write(to: out.deletingPathExtension().appendingPathExtension("settings-\(t.rawValue).png"))
+                    }
+                }
+                log += "settings windows: " + NSApp.windows.filter(\.isVisible).map { "\($0.identifier?.rawValue ?? "nil")[\($0.title)]" }.joined(separator: ", ") + "\n"
+                UserDefaults.standard.set(0, forKey: "settingsTab")
+                NSApp.windows.first { $0.identifier?.rawValue.contains("Settings") == true }?.close()
+            }
             if let spec = val("--keys") {
                 // 模拟键盘操作 (需要辅助功能权限), 例: "cmd+k|text:模型|down|return"
                 NSApp.activate(ignoringOtherApps: true)
