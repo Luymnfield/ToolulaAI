@@ -508,6 +508,7 @@ enum LLMClient {
         var result = LLMResult()
         var calls: [Int: ToolCall] = [:]
         var pendingC = "", pendingR = ""
+        var channels = ChannelFilter()
         var lastFlush = Date()
         var firstToken: Date?
         var stats = ChatStats()
@@ -542,7 +543,13 @@ enum LLMClient {
             }
             if let fr = choice["finish_reason"] as? String { result.finishReason = fr }
             guard let delta = choice["delta"] as? [String: Any] else { continue }
-            if let c = delta["content"] as? String { result.content += c; pendingC += c; if firstToken == nil, !c.isEmpty { firstToken = Date() } }
+            if let raw = delta["content"] as? String {
+                if firstToken == nil, !raw.isEmpty { firstToken = Date() }
+                // Gemma 4 把思考写在正文里 (<|channel>thought … <channel|>): 挪到思考过程里
+                let (c, r) = channels.feed(raw)
+                result.content += c; pendingC += c
+                result.reasoning += r; pendingR += r
+            }
             if let r = (delta["reasoning_content"] ?? delta["reasoning"]) as? String { result.reasoning += r; pendingR += r; if firstToken == nil, !r.isEmpty { firstToken = Date() } }
             if firstToken == nil, delta["tool_calls"] != nil { firstToken = Date() }
             if let tcs = delta["tool_calls"] as? [[String: Any]] {
@@ -563,6 +570,8 @@ enum LLMClient {
                 await onDelta(c, r)
             }
         }
+        let (tailC, tailR) = channels.flush()
+        result.content += tailC; pendingC += tailC; result.reasoning += tailR; pendingR += tailR
         if !(pendingC.isEmpty && pendingR.isEmpty) { await onDelta(pendingC, pendingR) }
         if gotStats {
             // LM Studio 不返回计时: 用首个字出现的时间和总时间自己算
@@ -577,8 +586,67 @@ enum LLMClient {
             var c = $0
             if c.id.isEmpty { c.id = "call_" + UUID().uuidString.prefix(8) }
             if c.arguments.isEmpty { c.arguments = "{}" }
+            c.arguments = ToolCall.repairArguments(c.arguments)
             return c
         }
+        if result.toolCalls.isEmpty, tools != nil, let x = ToolCall.extractFromText(result.content) {
+            result.toolCalls = x.calls
+            result.content = x.rest
+        }
         return result
+    }
+}
+
+
+/// Gemma 4 等模型把思考过程写在正文里: <|channel>thought …思考… <channel|> 正式回答。
+/// 流式输出时把标记里面的内容分到「思考过程」, 标记本身去掉 (标记可能被拆在两段里, 所以先留着可能是标记开头的尾巴)。
+struct ChannelFilter {
+    static let open = "<|channel>", close = "<channel|>"
+    private var inThought = false
+    private var buffer = ""
+    private var labelPending = false
+
+    mutating func feed(_ s: String) -> (content: String, reasoning: String) {
+        buffer += s
+        var c = "", r = ""
+        while true {
+            let marker = inThought ? Self.close : Self.open
+            if let range = buffer.range(of: marker) {
+                let before = String(buffer[..<range.lowerBound])
+                if inThought { r += stripLabel(before) } else { c += before }
+                buffer = String(buffer[range.upperBound...])
+                inThought.toggle()
+                labelPending = inThought
+                label = ""
+                continue
+            }
+            // 末尾可能是标记的开头: 先留着
+            var keep = 0
+            for k in stride(from: min(marker.count - 1, buffer.count), to: 0, by: -1) where marker.hasPrefix(String(buffer.suffix(k))) { keep = k; break }
+            let out = String(buffer.dropLast(keep))
+            buffer = String(buffer.suffix(keep))
+            if inThought { r += stripLabel(out) } else { c += out }
+            return (c, r)
+        }
+    }
+
+    /// 结束时剩下的部分
+    mutating func flush() -> (content: String, reasoning: String) {
+        defer { buffer = "" }
+        return inThought ? ("", stripLabel(buffer)) : (buffer, "")
+    }
+
+    /// 思考段开头的 "thought" 标签不要 (标签也可能被拆开, 没收完整就先存着)
+    private var label = ""
+    private mutating func stripLabel(_ s: String) -> String {
+        guard labelPending, !s.isEmpty else { return s }
+        let t = label + s
+        if "thought\n".hasPrefix(t) { label = t; return "" }
+        label = ""
+        labelPending = false
+        var out = Substring(t)
+        if out.hasPrefix("thought") { out = out.dropFirst(7) }
+        if out.hasPrefix("\n") { out = out.dropFirst() }
+        return String(out)
     }
 }

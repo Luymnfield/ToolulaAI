@@ -49,7 +49,7 @@ enum ChatSearch {
         let q = q.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return "" }
         if c.title.localizedCaseInsensitiveContains(q) { return "" }
-        for m in c.messages where m.role != "tool" {
+        for m in c.messages where m.role != "tool" && m.hidden != true {
             let names = (m.docs ?? []).map(\.name).joined(separator: " ")
             for t in [m.text, names] where !t.isEmpty {
                 if let r = t.range(of: q, options: [.caseInsensitive, .diacriticInsensitive]) {
@@ -80,7 +80,7 @@ enum ChatExport {
         var s = "# \(c.title.isEmpty ? String(localized: "新对话") : c.title)\n\n"
         s += "_" + String(localized: "导出时间：\(df.string(from: Date()))") + "_\n\n"
         if let sum = c.summary { s += "> " + String(localized: "较早的对话已压缩，摘要：") + "\n> " + sum.replacingOccurrences(of: "\n", with: "\n> ") + "\n\n" }
-        for m in c.messages {
+        for m in c.messages where m.hidden != true {
             switch m.role {
             case "user":
                 s += "## " + String(localized: "我") + "\n\n"

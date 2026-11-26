@@ -4766,5 +4766,53 @@
  "重新打开 Toolula 后生效": [
   "Takes effect after reopening Toolula",
   "Wird nach dem Neustart von Toolula wirksam"
+ ],
+ "修改文件": [
+  "Edit file",
+  "Datei bearbeiten"
+ ],
+ "修改文件 %@（替换 %@ 处）": [
+  "Edit file %@ (%@ replacement(s))",
+  "Datei %@ bearbeiten (%@ Ersetzung(en))"
+ ],
+ "去添加": [
+  "Add one",
+  "Hinzufügen"
+ ],
+ "已经连续做了 %@ 步，先停一下。回复「继续」我就接着做。": [
+  "I've done %@ steps in a row, so I'm pausing here. Reply \"continue\" and I'll keep going.",
+  "Ich habe %@ Schritte hintereinander ausgeführt und pausiere hier. Antworte „weiter“, dann mache ich weiter."
+ ],
+ "换模型重试": [
+  "Retry with another model",
+  "Mit anderem Modell erneut versuchen"
+ ],
+ "搜索文件": [
+  "Search files",
+  "Dateien suchen"
+ ],
+ "用 %@ 重试": [
+  "Retry with %@",
+  "Mit %@ erneut versuchen"
+ ],
+ "第 %@/%@ 步": [
+  "Step %@/%@",
+  "Schritt %@/%@"
+ ],
+ "计划": [
+  "Plan",
+  "Plan"
+ ],
+ "这个任务对本地模型有点难。在「模型」页添加云端模型后，可以交给更强的模型来做。": [
+  "This task is a bit hard for the local model. Add a cloud model on the Models page to hand it to a stronger model.",
+  "Diese Aufgabe ist für das lokale Modell etwas schwer. Füge auf der Seite „Modelle“ ein Cloud-Modell hinzu, um sie einem stärkeren Modell zu geben."
+ ],
+ "这个任务对本地模型有点难，要换更强的云端模型重试吗？": [
+  "This task is a bit hard for the local model. Retry with a stronger cloud model?",
+  "Diese Aufgabe ist für das lokale Modell etwas schwer. Mit einem stärkeren Cloud-Modell erneut versuchen?"
+ ],
+ "⚠️ 这条命令会永久删除文件（不进废纸篓，无法恢复）": [
+  "⚠️ This command permanently deletes files (they won't go to the Trash and can't be recovered)",
+  "⚠️ Dieser Befehl löscht Dateien endgültig (nicht in den Papierkorb, nicht wiederherstellbar)"
  ]
 }

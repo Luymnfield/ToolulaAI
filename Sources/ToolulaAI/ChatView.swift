@@ -201,7 +201,7 @@ struct ConversationView: View {
                     if let conv {
                         if conv.messages.isEmpty { suggestions }
                         let results = toolResults(conv)
-                        ForEach(conv.messages) { m in
+                        ForEach(conv.messages.filter { $0.hidden != true }) { m in
                             LiveMessage(live: chat.live, message: m,
                                         toolResult: m.toolCalls.isEmpty ? [:] : results.filter { k, _ in m.toolCalls.contains { $0.id == k } },
                                         onRetry: { chat.retryLast() },
@@ -210,7 +210,8 @@ struct ConversationView: View {
                                             isLast: m.id == conv.messages.last(where: { $0.role != "tool" })?.id,
                                             edit: { t in chat.editAndResend(conversationId, message: m.id, text: t) },
                                             branch: { chat.branch(conversationId, upTo: m.id) },
-                                            retry: { chat.retryLast() }))
+                                            retry: { chat.retryLast() },
+                                            retryWith: { chat.retry(with: $0) }))
                                 .id(m.id)
                             if m.id == conv.summaryUntil, let s = conv.summary { CompressedDivider(conversationId: conversationId, summary: s, tokens: conv.compressedTokens) }
                         }
@@ -483,13 +484,16 @@ struct MessageView: View, Equatable {
                         .font(.caption2).foregroundStyle(.secondary)
                         .help(Text("这个问题比较简单，自动交给了快速模型（可在模型页的「加速」里关闭）"))
                 }
-                ForEach(message.toolCalls) { call in ToolCallCard(call: call, result: toolResult[call.id]) }
+                ForEach(message.toolCalls) { call in
+                    if call.name == "plan" { AgentPlanCard(call: call) } else { ToolCallCard(call: call, result: toolResult[call.id]) }
+                }
                 if let e = message.error {
                     HStack(alignment: .top) {
                         Label(e, systemImage: "exclamationmark.triangle").foregroundStyle(.orange).textSelection(.enabled)
                         Button("重试") { onRetry() }
                     }
                 }
+                if message.stuck == true, actions.isLast, !actions.busy, let retryWith = actions.retryWith { StuckBar(retryWith: retryWith) }
                 if !message.text.isEmpty { actionBar(user: false) }
             }
             .onHover { hovering = $0 }
@@ -525,6 +529,8 @@ struct ToolCallCard: View {
         case "memory_delete": return String(localized: "忘记一条记忆")
         case "use_skill": return String(localized: "使用技能") + "  " + (a["name"] as? String ?? "")
         case "create_skill": return String(localized: "保存新技能") + "  " + (a["name"] as? String ?? "")
+        case "edit_file": return String(localized: "修改文件") + "  " + (a["path"] as? String ?? "")
+        case "search_files": return String(localized: "搜索文件") + "  " + ([a["text"], a["name"]].compactMap { $0 as? String }.first { !$0.isEmpty } ?? "")
         default: return call.name
         }
     }
@@ -552,6 +558,70 @@ struct ToolCallCard: View {
         .padding(8)
         .background(Color.gray.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+/// plan 工具: 显示成一张清单 (做完的打勾, 正在做的高亮)
+struct AgentPlanCard: View {
+    let call: ToolCall
+
+    var body: some View {
+        let steps = PlanState.steps(call.args)
+        let cur = PlanState.current(call.args)
+        let done = cur == 0 || cur > steps.count
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                Label("计划", systemImage: "list.bullet.clipboard").font(.callout.weight(.semibold))
+                Spacer()
+                Text(done ? String(localized: "已完成") : String(localized: "第 \(String(cur))/\(String(steps.count)) 步"))
+                    .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+            }
+            ForEach(Array(steps.enumerated()), id: \.offset) { i, s in
+                let state = done || i + 1 < cur ? 2 : (i + 1 == cur ? 1 : 0)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: state == 2 ? "checkmark.circle.fill" : state == 1 ? "arrow.right.circle.fill" : "circle")
+                        .foregroundStyle(state == 2 ? Color.green : state == 1 ? Color.toolula : Color.secondary)
+                    Text(verbatim: s).font(.callout)
+                        .foregroundStyle(state == 0 ? .secondary : .primary)
+                        .fontWeight(state == 1 ? .medium : .regular)
+                }
+            }
+        }
+        .padding(10)
+        .background(Color.gray.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// 本地模型这一轮没能顺利完成: 建议换更强的 (云端) 模型重试
+struct StuckBar: View {
+    @ObservedObject var models = ModelManager.shared
+    @EnvironmentObject var app: AppState
+    let retryWith: (String) -> Void
+
+    var body: some View {
+        let cloud = models.cloudModels
+        HStack(spacing: 8) {
+            Image(systemName: "lightbulb").foregroundStyle(.yellow)
+            if cloud.isEmpty {
+                Text("这个任务对本地模型有点难。在「模型」页添加云端模型后，可以交给更强的模型来做。")
+                    .font(.callout).foregroundStyle(.secondary)
+                Button("去添加") { app.section = .models }
+            } else {
+                Text("这个任务对本地模型有点难，要换更强的云端模型重试吗？").font(.callout).foregroundStyle(.secondary)
+                if cloud.count == 1, let m = cloud.first {
+                    Button(String(localized: "用 \(m.displayName) 重试")) { retryWith(m.id) }
+                } else {
+                    Menu("换模型重试") {
+                        ForEach(cloud) { m in Button(m.displayName) { retryWith(m.id) } }
+                    }
+                    .fixedSize()
+                }
+            }
+        }
+        .padding(8)
+        .background(Color.yellow.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -737,6 +807,7 @@ struct MessageActions {
     var edit: ((String) -> Void)?
     var branch: (() -> Void)?
     var retry: (() -> Void)?
+    var retryWith: ((String) -> Void)?
 }
 
 struct ThinkingIndicator: View {

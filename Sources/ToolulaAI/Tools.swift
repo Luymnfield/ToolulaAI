@@ -31,7 +31,13 @@ enum Tools {
             fn("run_shell", "用 zsh 执行命令并返回输出。有副作用的命令会先问用户", ["command": str, "timeout_seconds": int], ["command"]),
             fn("list_directory", "列出文件夹内容（大小、修改时间）", ["path": str], ["path"]),
             fn("read_file", "读文件：文本、代码、PDF、Word、Excel、PPT 都行（每次最多 2 万字，长文件用 offset 从第几个字接着读）", ["path": str, "offset": int], ["path"]),
-            fn("write_file", "创建或覆盖文本文件（会先问用户）", ["path": str, "content": str], ["path", "content"]),
+            fn("search_files", "在文件夹里找文件：name 按文件名找（如 *.py、*报告*）；text 按内容找（返回 文件:行号: 那一行）",
+               ["path": described("默认当前工作目录"), "name": str, "text": described("要找的文字或正则")]),
+            fn("edit_file", "修改已有文件：把 old_text（原文，要一字不差、足够唯一）换成 new_text。改文件优先用它（会先问用户）",
+               ["path": str, "old_text": str, "new_text": str, "replace_all": bool], ["path", "old_text", "new_text"]),
+            fn("write_file", "新建文件或整个重写（会先问用户）。只改一部分请用 edit_file", ["path": str, "content": str], ["path", "content"]),
+            fn("plan", "多步任务先列计划，每做完一步再调用更新 current", ["steps": ["type": "array", "items": ["type": "string"]],
+               "current": described("正在做第几步（从 1 开始）；全部做完填 0")], ["steps", "current"]),
         ]
         if automation {
             defs.append(fn("notify_user", "发 macOS 通知", ["title": str, "message": str], ["title", "message"]))
@@ -127,6 +133,22 @@ enum Tools {
         return p.hasPrefix("/") ? URL(fileURLWithPath: p) : base.appendingPathComponent(p)
     }
 
+    /// 命令会直接删除文件 (rm、find -delete、shred …), 不进废纸篓
+    static func permanentDelete(_ cmd: String) -> Bool {
+        cmd.range(of: #"(^|[;&|(`$\s])(sudo\s+)?(rm|unlink|shred|srm)\s|\s-delete\b"#, options: .regularExpression) != nil
+    }
+
+    /// 工具结果看起来是出错了 (第一行里有「错误/无法/失败/拒绝」或 shell 的退出码不为 0)
+    static func looksLikeError(_ s: String) -> Bool {
+        let first = String(s.prefix(200).split(separator: "\n", maxSplits: 1).first ?? "")
+        let words = ["错误", "无法", "失败", "拒绝", "找不到", "Error", "error:", "Fehler"]
+        if words.contains(where: { first.contains($0) }) { return true }
+        // shell: 第一行是「退出码 N」
+        let ok = String(localized: "退出码 \(String(0))")
+        if first.hasPrefix(String(ok.dropLast())) { return first != ok }
+        return false
+    }
+
     static func truncate(_ s: String, _ n: Int = 12000) -> String {
         s.count > n ? String(s.prefix(n)) + "\n…" + String(localized: "（输出太长，已截断，共 \(s.count) 字）") : s
     }
@@ -134,12 +156,17 @@ enum Tools {
     /// 执行一个工具调用, 返回给模型的文字结果
     @MainActor
     static func run(_ original: ToolCall, ctx: ToolContext) async -> String {
+        let raw = original.arguments.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !raw.isEmpty, !((try? JSONSerialization.jsonObject(with: Data(raw.utf8))) is [String: Any]) {
+            return "错误：参数不是合法的 JSON 对象（收到的是：\(raw.prefix(300))）。请重新调用，参数写成 {\"名字\": 值} 的形式。"
+        }
         let call = normalize(original)
         let a = call.args
         switch call.name {
         case "run_shell":
             guard let cmd = a["command"] as? String, !cmd.isEmpty else { return String(localized: "错误：缺少 command") }
-            guard await ctx.approve(call, cmd) else { return String(localized: "用户拒绝执行这条命令。") }
+            guard await ctx.approve(call, permanentDelete(cmd) ? String(localized: "⚠️ 这条命令会永久删除文件（不进废纸篓，无法恢复）") + "\n\n" + cmd : cmd)
+            else { return String(localized: "用户拒绝执行这条命令。") }
             let timeout = (a["timeout_seconds"] as? Int) ?? 120
             return await Task.detached { shell(cmd, cwd: ctx.workDir, timeout: TimeInterval(timeout)) }.value
 
@@ -147,7 +174,8 @@ enum Tools {
             let url = expand(a["path"] as? String ?? ".", base: ctx.workDir)
             let keys: [URLResourceKey] = [.fileSizeKey, .contentModificationDateKey, .isDirectoryKey]
             guard let items = try? FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles]) else {
-                return String(localized: "无法读取文件夹：\(url.path)")
+                return FileManager.default.fileExists(atPath: url.path) ? String(localized: "无法读取文件夹：\(url.path)")
+                    : FileTools.notFound(url, workDir: ctx.workDir, folder: true)
             }
             let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd HH:mm"
             let lines = items.sorted { $0.lastPathComponent < $1.lastPathComponent }.prefix(500).map { u -> String in
@@ -160,6 +188,7 @@ enum Tools {
 
         case "read_file":
             let url = expand(a["path"] as? String ?? "", base: ctx.workDir)
+            if !FileManager.default.fileExists(atPath: url.path) { return FileTools.notFound(url, workDir: ctx.workDir) }
             let s: String
             if let t = try? String(contentsOf: url, encoding: .utf8) { s = t }
             else {
@@ -179,8 +208,25 @@ enum Tools {
             do {
                 try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
                 try content.write(to: url, atomically: true, encoding: .utf8)
-                return String(localized: "已写入 \(url.path)")
+                return String(localized: "已写入 \(url.path)") + "（\(content.split(separator: "\n", omittingEmptySubsequences: false).count) 行）" + (await FileTools.check(url))
             } catch { return String(localized: "写入失败：\(error.localizedDescription)") }
+
+        case "edit_file":
+            return await FileTools.edit(call, a, ctx: ctx)
+
+        case "search_files":
+            let root = expand(a["path"] as? String ?? ".", base: ctx.workDir)
+            let name = (a["name"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+            let text = (a["text"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+            guard name != nil || text != nil else { return "错误：name 和 text 至少给一个" }
+            return await Task.detached { FileTools.search(root: root, name: name, text: text) }.value
+
+        case "plan":
+            let steps = PlanState.steps(a)
+            guard !steps.isEmpty else { return "错误：steps 不能为空" }
+            let cur = PlanState.current(a)
+            if cur == 0 || cur > steps.count { return "计划已全部完成。核对一下结果，然后向用户汇报。" }
+            return "已记下计划（共 \(steps.count) 步）。现在做第 \(cur) 步：\(steps[cur - 1])"
 
         case "notify_user":
             Notifier.send(title: a["title"] as? String ?? "Toolula AI", body: a["message"] as? String ?? "")
@@ -392,7 +438,8 @@ enum Tools {
             return result
 
         default:
-            return String(localized: "未知工具：\(call.name)")
+            let known = definitions(photo: ctx.photoStore != nil).compactMap { ($0["function"] as? [String: Any])?["name"] as? String }
+            return "错误：没有叫 \(call.name) 的工具。可用的工具：" + known.joined(separator: "、")
         }
     }
 

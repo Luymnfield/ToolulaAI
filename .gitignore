@@ -21,3 +21,4 @@ xcuserdata/
 regress-results/
 *.log
 .build-selftest/
+Evals/results/

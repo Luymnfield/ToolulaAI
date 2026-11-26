@@ -47,7 +47,7 @@ struct PageTitle: ViewModifier {
         case .chat:
             // 模型和思考档位在右边工具栏里已经有了，这里显示对话本身的状态
             guard let c = chat.current else { return [] }
-            let n = c.messages.filter { $0.role == "user" || ($0.role == "assistant" && !$0.text.isEmpty) }.count
+            let n = c.messages.filter { ($0.role == "user" && $0.hidden != true) || ($0.role == "assistant" && !$0.text.isEmpty) }.count
             var p: [String] = []
             if n > 0 { p.append(String(localized: "\(String(n)) 条消息")) }
             let dir = (c.workDir as NSString).abbreviatingWithTildeInPath

@@ -60,7 +60,7 @@ enum SpotlightIndex {
             let name = "\(safe) · \(c.id.uuidString.prefix(4)).\(ext)"
             if let old = written[c.id]?.0, old != name { try? fm.removeItem(at: dir.appendingPathComponent(old)) }
             var body = "\(title)\n\n"
-            for m in c.messages where m.role == "user" || (m.role == "assistant" && !m.text.isEmpty) {
+            for m in c.messages where (m.role == "user" && m.hidden != true) || (m.role == "assistant" && !m.text.isEmpty) {
                 body += (m.role == "user" ? "我：" : "Toolula：") + m.text + "\n"
                 for d in m.docs ?? [] { body += "📎 \(d.name)\n" }
                 body += "\n"

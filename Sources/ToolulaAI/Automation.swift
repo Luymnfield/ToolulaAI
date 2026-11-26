@@ -203,17 +203,28 @@ enum AutomationRunner {
             : "\n这是一个无人值守的自动化任务。你只能查看信息（列目录、读文件、只读命令会被拒绝执行），不能执行命令或写文件；需要这些操作时请在结果里说明。")
         let system = Agent.systemPrompt(workDir: NSHomeDirectory(), tools: tools != nil, extra: policy)
         let ctx = ToolContext(workDir: URL(fileURLWithPath: NSHomeDirectory()), approve: { _, _ in task.allowActions }, photoStore: photoStore)
-        for _ in 0..<25 {
+        var guardrail = AgentGuard()
+        for _ in 0..<ChatStore.maxSteps {
             let msgs = Agent.apiMessages(system: system, messages: messages, vision: info?.vision ?? false)
             do {
                 let r = try await LLMClient.stream(model: task.model, messages: msgs, tools: tools, reasoning: "none") { _, _ in }
                 var m = ChatMessage(role: "assistant", text: r.content)
                 m.toolCalls = r.toolCalls
                 messages.append(m)
-                if r.toolCalls.isEmpty { return (r.content, log, true) }
+                if r.toolCalls.isEmpty {
+                    let turn = Array(messages.suffix(from: messages.lastIndex { $0.role == "user" && $0.hidden != true } ?? 0))
+                    if let nudge = guardrail.finishNudge(turn) {
+                        var n = ChatMessage(role: "user", text: nudge); n.hidden = true
+                        messages.append(n)
+                        continue
+                    }
+                    return (r.content, log, true)
+                }
                 for call in r.toolCalls {
                     log += "▶ \(call.name) \(call.arguments)\n"
-                    let out = await Tools.run(call, ctx: ctx)
+                    var out: String
+                    if let blocked = guardrail.before(call) { out = blocked } else { out = await Tools.run(call, ctx: ctx) }
+                    out = guardrail.after(call, out)
                     log += String(out.prefix(800)) + "\n\n"
                     messages.append(ChatMessage(role: "tool", text: out, toolCallId: call.id, toolName: call.name))
                 }

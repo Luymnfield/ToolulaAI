@@ -785,6 +785,9 @@ extension AppDelegate {
                 }
                 if !args.contains("--keep-test-chat") { chat.delete(id) }
             }
+            if let spec = val("--eval-task") {
+                log += await EvalTask.run(spec: URL(fileURLWithPath: spec), chat: chat, app: app)
+            }
             if let msg = val("--chat") {
                 app.section = .chat
                 let id = chat.newConversation()
