@@ -265,6 +265,7 @@ extension Store {
             working = false
             if !outs.isEmpty {
                 Exporter.shell("/usr/bin/open", ["-a", "Adobe Lightroom Classic"] + outs.map { $0.path })
+                LightroomSetup.wakePlugin()
                 let masked = jobs.filter { $0.patches.isEmpty && $0.retouched }.count
                 status = masked > 0
                     ? String(localized: "已发送 \(outs.count) 张到 Lightroom（在导入窗口点「导入」）。其中 \(masked) 张的局部调整会由 Toolula 插件在导入后自动加成蒙版")

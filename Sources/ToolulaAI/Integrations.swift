@@ -265,12 +265,24 @@ extension Store {
             if let u = r.0 { outs.append(u) }
         }
         _ = Integrations.open(outs, with: app)
+        if app == .lightroom { LightroomSetup.wakePlugin() }
         return String(localized: "已发送 \(outs.count) 张到 \(app.rawValue)")
     }
 }
 
 /// 自动配置 Lightroom: App 里带着 Lightroom 插件, 启动时如果 Lightroom 装了就自动安装/更新
 enum LightroomSetup {
+    /// 叫醒 Lightroom 里的 Toolula 插件 (它在后台把局部调整做成蒙版). Lightroom 启动时不一定运行插件,
+    /// 但开着时一定会收到这个链接; 刚启动的 Lightroom 可能还收不到, 所以 20 秒、60 秒后再叫一次
+    static func wakePlugin() {
+        let url = "lightroom://com.toolula.ai-photo-edit/wake"
+        for delay in [0.0, 20, 60] {
+            DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
+                Exporter.shell("/usr/bin/open", ["-g", url])
+            }
+        }
+    }
+
     static var modulesDir: URL {
         FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Adobe/Lightroom/Modules")
     }
