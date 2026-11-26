@@ -4226,5 +4226,153 @@
  "会删除提示词缓存、视频预览和修图临时图片。对话、作品和模型都不受影响。": [
   "Deletes the prompt cache, video previews and temporary photo-editing images. Chats, creations and models are not affected.",
   "Löscht Prompt-Cache, Videovorschauen und temporäre Bilder der Fotobearbeitung. Chats, Werke und Modelle bleiben unberührt."
+ ],
+ "正在阅读《%@》…": [
+  "Reading “%@”…",
+  "„%@“ wird gelesen …"
+ ],
+ "导出失败": [
+  "Export failed",
+  "Export fehlgeschlagen"
+ ],
+ "%@（分支）": [
+  "%@ (branch)",
+  "%@ (Abzweigung)"
+ ],
+ "导出时间：%@": [
+  "Exported: %@",
+  "Exportiert: %@"
+ ],
+ "较早的对话已压缩，摘要：": [
+  "Earlier messages were compressed. Summary:",
+  "Ältere Nachrichten wurden komprimiert. Zusammenfassung:"
+ ],
+ "我": [
+  "Me",
+  "Ich"
+ ],
+ "添加图片或文档：PDF、Word、Excel、PPT、文本、代码（也可以直接拖进来）": [
+  "Add images or documents: PDF, Word, Excel, PowerPoint, text, code (or just drag them in)",
+  "Bilder oder Dokumente hinzufügen: PDF, Word, Excel, PowerPoint, Text, Code (oder einfach hineinziehen)"
+ ],
+ "添加图片或文档": [
+  "Add images or documents",
+  "Bilder oder Dokumente hinzufügen"
+ ],
+ "导出为 Markdown…": [
+  "Export as Markdown…",
+  "Als Markdown exportieren …"
+ ],
+ "导出为 PDF…": [
+  "Export as PDF…",
+  "Als PDF exportieren …"
+ ],
+ "编辑后重新发送": [
+  "Edit and resend",
+  "Bearbeiten und erneut senden"
+ ],
+ "重新回答": [
+  "Answer again",
+  "Neu antworten"
+ ],
+ "从这里分出一个新对话（原对话不变）": [
+  "Start a new chat from here (the original stays unchanged)",
+  "Ab hier einen neuen Chat abzweigen (das Original bleibt unverändert)"
+ ],
+ "从这里分支": [
+  "Branch from here",
+  "Ab hier abzweigen"
+ ],
+ "没有找到包含「%@」的对话": [
+  "No chats contain “%@”",
+  "Keine Chats enthalten „%@“"
+ ],
+ "后面的回答会被替换": [
+  "Later replies will be replaced",
+  "Spätere Antworten werden ersetzt"
+ ],
+ "搜索对话": [
+  "Search chats",
+  "Chats durchsuchen"
+ ],
+ "%lld 页": [
+  "%lld pages",
+  "%lld Seiten"
+ ],
+ "%@ 字": [
+  "%@ chars",
+  "%@ Zeichen"
+ ],
+ "长文档": [
+  "long document",
+  "langes Dokument"
+ ],
+ "移除 %@": [
+  "Remove %@",
+  "%@ entfernen"
+ ],
+ "导出当前对话为 Markdown": [
+  "Export current chat as Markdown",
+  "Aktuellen Chat als Markdown exportieren"
+ ],
+ "导出当前对话为 PDF": [
+  "Export current chat as PDF",
+  "Aktuellen Chat als PDF exportieren"
+ ],
+ "PDF 打不开（可能有密码）": [
+  "The PDF can't be opened (it may be password-protected)",
+  "Das PDF lässt sich nicht öffnen (evtl. passwortgeschützt)"
+ ],
+ "PDF 有密码": [
+  "The PDF is password-protected",
+  "Das PDF ist passwortgeschützt"
+ ],
+ "%@ 页是扫描件，已用文字识别": [
+  "%@ scanned pages were read with text recognition",
+  "%@ gescannte Seiten wurden per Texterkennung gelesen"
+ ],
+ "不是有效的 Excel 文件": [
+  "Not a valid Excel file",
+  "Keine gültige Excel-Datei"
+ ],
+ "表格按行列出，用制表符分隔": [
+  "Rows listed one per line, columns separated by tabs",
+  "Zeilen untereinander, Spalten durch Tabulatoren getrennt"
+ ],
+ "不是有效的 PowerPoint 文件": [
+  "Not a valid PowerPoint file",
+  "Keine gültige PowerPoint-Datei"
+ ],
+ "不支持的文件格式：%@": [
+  "Unsupported file type: %@",
+  "Nicht unterstütztes Dateiformat: %@"
+ ],
+ "这个文件里没有可读的文字": [
+  "This file has no readable text",
+  "Diese Datei enthält keinen lesbaren Text"
+ ],
+ "读取失败：%@": [
+  "Couldn't read: %@",
+  "Lesen fehlgeschlagen: %@"
+ ],
+ "（请先在 Pages / Numbers / Keynote 里导出成 PDF 或 Word）": [
+  " (export it from Pages / Numbers / Keynote as PDF or Word first)",
+  " (bitte zuerst in Pages / Numbers / Keynote als PDF oder Word exportieren)"
+ ],
+ "无法读取：%@（%@）": [
+  "Can't read %@ (%@)",
+  "%@ kann nicht gelesen werden (%@)"
+ ],
+ "已经读到结尾了（全文 %lld 字）。": [
+  "Already at the end (%lld characters in total).",
+  "Bereits am Ende (insgesamt %lld Zeichen)."
+ ],
+ "（从第 %@ 字开始，全文 %lld 字）\n": [
+  "(from character %@ of %lld)\n",
+  "(ab Zeichen %@ von %lld)\n"
+ ],
+ "\n…（全文 %lld 字，这次读到第 %@ 字；接着读用 offset=%@）": [
+  "\n… (%lld characters in total, read up to %@; continue with offset=%@)",
+  "\n… (insgesamt %lld Zeichen, gelesen bis %@; weiter mit offset=%@)"
  ]
 }

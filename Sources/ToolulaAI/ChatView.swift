@@ -4,6 +4,12 @@ import UniformTypeIdentifiers
 struct ChatView: View {
     @EnvironmentObject var chat: ChatStore
     @State private var confirmDeleteAll = false
+    @State private var query = ""
+
+    /// 搜索时: (对话, 命中的片段); 不搜索时全部
+    var shown: [(Conversation, String)] {
+        chat.conversations.compactMap { c in ChatSearch.match(c, query).map { (c, $0) } }
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -15,17 +21,29 @@ struct ChatView: View {
                 .focusEffectDisabled()
                 .padding(8)
                 List(selection: $chat.selected) {
-                    ForEach(chat.conversations) { c in
-                        ConversationRow(conversation: c, running: chat.running.contains(c.id)) { chat.delete(c.id) }
-                            .tag(c.id)
-                            .contextMenu {
-                                Button("删除对话", role: .destructive) { chat.delete(c.id) }
-                                Divider()
-                                Button("删除所有空对话") { chat.deleteEmpty() }
+                    ForEach(shown, id: \.0.id) { c, hit in
+                        VStack(alignment: .leading, spacing: 2) {
+                            ConversationRow(conversation: c, running: chat.running.contains(c.id)) { chat.delete(c.id) }
+                            if !hit.isEmpty {
+                                Text(hit).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                             }
+                        }
+                        .tag(c.id)
+                        .contextMenu {
+                            Button("导出为 Markdown…") { ChatExport.save(c, pdf: false) }
+                            Button("导出为 PDF…") { ChatExport.save(c, pdf: true) }
+                            Divider()
+                            Button("删除对话", role: .destructive) { chat.delete(c.id) }
+                            Divider()
+                            Button("删除所有空对话") { chat.deleteEmpty() }
+                        }
+                    }
+                    if !query.isEmpty && shown.isEmpty {
+                        Text("没有找到包含「\(query)」的对话").font(.callout).foregroundStyle(.secondary)
                     }
                 }
                 .listStyle(.sidebar)
+                .searchable(text: $query, placement: .sidebar, prompt: Text("搜索对话"))
                 .onDeleteCommand { if let id = chat.selected { chat.delete(id) } }
 
                 if !chat.conversations.isEmpty {
@@ -112,6 +130,9 @@ struct ConversationView: View {
     let conversationId: UUID
     @State private var input = ""
     @State private var images: [String] = []
+    @State private var docs: [DocAttachment] = []
+    @State private var reading: [String] = []       // 正在取文字的文件名
+    @State private var docError: String?
 
     var conv: Conversation? { chat.conversations.first { $0.id == conversationId } }
     var isRunning: Bool { chat.running.contains(conversationId) }
@@ -124,7 +145,7 @@ struct ConversationView: View {
         }
         .toolbar { toolbarContent }
         .onDrop(of: [.fileURL], isTargeted: nil) { p in
-            loadURLs(p) { urls in for u in urls { if let a = chat.attach(u) { images.append(a) } } }
+            loadURLs(p) { urls in addFiles(urls) }
             return true
         }
     }
@@ -183,7 +204,13 @@ struct ConversationView: View {
                         ForEach(conv.messages) { m in
                             LiveMessage(live: chat.live, message: m,
                                         toolResult: m.toolCalls.isEmpty ? [:] : results.filter { k, _ in m.toolCalls.contains { $0.id == k } },
-                                        onRetry: { chat.retryLast() })
+                                        onRetry: { chat.retryLast() },
+                                        actions: MessageActions(
+                                            busy: isRunning,
+                                            isLast: m.id == conv.messages.last(where: { $0.role != "tool" })?.id,
+                                            edit: { t in chat.editAndResend(conversationId, message: m.id, text: t) },
+                                            branch: { chat.branch(conversationId, upTo: m.id) },
+                                            retry: { chat.retryLast() }))
                                 .id(m.id)
                             if m.id == conv.summaryUntil, let s = conv.summary { CompressedDivider(conversationId: conversationId, summary: s, tokens: conv.compressedTokens) }
                         }
@@ -191,7 +218,7 @@ struct ConversationView: View {
                             HStack { ProgressView().controlSize(.small); Text("正在压缩较早的对话…").foregroundStyle(.secondary) }
                         }
                         if let a = chat.approval, a.conversationId == conversationId { ApprovalCard(approval: a) }
-                        if isRunning { ThinkingIndicator(live: chat.live, last: conv.messages.last) }
+                        if isRunning { ThinkingIndicator(live: chat.live, last: conv.messages.last, conversationId: conversationId) }
                     }
                     Color.clear.frame(height: 1).id("bottom")
                         .background(LiveScroller(live: chat.live, proxy: proxy))
@@ -232,8 +259,46 @@ struct ConversationView: View {
 
     // MARK: 输入框
 
+    /// 图片当图片发; 其他文件 (PDF / Word / Excel / PPT / 文本 / 代码) 先取出文字
+    func addFiles(_ urls: [URL]) {
+        docError = nil
+        for u in urls {
+            if DocReader.isImage(u) {
+                if let a = chat.attach(u) { images.append(a) }
+                continue
+            }
+            let name = u.lastPathComponent
+            reading.append(name)
+            Task {
+                let r = await Task.detached(priority: .userInitiated) { Result { try DocReader.load(u) } }.value
+                reading.removeAll { $0 == name }
+                switch r {
+                case .success(let d): docs.append(d)
+                case .failure(let e): docError = "\(name)：\(e.localizedDescription)"
+                }
+            }
+        }
+    }
+
     var composer: some View {
         VStack(alignment: .leading, spacing: 6) {
+            if !docs.isEmpty || !reading.isEmpty || docError != nil {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(docs) { d in
+                            DocChip(doc: d) { docs.removeAll { $0.id == d.id } }
+                        }
+                        ForEach(reading, id: \.self) { n in
+                            HStack(spacing: 6) { ProgressView().controlSize(.mini); Text(n).lineLimit(1) }
+                                .font(.callout).padding(.horizontal, 10).padding(.vertical, 6)
+                                .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+                        }
+                        if let docError {
+                            Text(docError).font(.caption).foregroundStyle(.red).lineLimit(2)
+                        }
+                    }
+                }
+            }
             if !images.isEmpty {
                 HStack {
                     ForEach(images, id: \.self) { p in
@@ -254,11 +319,11 @@ struct ConversationView: View {
             }
             HStack(alignment: .bottom, spacing: 8) {
                 Button {
-                    let p = NSOpenPanel(); p.allowsMultipleSelection = true; p.allowedContentTypes = [.image]
-                    if p.runModal() == .OK { for u in p.urls { if let a = chat.attach(u) { images.append(a) } } }
-                } label: { Image(systemName: "photo.badge.plus").font(.title3) }
-                .buttonStyle(.plain).help("添加图片（也可以拖进来）")
-                .accessibilityLabel(Text("添加图片"))
+                    let p = NSOpenPanel(); p.allowsMultipleSelection = true; p.canChooseDirectories = false
+                    if p.runModal() == .OK { addFiles(p.urls) }
+                } label: { Image(systemName: "paperclip").font(.title3) }
+                .buttonStyle(.plain).help("添加图片或文档：PDF、Word、Excel、PPT、文本、代码（也可以直接拖进来）")
+                .accessibilityLabel(Text("添加图片或文档"))
 
                 ZStack(alignment: .topLeading) {
                     if input.isEmpty {
@@ -284,7 +349,7 @@ struct ConversationView: View {
                         .buttonStyle(.plain).foregroundStyle(.green)
                         .accessibilityLabel(Text("发送"))
                         .keyboardShortcut(.return, modifiers: .command)
-                        .disabled(input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && images.isEmpty)
+                        .disabled((input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && images.isEmpty && docs.isEmpty) || !reading.isEmpty)
                 }
             }
             if let conv { ContextBar(conv: conv, running: isRunning).padding(.leading, 30) }
@@ -302,11 +367,13 @@ struct ConversationView: View {
 
     func sendNow() {
         let t = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !t.isEmpty || !images.isEmpty else { return }
+        guard (!t.isEmpty || !images.isEmpty || !docs.isEmpty), reading.isEmpty else { return }
         chat.selected = conversationId
-        chat.send(t, images: images)
+        chat.send(t, images: images, docs: docs)
         input = ""
         images = []
+        docs = []
+        docError = nil
     }
 }
 
@@ -317,9 +384,42 @@ struct MessageView: View, Equatable {
     let message: ChatMessage
     let toolResult: [String: String]
     var onRetry: () -> Void = {}
+    var actions = MessageActions()
     @State private var showReasoning = false
+    @State private var hovering = false
+    @State private var editing = false
+    @State private var draft = ""
 
-    static func == (a: MessageView, b: MessageView) -> Bool { a.message == b.message && a.toolResult == b.toolResult }
+    static func == (a: MessageView, b: MessageView) -> Bool {
+        a.message == b.message && a.toolResult == b.toolResult && a.actions.busy == b.actions.busy && a.actions.isLast == b.actions.isLast
+    }
+
+    func copy(_ s: String) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(s, forType: .string) }
+
+    /// 鼠标移上去才显示, 不占地方 (正在回答时不能编辑/分支)
+    @ViewBuilder func actionBar(user: Bool) -> some View {
+        HStack(spacing: 10) {
+            Button { copy(message.text) } label: { Image(systemName: "doc.on.doc") }
+                .help(Text("复制")).accessibilityLabel(Text("复制"))
+            if user, actions.edit != nil {
+                Button { draft = message.text; editing = true } label: { Image(systemName: "pencil") }
+                    .help(Text("编辑后重新发送")).accessibilityLabel(Text("编辑后重新发送"))
+            }
+            if !user, actions.isLast, actions.retry != nil {
+                Button { actions.retry?() } label: { Image(systemName: "arrow.clockwise") }
+                    .help(Text("重新回答")).accessibilityLabel(Text("重新回答"))
+            }
+            if actions.branch != nil {
+                Button { actions.branch?() } label: { Image(systemName: "arrow.triangle.branch") }
+                    .help(Text("从这里分出一个新对话（原对话不变）")).accessibilityLabel(Text("从这里分支"))
+            }
+        }
+        .buttonStyle(.borderless)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .disabled(actions.busy)
+        .opacity(hovering && !actions.busy ? 1 : 0)
+    }
 
     var body: some View {
         switch message.role {
@@ -327,6 +427,9 @@ struct MessageView: View, Equatable {
             HStack {
                 Spacer(minLength: 80)
                 VStack(alignment: .trailing, spacing: 6) {
+                    if let ds = message.docs, !ds.isEmpty {
+                        HStack { ForEach(ds) { DocChip(doc: $0) } }
+                    }
                     if !message.images.isEmpty {
                         HStack {
                             ForEach(message.images, id: \.self) { p in
@@ -337,14 +440,36 @@ struct MessageView: View, Equatable {
                             }
                         }
                     }
-                    if !message.text.isEmpty {
+                    if editing {
+                        VStack(alignment: .trailing, spacing: 6) {
+                            TextEditor(text: $draft)
+                                .font(.body).scrollContentBackground(.hidden)
+                                .frame(minWidth: 320, minHeight: 60, maxHeight: 200)
+                                .padding(6)
+                                .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary))
+                            HStack {
+                                Text("后面的回答会被替换").font(.caption).foregroundStyle(.secondary)
+                                Button("取消") { editing = false }
+                                Button("发送") {
+                                    let t = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    editing = false
+                                    if !t.isEmpty { actions.edit?(t) }
+                                }
+                                .keyboardShortcut(.return, modifiers: .command)
+                                .buttonStyle(.borderedProminent).tint(.green)
+                            }
+                        }
+                    } else if !message.text.isEmpty {
                         Text(message.text).textSelection(.enabled)
                             .padding(.horizontal, 12).padding(.vertical, 8)
                             .background(Color.green.opacity(0.18))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
+                    if !editing { actionBar(user: true) }
                 }
             }
+            .onHover { hovering = $0 }
         case "assistant":
             VStack(alignment: .leading, spacing: 8) {
                 if !message.reasoning.isEmpty {
@@ -365,7 +490,9 @@ struct MessageView: View, Equatable {
                         Button("重试") { onRetry() }
                     }
                 }
+                if !message.text.isEmpty { actionBar(user: false) }
             }
+            .onHover { hovering = $0 }
         default:
             EmptyView()  // tool 结果显示在 ToolCallCard 里
         }
@@ -590,6 +717,7 @@ struct LiveMessage: View {
     let message: ChatMessage
     let toolResult: [String: String]
     let onRetry: () -> Void
+    var actions = MessageActions()
 
     var body: some View {
         if let p = live.parts[message.id] {
@@ -597,17 +725,29 @@ struct LiveMessage: View {
             let _ = { m.text = p.text; m.reasoning = p.reasoning }()
             MessageView(message: m, toolResult: toolResult, onRetry: onRetry)
         } else {
-            MessageView(message: message, toolResult: toolResult, onRetry: onRetry).equatable()
+            MessageView(message: message, toolResult: toolResult, onRetry: onRetry, actions: actions).equatable()
         }
     }
+}
+
+/// 消息下面的小按钮: 复制、编辑后重发、从这里分支、重新回答
+struct MessageActions {
+    var busy = false
+    var isLast = false
+    var edit: ((String) -> Void)?
+    var branch: (() -> Void)?
+    var retry: (() -> Void)?
 }
 
 struct ThinkingIndicator: View {
     @ObservedObject var live: LiveStream
     let last: ChatMessage?
+    var conversationId: UUID? = nil
     var body: some View {
         let streaming = last.flatMap { live.parts[$0.id] }.map { !$0.text.isEmpty } ?? false
-        if !streaming && (last?.role != "assistant" || (last?.text.isEmpty ?? true)) {
+        if let id = conversationId, let s = live.status[id] {
+            HStack { ProgressView().controlSize(.small); Text(s).foregroundStyle(.secondary) }
+        } else if !streaming && (last?.role != "assistant" || (last?.text.isEmpty ?? true)) {
             HStack { ProgressView().controlSize(.small); Text("思考中…").foregroundStyle(.secondary) }
         }
     }
@@ -623,6 +763,56 @@ struct LiveScroller: View {
             guard Date().timeIntervalSince(last) > 0.25 else { return }
             last = Date()
             proxy.scrollTo("bottom", anchor: .bottom)
+        }
+    }
+}
+
+/// 附件文档的小卡片: 文件名、字数 / 页数; 点一下用默认程序打开原文件
+struct DocChip: View {
+    let doc: DocAttachment
+    var onRemove: (() -> Void)? = nil
+
+    var icon: String {
+        switch (doc.name as NSString).pathExtension.lowercased() {
+        case "pdf": return "doc.richtext"
+        case "xlsx", "xlsm", "csv", "tsv": return "tablecells"
+        case "pptx": return "rectangle.on.rectangle"
+        case "docx", "doc", "rtf", "odt": return "doc.text"
+        default: return "doc.plaintext"
+        }
+    }
+
+    var detail: String {
+        var p: [String] = []
+        if let n = doc.pages { p.append(String(localized: "\(n) 页")) }
+        // 中文界面用「万字」, 其他语言写成 31,346 这样的完整数字
+        let zh = Bundle.main.preferredLocalizations.first?.hasPrefix("zh") ?? true
+        p.append(zh && doc.chars >= 10_000 ? String(format: "%.1f 万字", Double(doc.chars) / 10_000)
+                 : String(localized: "\(doc.chars.formatted()) 字"))
+        if doc.isLong { p.append(String(localized: "长文档")) }
+        return p.joined(separator: " · ")
+    }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(doc.name).lineLimit(1).truncationMode(.middle)
+                Text(detail).font(.caption2).foregroundStyle(.secondary)
+            }
+            if let onRemove {
+                Button(action: onRemove) { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("移除 \(doc.name)"))
+            }
+        }
+        .font(.callout)
+        .frame(maxWidth: 240, alignment: .leading)
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+        .help(doc.note ?? doc.source)
+        .onTapGesture {
+            if FileManager.default.fileExists(atPath: doc.source) { NSWorkspace.shared.open(URL(fileURLWithPath: doc.source)) }
         }
     }
 }

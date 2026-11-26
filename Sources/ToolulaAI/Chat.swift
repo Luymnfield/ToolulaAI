@@ -16,6 +16,8 @@ struct ChatMessage: Codable, Identifiable, Hashable {
     var expanded: String?
     /// 快慢分流时, 这条回答实际用的模型 (和对话的模型不同时才记)
     var model: String?
+    /// 附带的文档 (PDF / Word / Excel …), 文字已取出
+    var docs: [DocAttachment]?
 }
 
 struct Conversation: Codable, Identifiable, Hashable {
@@ -123,7 +125,12 @@ enum Agent {
             let old = idx < lastUser || !keepFullTools.contains(idx) && m.role == "tool"
             switch m.role {
             case "user":
-                let userText = m.expanded ?? m.text
+                var userText = m.expanded ?? m.text
+                if let docs = m.docs, !docs.isEmpty {
+                    // 较早消息里的文档在快满时只留提要 (全文还能用 read_file 读)
+                    let blocks = docs.map { aggressive && idx < lastUser ? $0.shortBlock() : $0.promptBlock() }
+                    userText = blocks.joined(separator: "\n\n") + (userText.isEmpty ? "" : "\n\n" + userText)
+                }
                 if vision && !m.images.isEmpty && keepUserImages.contains(idx) {
                     var parts: [[String: Any]] = [["type": "text", "text": userText.isEmpty ? "请看图" : userText]]
                     for p in m.images {
@@ -217,6 +224,9 @@ final class LiveStream: ObservableObject {
     func start(_ id: UUID) { parts[id] = Part() }
     func append(_ id: UUID, _ c: String, _ r: String) { parts[id, default: Part()].text += c; parts[id, default: Part()].reasoning += r }
     func finish(_ id: UUID) { parts[id] = nil }
+    /// 对话级的状态文字 (例如「正在阅读《xx.pdf》…」), 显示在「思考中」的位置
+    @Published private(set) var status: [UUID: String] = [:]
+    func setStatus(_ conv: UUID, _ s: String?) { status[conv] = s }
 }
 
 @MainActor
@@ -316,15 +326,19 @@ final class ChatStore: ObservableObject {
         return c.id
     }
 
-    func send(_ text: String, images: [String] = [], to target: UUID? = nil) {
+    func send(_ text: String, images: [String] = [], docs: [DocAttachment] = [], to target: UUID? = nil) {
         let id: UUID = target ?? selected ?? newConversation()
         guard !running.contains(id) else { return }
         update(id) { c in
             var msg = ChatMessage(role: "user", text: text, images: images)
+            if !docs.isEmpty { msg.docs = docs }
             let expanded = SkillStore.shared.expandSlash(text)
             if expanded != text { msg.expanded = expanded }
             c.messages.append(msg)
-            if c.title.isEmpty || c.title == "新对话" { c.title = String(text.prefix(24)).replacingOccurrences(of: "\n", with: " ") }
+            if c.title.isEmpty || c.title == "新对话" {
+                let t = text.isEmpty ? (docs.first?.name ?? "") : text
+                c.title = String(t.prefix(24)).replacingOccurrences(of: "\n", with: " ")
+            }
             c.updated = Date()
         }
         running.insert(id)
@@ -339,6 +353,24 @@ final class ChatStore: ObservableObject {
         tasks[id] = Task { await self.runLoop(id); self.running.remove(id); self.tasks[id] = nil; self.save() }
     }
 
+    /// 最新一条消息里的长文档: 先读一遍写好提要 (用快速模型, 没有就用对话的模型)
+    func prepareDocs(_ id: UUID) async {
+        guard let conv = conversations.first(where: { $0.id == id }), let i = conv.messages.lastIndex(where: { $0.role == "user" }) else { return }
+        let docs = conv.messages[i].docs ?? []
+        let model = ModelManager.shared.fastModel(for: conv.model).map { m -> String in m } ?? conv.model
+        for (k, d) in docs.enumerated() where d.isLong && d.digest == nil {
+            live.setStatus(id, String(localized: "正在阅读《\(d.name)》…"))
+            if model != conv.model { await ModelManager.shared.ensureLoaded(model) }
+            let g = await DocReader.digest(d, model: model)
+            update(id) { c in
+                guard i < c.messages.count, var ds = c.messages[i].docs, k < ds.count else { return }
+                ds[k].digest = g ?? ""
+                c.messages[i].docs = ds
+            }
+        }
+        live.setStatus(id, nil)
+    }
+
     /// 快慢分流: 这一轮简单 (短问题、不涉及文件/电脑/图片/代码, 上一轮也没用工具) 就交给快模型
     func routeModel(_ conv: Conversation) -> String {
         let mm = ModelManager.shared
@@ -347,6 +379,7 @@ final class ChatStore: ObservableObject {
         if text.count > 160 { return conv.model }
         if !last.images.isEmpty && !(mm.model(fast)?.vision ?? false) { return conv.model }
         if !last.images.isEmpty { return conv.model }   // 看图交给主模型更稳
+        if !(last.docs ?? []).isEmpty { return conv.model }
         let heavy = ["文件", "文件夹", "目录", "打开", "修图", "照片", "图片", "代码", "脚本", "程序", "运行", "执行", "命令", "电脑", "浏览器", "chrome",
                      "网页", "网站", "搜索", "下载", "整理", "删除", "移动", "截图", "点击", "自动化", "视频", "画", "生成", "写一个", "帮我做",
                      "分析", "计划", "步骤", "为什么", "debug", "bug", "报错", "错误", "安装", "设置", "file", "folder", "open", "run", "code",
@@ -362,6 +395,7 @@ final class ChatStore: ObservableObject {
         for _ in 0..<25 {
             guard let conv = conversations.first(where: { $0.id == id }), !Task.isCancelled else { return }
             if turnModel == nil {
+                await prepareDocs(id)
                 // 等正在进行的预热做完再发 (两个请求一起算反而更慢; 预热的是这个对话就正好用上缓存)
                 if let w = warming { await w.value; warming = nil }
                 turnModel = routeModel(conv)
@@ -515,7 +549,8 @@ final class ChatStore: ObservableObject {
         if let s = c.summary, !s.isEmpty { lines.append("【更早的摘要】\n" + s) }
         for m in c.messages[range] {
             switch m.role {
-            case "user": lines.append("用户：" + cut(m.expanded ?? m.text, 3000) + (m.images.isEmpty ? "" : "（附图 \(m.images.count) 张）"))
+            case "user": lines.append("用户：" + cut(m.expanded ?? m.text, 3000) + (m.images.isEmpty ? "" : "（附图 \(m.images.count) 张）")
+                                      + (m.docs ?? []).map { "（附件《\($0.name)》，全文在 \($0.textPath)）" }.joined())
             case "assistant":
                 if !m.text.isEmpty { lines.append("助手：" + cut(m.text, 3000)) }
                 for t in m.toolCalls { lines.append("助手调用工具 \(t.name)：" + cut(t.arguments, 400)) }

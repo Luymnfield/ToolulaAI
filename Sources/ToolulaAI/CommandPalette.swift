@@ -70,6 +70,14 @@ struct CommandPalette: View {
         c.append(.init(id: "settings", kind: .setting, icon: "gearshape", title: String(localized: "打开设置"), subtitle: "⌘,", keywords: "settings preferences") {
             openSettings()
         })
+        if let cur = chat.current, !cur.messages.isEmpty {
+            c.append(.init(id: "export-md", kind: .action, icon: "square.and.arrow.up", title: String(localized: "导出当前对话为 Markdown"), keywords: "export markdown md") {
+                ChatExport.save(cur, pdf: false)
+            })
+            c.append(.init(id: "export-pdf", kind: .action, icon: "doc.richtext", title: String(localized: "导出当前对话为 PDF"), keywords: "export pdf") {
+                ChatExport.save(cur, pdf: true)
+            })
+        }
         c.append(.init(id: "diag", kind: .action, icon: "stethoscope", title: String(localized: "导出诊断报告"), keywords: "diagnostics log") {
             Diagnostics.exportAndReveal()
         })

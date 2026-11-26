@@ -134,7 +134,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -451,6 +451,61 @@ extension AppDelegate {
                 }
                 log += "markdown blocks: \(MarkdownParser.parse(md).map { "\($0)".prefix(20) })\n"
                 chat.delete(id)
+            }
+            if let spec = val("--doc-test") {
+                // 自测: 读文档 (竖线分隔的路径), 可选 --doc-ask 把它们发给 AI 提问, 记录回答后删掉测试对话
+                var docs: [DocAttachment] = []
+                for p in spec.split(separator: "|").map(String.init) {
+                    let t0 = Date()
+                    do {
+                        let d = try await Task.detached { try DocReader.load(URL(fileURLWithPath: p)) }.value
+                        docs.append(d)
+                        log += "doc: \(d.name) chars=\(d.chars) pages=\(d.pages.map(String.init) ?? "-") tokens=\(d.tokens) long=\(d.isLong) note=\(d.note ?? "-") \(String(format: "%.1f", Date().timeIntervalSince(t0)))s head=\(d.text.prefix(60).replacingOccurrences(of: "\n", with: " "))\n"
+                    } catch { log += "doc: \((p as NSString).lastPathComponent) error=\(error.localizedDescription)\n" }
+                }
+                if args.contains("--doc-show"), !docs.isEmpty {
+                    // 截图: 带文档的消息怎么显示
+                    app.section = .chat
+                    let id = chat.newConversation()
+                    chat.update(id) { c in
+                        c.title = "文档自测"
+                        var u = ChatMessage(role: "user", text: "这几份文件分别讲了什么？"); u.docs = docs
+                        c.messages = [u, ChatMessage(role: "assistant", text: "第一份是会议纪要，第二份是销售表，第三份是发布计划。")]
+                    }
+                    try? await Task.sleep(for: .seconds(2))
+                    if let w = NSApp.windows.first(where: { $0.identifier?.rawValue.contains("main") == true }), let v = w.contentView,
+                       let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds) {
+                        v.cacheDisplay(in: v.bounds, to: rep)
+                        try? rep.representation(using: .png, properties: [:])?.write(to: out.deletingPathExtension().appendingPathExtension("docs.png"))
+                    }
+                    chat.delete(id)
+                }
+                if let q = val("--doc-ask"), !docs.isEmpty {
+                    app.section = .chat
+                    let id = chat.newConversation()
+                    if let m = val("--chat-model") { chat.update(id) { $0.model = m } }
+                    let t0 = Date()
+                    chat.send(q, docs: docs, to: id)
+                    try? await Task.sleep(for: .seconds(1))
+                    while chat.running.contains(id) {
+                        // 要执行命令等需要确认的操作: 记下来并拒绝 (自测不替用户批准)
+                        if let a = chat.approval, a.conversationId == id {
+                            log += "doc-approval: \(a.call.name) \(a.summary)\n"
+                            chat.approval = nil
+                            a.continuation.resume(returning: false)
+                        }
+                        try? await Task.sleep(for: .seconds(0.5))
+                    }
+                    if let c = chat.conversations.first(where: { $0.id == id }) {
+                        for m in c.messages where m.role != "user" {
+                            if m.role == "assistant" { log += "doc-answer: \(m.text.replacingOccurrences(of: "\n", with: " ⏎ "))\n" }
+                            for t in m.toolCalls { log += "doc-tool: \(t.name) \(t.arguments)\n" }
+                        }
+                        log += "doc-digest: \((c.messages.first?.docs ?? []).map { ($0.digest ?? "-").prefix(300).replacingOccurrences(of: "\n", with: " ") })\n"
+                        log += "doc-time: \(Int(Date().timeIntervalSince(t0)))s stats=\(String(describing: c.lastStats))\n"
+                    }
+                    chat.delete(id)
+                }
             }
             if args.contains("--settings-shots") {
                 // 打开设置窗口, 每个标签截一张

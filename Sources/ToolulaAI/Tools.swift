@@ -30,7 +30,7 @@ enum Tools {
         var defs: [[String: Any]] = [
             fn("run_shell", "用 zsh 执行命令并返回输出。有副作用的命令会先问用户", ["command": str, "timeout_seconds": int], ["command"]),
             fn("list_directory", "列出文件夹内容（大小、修改时间）", ["path": str], ["path"]),
-            fn("read_file", "读文本文件（最多 2 万字）", ["path": str], ["path"]),
+            fn("read_file", "读文件：文本、代码、PDF、Word、Excel、PPT 都行（每次最多 2 万字，长文件用 offset 从第几个字接着读）", ["path": str, "offset": int], ["path"]),
             fn("write_file", "创建或覆盖文本文件（会先问用户）", ["path": str, "content": str], ["path", "content"]),
         ]
         if automation {
@@ -160,8 +160,17 @@ enum Tools {
 
         case "read_file":
             let url = expand(a["path"] as? String ?? "", base: ctx.workDir)
-            guard let s = try? String(contentsOf: url, encoding: .utf8) else { return String(localized: "无法读取（不存在或不是文本文件）：\(url.path)") }
-            return truncate(s, 20000)
+            let s: String
+            if let t = try? String(contentsOf: url, encoding: .utf8) { s = t }
+            else {
+                do { s = try await Task.detached { try DocReader.extract(url).text }.value }
+                catch { return String(localized: "无法读取：\(url.path)（\(error.localizedDescription)）") }
+            }
+            let offset = max(0, (a["offset"] as? Int) ?? Int(a["offset"] as? String ?? "") ?? 0)
+            guard offset < s.count else { return String(localized: "已经读到结尾了（全文 \(s.count) 字）。") }
+            let rest = String(s.dropFirst(offset))
+            if rest.count <= 20000 { return offset == 0 ? rest : String(localized: "（从第 \(offset) 字开始，全文 \(s.count) 字）\n") + rest }
+            return String(rest.prefix(20000)) + String(localized: "\n…（全文 \(s.count) 字，这次读到第 \(offset + 20000) 字；接着读用 offset=\(offset + 20000)）")
 
         case "write_file":
             let url = expand(a["path"] as? String ?? "", base: ctx.workDir)
