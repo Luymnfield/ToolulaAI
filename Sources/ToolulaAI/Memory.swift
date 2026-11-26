@@ -107,9 +107,9 @@ struct MemoryView: View {
                             }
                             Spacer()
                             Button { editing = m.id; editText = m.text } label: { Image(systemName: "pencil") }
-                                .buttonStyle(.borderless).help(Text("编辑"))
+                                .buttonStyle(.borderless).help(Text("编辑")).accessibilityLabel(Text("编辑"))
                             Button { memory.items.removeAll { $0.id == m.id } } label: { Image(systemName: "trash") }
-                                .buttonStyle(.borderless).help(Text("删除"))
+                                .buttonStyle(.borderless).help(Text("删除")).accessibilityLabel(Text("删除"))
                         }
                     }
                 }

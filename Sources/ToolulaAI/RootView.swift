@@ -103,6 +103,7 @@ struct RootView: View {
             .buttonStyle(.plain)
             .focusEffectDisabled()
             .help(Text("主页"))
+            .accessibilityLabel(Text("主页"))
             .padding(.top, 10).padding(.bottom, large ? 8 : 4)
 
             ForEach(AppSection.railItems) { s in
@@ -112,6 +113,8 @@ struct RootView: View {
             Spacer(minLength: 8)
             Circle().fill(models.online ? .green : .red).frame(width: 8, height: 8)
                 .help(models.online ? Text("本地 AI 在线") : Text("本地 AI 离线"))
+                .accessibilityElement()
+                .accessibilityLabel(models.online ? Text("本地 AI 在线") : Text("本地 AI 离线"))
             MachineBadge(compact: true)
                 .frame(width: 70)
                 .padding(.bottom, 10)
@@ -149,6 +152,10 @@ struct RailButton: View {
         }
         .buttonStyle(.plain)
         .focusEffectDisabled()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(section.rawValue.locKey))
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityValue(busy ? Text("正在运行") : Text(verbatim: ""))
         .onHover { hover = $0 }
         .animation(.easeOut(duration: 0.12), value: hover)
     }
@@ -367,5 +374,8 @@ struct AppearanceButton: View {
             Label { Text("外观") } icon: { Image(systemName: cur.icon) }
         }
         .help(Text("外观：\(cur.title)（点一下切换）"))
+        .accessibilityLabel(Text("外观"))
+        .accessibilityValue(Text(cur.title))
+        .accessibilityHint(Text("点一下切换"))
     }
 }

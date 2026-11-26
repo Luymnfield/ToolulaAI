@@ -39,7 +39,7 @@ struct ModelsView: View {
                 meter(String(localized: "硬盘"), String(localized: "可用 \(SystemInfo.size(d.free))"), d.usedFraction)
             }
             Spacer(minLength: 12)
-            Picker("", selection: $tab) {
+            Picker("模型", selection: $tab) {
                 Text("本地模型").tag(0)
                 Text("下载新模型").tag(1)
                 Text("云端 API").tag(2)
@@ -480,7 +480,7 @@ struct AccelerationBlock: View {
                     HStack {
                         Text("快速模型").font(.callout)
                         Spacer()
-                        Picker("", selection: $models.fastModel) {
+                        Picker("快速模型", selection: $models.fastModel) {
                             Text("不使用").tag("")
                             ForEach(models.localChatModels.filter { $0.id != models.chatModel }) { m in
                                 Text(m.displayName + (models.bench[m.id]?["gen"].map { "  ·  \(Int($0.rounded())) token/秒" } ?? "")).tag(m.id)
@@ -511,7 +511,7 @@ struct AccelerationBlock: View {
                     HStack {
                         Text("LM Studio 草稿模型")
                         Spacer()
-                        Picker("", selection: Binding(get: { models.draftModels[main.id] ?? "" },
+                        Picker("LM Studio 草稿模型", selection: Binding(get: { models.draftModels[main.id] ?? "" },
                                                       set: { models.draftModels[main.id] = $0.isEmpty ? nil : $0 })) {
                             Text("不使用").tag("")
                             ForEach(models.draftCandidates(for: main.id)) { m in Text(m.displayName).tag(m.id) }

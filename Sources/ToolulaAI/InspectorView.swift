@@ -204,7 +204,7 @@ struct ItemPanels: View {
 
             GroupBox {
                 VStack(alignment: .leading) {
-                    Picker("", selection: $hslKind) {
+                    Picker("HSL", selection: $hslKind) {
                         Text("色相").tag("Hue"); Text("饱和度").tag("Saturation"); Text("明亮度").tag("Luminance")
                     }
                     .pickerStyle(.segmented).labelsHidden()
@@ -446,11 +446,11 @@ struct LocalPanel: View {
                 Button { item.showMask = item.showMask == l.area ? nil : l.area } label: {
                     Image(systemName: item.showMask == l.area ? "eye.fill" : "eye")
                 }
-                .buttonStyle(.borderless).help(Text("用红色显示这个区域"))
+                .buttonStyle(.borderless).help(Text("用红色显示这个区域")).accessibilityLabel(Text("用红色显示这个区域"))
                 Button { open = isOpen ? nil : l.id } label: { Image(systemName: isOpen ? "chevron.up" : "chevron.down") }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.borderless).accessibilityLabel(isOpen ? Text("收起") : Text("展开"))
                 Button { item.locals.removeAll { $0.id == l.id }; if item.showMask == l.area { item.showMask = nil } } label: { Image(systemName: "trash") }
-                    .buttonStyle(.borderless).help(Text("删除这个局部调整"))
+                    .buttonStyle(.borderless).help(Text("删除这个局部调整")).accessibilityLabel(Text("删除这个局部调整"))
             }
             if isOpen {
                 ForEach(LocalAdjustment.params) { p in

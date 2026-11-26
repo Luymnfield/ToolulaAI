@@ -26,7 +26,7 @@ struct VideoView: View {
                 Text("生成的视频").font(.headline)
                 Spacer()
                 Button { NSWorkspace.shared.open(VideoStore.videosFolder) } label: { Image(systemName: "folder") }
-                    .buttonStyle(.borderless).help(Text("在访达中打开视频文件夹"))
+                    .buttonStyle(.borderless).help(Text("在访达中打开视频文件夹")).accessibilityLabel(Text("在访达中打开视频文件夹"))
             }
             .padding(12)
             List(selection: $store.selected) {
@@ -166,10 +166,12 @@ struct VideoView: View {
                         Picker("清晰度", selection: $store.quality) {
                             ForEach(models.selected.qualities) { Text($0.rawValue.locKey).tag($0) }
                         }
+                        .accessibilityLabel(Text("清晰度"))
                         if store.firstFrame == nil {
                             Picker("画面比例", selection: $store.aspect) {
                                 ForEach(VideoAspect.allCases) { Text($0.rawValue.locKey).tag($0) }
                             }
+                            .accessibilityLabel(Text("画面比例"))
                         }
                         let (w, h) = store.currentSize
                         Text("\(w) × \(h) · \(VideoMath.frames(store.seconds)) 帧 · 预计约 \(Int(store.currentEstimate.rounded())) 分钟")

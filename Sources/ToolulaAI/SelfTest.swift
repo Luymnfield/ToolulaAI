@@ -52,6 +52,62 @@ enum SelfTestKeys {
     }
 }
 
+enum SelfTestAX {
+    struct Report { var total = 0; var unnamed: [String] = []; var named: [String] = [] }
+    static func attr(_ e: AXUIElement, _ k: String) -> String? {
+        var v: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(e, k as CFString, &v) == .success else { return nil }
+        if let s = v as? String { return s }
+        return nil
+    }
+    static func audit() -> Report {
+        var r = Report()
+        let app = AXUIElementCreateApplication(getpid())
+        func walk(_ e: AXUIElement, _ depth: Int) {
+            guard depth < 40 else { return }
+            let role = attr(e, kAXRoleAttribute) ?? ""
+            if ["AXButton", "AXMenuButton", "AXPopUpButton", "AXCheckBox", "AXRadioButton"].contains(role) {
+                // VoiceOver 没有标题时会读里面的文字
+                func texts(_ x: AXUIElement, _ d: Int) -> [String] {
+                    guard d < 6 else { return [] }
+                    var out: [String] = []
+                    if attr(x, kAXRoleAttribute) == "AXStaticText" { var v: CFTypeRef?; if AXUIElementCopyAttributeValue(x, kAXValueAttribute as CFString, &v) == .success, let t = v as? String { out.append(t) } }
+                    var kids: CFTypeRef?
+                    if AXUIElementCopyAttributeValue(x, kAXChildrenAttribute as CFString, &kids) == .success, let arr = kids as? [AXUIElement] { for k in arr { out += texts(k, d + 1) } }
+                    return out
+                }
+                var titleEl: CFTypeRef?
+                var linked: String?
+                if AXUIElementCopyAttributeValue(e, kAXTitleUIElementAttribute as CFString, &titleEl) == .success, let t = titleEl {
+                    linked = texts(t as! AXUIElement, 0).joined(separator: " ")
+                }
+                let name = ([attr(e, kAXTitleAttribute), attr(e, kAXDescriptionAttribute), linked].compactMap { $0 } + [texts(e, 0).joined(separator: " ")]).filter { !$0.isEmpty }.first
+                let help = attr(e, kAXHelpAttribute) ?? ""
+                let sub = attr(e, kAXSubroleAttribute) ?? ""
+                // 窗口的红黄绿按钮系统自己会读
+                if !sub.contains("CloseButton") && !sub.contains("MinimizeButton") && !sub.contains("ZoomButton") && !sub.contains("FullScreenButton")
+                    && !sub.contains("Increment") && !sub.contains("Decrement") {   // 滚动条的箭头, 系统自己处理
+                    r.total += 1
+                    if let name, !name.contains(".") || name.contains(" ") { r.named.append("\(role) \(name)") }
+                    else {
+                        var pos: CFTypeRef?; var pt = CGPoint.zero
+                        if AXUIElementCopyAttributeValue(e, kAXPositionAttribute as CFString, &pos) == .success { AXValueGetValue(pos as! AXValue, .cgPoint, &pt) }
+                        var kids: CFTypeRef?; var kr: [String] = []
+                        if AXUIElementCopyAttributeValue(e, kAXChildrenAttribute as CFString, &kids) == .success, let arr = kids as? [AXUIElement] { kr = arr.map { attr($0, kAXRoleAttribute) ?? "?" } }
+                        r.unnamed.append("\(role) sub=\(sub) id=\(attr(e, kAXIdentifierAttribute) ?? "-") at=\(Int(pt.x)),\(Int(pt.y)) kids=\(kr) help=\(help)")
+                    }
+                }
+            }
+            var kids: CFTypeRef?
+            if AXUIElementCopyAttributeValue(e, kAXChildrenAttribute as CFString, &kids) == .success, let arr = kids as? [AXUIElement] {
+                for k in arr { walk(k, depth + 1) }
+            }
+        }
+        walk(app, 0)
+        return r
+    }
+}
+
 extension AppDelegate {
     /// 自测: 模拟一台什么都没装的 Mac (不影响真实文件, 只影响检测结果)
     func applySelfTestFlags() {
@@ -364,6 +420,13 @@ extension AppDelegate {
                 UserDefaults.standard.set(0, forKey: "settingsTab")
                 NSApp.windows.first { $0.identifier?.rawValue.contains("Settings") == true }?.close()
             }
+            if args.contains("--ax-dump") {
+                // 和 VoiceOver 读到的一样: 遍历自己的辅助功能树, 找没有名字的按钮
+                try? await Task.sleep(for: .seconds(1))
+                let report = SelfTestAX.audit()
+                log += "ax: buttons=\(report.total) unnamed=\(report.unnamed.count)\n" + report.unnamed.map { "  ax unnamed: \($0)\n" }.joined()
+                log += report.named.prefix(200).map { "  ax: \($0)\n" }.joined()
+            }
             if let spec = val("--keys") {
                 // 模拟键盘操作 (需要辅助功能权限), 例: "cmd+k|text:模型|down|return"
                 NSApp.activate(ignoringOtherApps: true)
@@ -536,9 +599,16 @@ extension AppDelegate {
             log += "\nmachine: \(SystemInfo.shared.summary)\nalert: \(store.alert ?? "-")\ntaste: \(store.tasteSummary)\n"
             try? log.write(to: out.deletingPathExtension().appendingPathExtension("txt"), atomically: true, encoding: .utf8)
             SetupWizardState.shared.show = false   // 打开着的窗口会挡住退出
+            app.showPalette = false
+            QuickAsk.shared.close()
+            for w in NSApp.windows { w.attachedSheet.map { w.endSheet($0) } }
             try? await Task.sleep(for: .seconds(0.5))
             if args.contains("--keep-test-chat") == false, val("--chat") != nil, let id = chat.selected { chat.delete(id) }
             NSApp.terminate(nil)
+            // 万一有什么挡住了正常退出, 5 秒后强制退出 (自测不能留在后台)
+            try? await Task.sleep(for: .seconds(5))
+            chat.save(); chat.storage.flush()
+            exit(0)
         }
     }
 }

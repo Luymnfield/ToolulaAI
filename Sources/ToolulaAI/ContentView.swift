@@ -117,7 +117,7 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("", selection: $store.filter) {
+            Picker("筛选", selection: $store.filter) {
                 ForEach(ListFilter.allCases) { Text($0.rawValue.locKey).tag($0) }
             }
             .pickerStyle(.segmented)
@@ -350,9 +350,9 @@ struct EraseBar: View {
                 Image(systemName: "circle.fill").font(.system(size: 13)).foregroundStyle(.secondary)
                 Divider().frame(height: 18)
                 Button { store.eraseStrokes = [] } label: { Image(systemName: "xmark.circle") }
-                    .help(Text("清除笔迹")).disabled(store.eraseStrokes.isEmpty || store.erasing)
+                    .help(Text("清除笔迹")).accessibilityLabel(Text("清除笔迹")).disabled(store.eraseStrokes.isEmpty || store.erasing)
                 Button { store.undoErase() } label: { Image(systemName: "arrow.uturn.backward") }
-                    .help(Text("撤销上一次消除")).disabled(item.patches.isEmpty || store.erasing)
+                    .help(Text("撤销上一次消除")).accessibilityLabel(Text("撤销上一次消除")).disabled(item.patches.isEmpty || store.erasing)
                 Button { store.eraseNow() } label: { Label("消除", systemImage: "eraser").fixedSize() }
                     .buttonStyle(.borderedProminent).tint(Color.toolula)
                     .disabled(store.eraseStrokes.isEmpty || store.erasing)

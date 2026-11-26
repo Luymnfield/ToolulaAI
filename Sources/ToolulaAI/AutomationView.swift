@@ -94,9 +94,9 @@ struct TaskEditor: View {
                     }
                     HStack {
                         Text("时间")
-                        Picker("", selection: bind(\.hour)) { ForEach(0..<24, id: \.self) { Text(String(format: "%02d", $0)).tag($0) } }.frame(width: 70)
+                        Picker("小时", selection: bind(\.hour)) { ForEach(0..<24, id: \.self) { Text(String(format: "%02d", $0)).tag($0) } }.labelsHidden().frame(width: 70)
                         Text(":")
-                        Picker("", selection: bind(\.minute)) { ForEach(Array(stride(from: 0, to: 60, by: 5)), id: \.self) { Text(String(format: "%02d", $0)).tag($0) } }.frame(width: 70)
+                        Picker("分钟", selection: bind(\.minute)) { ForEach(Array(stride(from: 0, to: 60, by: 5)), id: \.self) { Text(String(format: "%02d", $0)).tag($0) } }.labelsHidden().frame(width: 70)
                     }
                 case .folder:
                     HStack {

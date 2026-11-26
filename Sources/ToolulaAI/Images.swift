@@ -494,7 +494,7 @@ struct ImageView: View {
                 Text("生成的图片").font(.headline)
                 Spacer()
                 Button { NSWorkspace.shared.open(ImageStore.folder) } label: { Image(systemName: "folder") }
-                    .buttonStyle(.borderless).help(Text("在访达中打开图片文件夹"))
+                    .buttonStyle(.borderless).help(Text("在访达中打开图片文件夹")).accessibilityLabel(Text("在访达中打开图片文件夹"))
             }
             .padding(12)
             ScrollView {
@@ -555,6 +555,7 @@ struct ImageView: View {
                         Button("在修图中打开") { app.section = .photo; photos.add(urls: [URL(fileURLWithPath: it.path)]) }
                         Button("作为视频的第一帧") { VideoStore.shared.firstFrame = URL(fileURLWithPath: it.path); app.section = .video }
                         Button { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: it.path)]) } label: { Image(systemName: "folder") }
+                            .accessibilityLabel(Text("在访达中显示"))
                     }
                     .controlSize(.small)
                 }
@@ -610,9 +611,11 @@ struct ImageView: View {
                         Picker("画面比例", selection: $store.aspect) {
                             ForEach(ImageAspect.allCases) { Text($0.rawValue.locKey).tag($0) }
                         }
+                        .accessibilityLabel(Text("画面比例"))
                         Picker("清晰度", selection: $store.quality) {
                             ForEach(ImageQuality.allCases) { Text($0.rawValue.locKey).tag($0) }
                         }
+                        .accessibilityLabel(Text("清晰度"))
                         Stepper("一次画 \(store.count) 张", value: $store.count, in: 1...4)
                         HStack {
                             Toggle("随机种子", isOn: $store.randomSeed)

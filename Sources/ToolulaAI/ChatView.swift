@@ -36,6 +36,7 @@ struct ChatView: View {
                             Button("删除所有空对话") { chat.deleteEmpty() }
                             Button("删除全部对话…", role: .destructive) { confirmDeleteAll = true }
                         } label: { Image(systemName: "trash") }
+                        .accessibilityLabel(Text("删除对话"))
                         .menuStyle(.borderlessButton)
                         .menuIndicator(.hidden)
                         .fixedSize()
@@ -142,11 +143,13 @@ struct ConversationView: View {
                 }
                 .frame(width: 220)
                 .help("选择这个对话用的本地模型（👁=能看图，●=已加载）")
+                .accessibilityLabel(Text("模型"))
 
                 Picker("思考", selection: Binding(get: { conv.reasoning }, set: { v in chat.update(conversationId) { $0.reasoning = v } })) {
                     Text("不思考（快）").tag("none"); Text("思考：低").tag("low"); Text("思考：中").tag("medium"); Text("思考：高").tag("high")
                 }
                 .frame(width: 130)
+                .accessibilityLabel(Text("思考"))
 
                 Toggle(isOn: Binding(get: { conv.agent }, set: { v in chat.update(conversationId) { $0.agent = v } })) {
                     Label("可执行操作", systemImage: "hammer")
@@ -241,6 +244,7 @@ struct ConversationView: View {
                             }
                             Button { images.removeAll { $0 == p } } label: { Image(systemName: "xmark.circle.fill") }
                                 .buttonStyle(.plain).padding(2)
+                                .accessibilityLabel(Text("移除图片"))
                         }
                     }
                     if let conv, !(models.model(conv.model)?.vision ?? false) {
@@ -254,6 +258,7 @@ struct ConversationView: View {
                     if p.runModal() == .OK { for u in p.urls { if let a = chat.attach(u) { images.append(a) } } }
                 } label: { Image(systemName: "photo.badge.plus").font(.title3) }
                 .buttonStyle(.plain).help("添加图片（也可以拖进来）")
+                .accessibilityLabel(Text("添加图片"))
 
                 ZStack(alignment: .topLeading) {
                     if input.isEmpty {
@@ -273,9 +278,11 @@ struct ConversationView: View {
                 if isRunning {
                     Button { chat.stop(conversationId) } label: { Image(systemName: "stop.circle.fill").font(.title) }
                         .buttonStyle(.plain).foregroundStyle(.red).help("停止")
+                        .accessibilityLabel(Text("停止"))
                 } else {
                     Button { sendNow() } label: { Image(systemName: "arrow.up.circle.fill").font(.title) }
                         .buttonStyle(.plain).foregroundStyle(.green)
+                        .accessibilityLabel(Text("发送"))
                         .keyboardShortcut(.return, modifiers: .command)
                         .disabled(input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && images.isEmpty)
                 }
@@ -481,6 +488,9 @@ struct ContextBar: View {
                     UsageBar(fraction: frac, height: 5).frame(width: 70)
                     Text("上下文 \(Self.k(used)) / \(Self.k(limit))").monospacedDigit()
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("上下文用量"))
+                .accessibilityValue(Text("\(String(Int(frac * 100)))%，\(Self.k(used)) / \(Self.k(limit))"))
                 .help(Text("这个对话发给 AI 的内容大约占了模型上下文的 \(String(Int(frac * 100)))%。越长越慢；超过 \(Self.k(threshold)) 时会自动压缩较早的对话（可在模型页关闭）。"))
             }
             if let st = conv.lastStats, st.promptTokens > 0 {
@@ -499,6 +509,7 @@ struct ContextBar: View {
                 if chat.compressing.contains(conv.id) { ProgressView().controlSize(.mini) } else { Label("压缩对话", systemImage: "arrow.down.right.and.arrow.up.left") }
             }
             .buttonStyle(.borderless)
+            .accessibilityLabel(chat.compressing.contains(conv.id) ? Text("正在压缩对话") : Text("压缩对话"))
             .disabled(running || chat.compressing.contains(conv.id) || chat.compressibleRange(conv) == nil)
             .help(Text("让 AI 把较早的对话写成摘要，只保留最近两轮原文，回答更快。至少要有 3 轮对话才能压缩。"))
         }

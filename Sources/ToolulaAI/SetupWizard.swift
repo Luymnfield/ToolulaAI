@@ -343,7 +343,7 @@ struct SetupWizard: View {
             if st.running || st.finished {
                 statusIcon(it.status).frame(width: 20)
             } else {
-                Toggle("", isOn: item.on).labelsHidden().toggleStyle(.checkbox)
+                Toggle(it.title, isOn: item.on).labelsHidden().toggleStyle(.checkbox)
             }
             Image(systemName: it.icon).foregroundStyle(Color.toolula).frame(width: 22)
             VStack(alignment: .leading, spacing: 3) {
