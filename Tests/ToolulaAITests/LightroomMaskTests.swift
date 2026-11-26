@@ -21,7 +21,7 @@ final class LightroomMaskTests: XCTestCase {
         XCTAssertEqual(lines[2], "size=1234")
         XCTAssertTrue(lines[3].hasPrefix("created="))
         XCTAssertEqual(Array(lines.dropFirst(4)), [
-            "mask=people\tface\tlocal_Exposure=0.40\tlocal_Texture=-15",
+            "mask=subject\tface\tlocal_Exposure=0.40\tlocal_Texture=-15",
             "mask=background\tbackground\tlocal_Exposure=-0.50",
         ])
     }
@@ -35,5 +35,34 @@ final class LightroomMaskTests: XCTestCase {
     func testMappingsComplete() {
         for p in LocalAdjustment.params { XCTAssertNotNil(Exporter.lightroomLocalParam[p.key], p.key) }
         for k in MaskKind.allCases { XCTAssertNotNil(Exporter.lightroomMaskType[k], k.rawValue) }
+    }
+}
+
+/// 和 Lightroom 对齐的渲染校准
+final class LightroomMatchTests: XCTestCase {
+    func testVignetteShapeMatchesLightroom() {
+        // Lightroom -50 实测: 中间不变, 半径 0.65 处约 0.48, 四角约 0.12
+        XCTAssertEqual(Renderer.vignetteFactor(r: 0.1, amount: -50), 1, accuracy: 1e-9)
+        XCTAssertEqual(Renderer.vignetteFactor(r: 0.65, amount: -50), 0.48, accuracy: 0.06)
+        XCTAssertEqual(Renderer.vignetteFactor(r: 0.95, amount: -50), 0.12, accuracy: 0.03)
+        // 强度按档: -100 比 -50 暗得多, -25 比 -50 亮; 正值变亮
+        XCTAssertLessThan(Renderer.vignetteFactor(r: 0.95, amount: -100), Renderer.vignetteFactor(r: 0.95, amount: -50))
+        XCTAssertGreaterThan(Renderer.vignetteFactor(r: 0.95, amount: -25), Renderer.vignetteFactor(r: 0.95, amount: -50))
+        XCTAssertGreaterThan(Renderer.vignetteFactor(r: 0.95, amount: 50), 1)
+        XCTAssertEqual(Renderer.vignetteFactor(r: 0.95, amount: 0), 1, accuracy: 1e-9)
+    }
+
+    func testSliderCalibration() {
+        let m = SliderCalibration.map(["Contrast2012": 50, "Exposure2012": -1, "Saturation": -20, "SplitToningHighlightHue": 45])
+        XCTAssertEqual(m["Contrast2012"]!, 70, accuracy: 1e-9)
+        XCTAssertEqual(m["Exposure2012"]!, -1.2, accuracy: 1e-9)
+        XCTAssertEqual(m["Saturation"]!, -20, accuracy: 1e-9)          // 没校准的不变
+        XCTAssertEqual(m["SplitToningHighlightHue"]!, 45, accuracy: 1e-9) // 色相不缩放
+    }
+
+    func testRawLookDefaults() {
+        let l = Renderer.RawLook.lightroom
+        XCTAssertEqual(l.saturation, 0.815, accuracy: 1e-9)
+        XCTAssertEqual(l.noiseReduction, 0, accuracy: 1e-9)
     }
 }

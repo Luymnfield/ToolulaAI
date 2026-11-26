@@ -130,8 +130,8 @@ enum Exporter {
         return (dest, err)
     }
 
-    /// Toolula 的区域 -> Lightroom 的 AI 蒙版 (人脸没有单独的 AI 蒙版, 用「人物」)
-    static let lightroomMaskType: [MaskKind: String] = [.subject: "subject", .person: "people", .face: "people",
+    /// Toolula 的区域 -> Lightroom 的 AI 蒙版. 人脸、人物用「主体」: Lightroom 的「人物」蒙版要手动点选人, 插件建不出来
+    static let lightroomMaskType: [MaskKind: String] = [.subject: "subject", .person: "subject", .face: "subject",
                                                          .sky: "sky", .background: "background"]
     /// Toolula 的局部参数 -> Lightroom 蒙版里的滑块 (LrDevelopController 的名字)
     static let lightroomLocalParam: [String: String] = [

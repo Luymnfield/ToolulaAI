@@ -126,6 +126,10 @@ extension AppDelegate {
     ///             [--ai 风格] [--split] [--export 文件夹] 照片...
     func runSelfTestIfRequested() {
         let args = CommandLine.arguments
+        if let j = args.firstIndex(of: "--calib-batch"), j + 1 < args.count {
+            runCalibrationBatch(URL(fileURLWithPath: args[j + 1]))
+            exit(0)
+        }
         guard let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count else { return }
         func val(_ flag: String) -> String? {
             guard let j = args.firstIndex(of: flag), j + 1 < args.count else { return nil }
@@ -134,7 +138,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--export-side", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -219,7 +223,8 @@ extension AppDelegate {
                 let dir = URL(fileURLWithPath: dirPath)
                 try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
                 for job in store.jobs(store.photos) {
-                    let e1 = await Task.detached { Exporter.exportJPEG(job, to: dir, maxSide: nil) }.value
+                    let side = val("--export-side").flatMap(Double.init).map { CGFloat($0) }
+                    let e1 = await Task.detached { Exporter.exportJPEG(job, to: dir, maxSide: side) }.value
                     let lr = await Task.detached { Exporter.prepareForLightroom(job, folder: dir.appendingPathComponent("lr")) }.value
                     log += "jpeg: \(e1 ?? "ok")\nlr: \(lr.0?.path ?? "-") \(lr.1 ?? "ok")\n"
                 }
@@ -831,6 +836,37 @@ extension AppDelegate {
             chat.save(); chat.storage.flush()
             exit(0)
         }
+    }
+}
+#endif
+
+#if TOOLULA_SELFTEST
+/// 校准用: 一次解码 RAW, 按清单渲染很多张 (长边 1560, sRGB JPEG), 和 Lightroom 渲染的参考图对比.
+/// 清单 JSON: {"raw": 路径, "renders": [{"out": 路径, "settings": {...}, "gains": {"Contrast2012+": 0.8},
+///             "look": {"boost": 1, "saturation": 1, "exposure": 0}}]}
+extension AppDelegate {
+    func runCalibrationBatch(_ spec: URL) {
+        guard let d = try? Data(contentsOf: spec), let j = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
+              let raw = j["raw"] as? String, let renders = j["renders"] as? [[String: Any]] else { print("bad spec"); return }
+        let r = Renderer.shared
+        var bases: [String: CIImage] = [:]
+        for item in renders {
+            let lk = item["look"] as? [String: Double] ?? [:]
+            let look = Renderer.RawLook(boost: lk["boost"] ?? 1, saturation: lk["saturation"] ?? 1, exposure: lk["exposure"] ?? 0)
+            let key = "\(look.boost)/\(look.saturation)/\(look.exposure)"
+            if bases[key] == nil {
+                Renderer.RawLook.override = look
+                bases[key] = r.loadPreviewBase(URL(fileURLWithPath: raw), maxSide: 1560)
+            }
+            guard let base = bases[key], let out = item["out"] as? String else { continue }
+            SliderCalibration.overrides = item["gains"] as? [String: Double] ?? [:]
+            let settings = item["settings"] as? [String: Double] ?? [:]
+            let img = r.renderEdited(base, settings: settings, patches: [], locals: [])
+            try? r.writeJPEG(img, to: URL(fileURLWithPath: out))
+        }
+        Renderer.RawLook.override = nil
+        SliderCalibration.overrides = [:]
+        print("rendered \(renders.count)")
     }
 }
 #endif

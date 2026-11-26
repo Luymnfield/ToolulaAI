@@ -22,9 +22,41 @@ final class Renderer: @unchecked Sendable {
 
     // MARK: 读取
 
-    /// 读取原图 (RAW 用系统的 RAW 解码)
+    /// RAW「底片」向 Lightroom 看齐: 苹果的 RAW 解码比 Lightroom (Adobe Standard 配置文件) 更浓、对比更强.
+    /// 同样的参数发到 Lightroom 后效果要和这里看到的一样, 所以起点也要一样 (数值用 Lightroom 实际渲染的照片对比校准).
+    /// 可以用 defaults 覆盖 (校准时用): rawLookBoost / rawLookSaturation / rawLookExposure
+    struct RawLook: Equatable {
+        var boost: Double = 1, saturation: Double = 1, exposure: Double = 0
+        /// 亮度降噪: 苹果默认 0.64 (画面偏糊), Lightroom 默认 0
+        var noiseReduction: Double = 0
+        /// 2026-11 用 Lightroom Classic 14.3 (Adobe Standard) 渲染的两张 Sony RAW 校准: 起点色差 ΔE 3.8 -> 2.6
+        static let lightroom = RawLook(boost: 1, saturation: 0.815, exposure: -0.05, noiseReduction: 0)
+        nonisolated(unsafe) static var override: RawLook?   // 校准时临时指定
+        static var current: RawLook {
+            if let o = override { return o }
+            let d = UserDefaults.standard
+            var l = lightroom
+            if d.object(forKey: "rawLookBoost") != nil { l.boost = d.double(forKey: "rawLookBoost") }
+            if d.object(forKey: "rawLookSaturation") != nil { l.saturation = d.double(forKey: "rawLookSaturation") }
+            if d.object(forKey: "rawLookExposure") != nil { l.exposure = d.double(forKey: "rawLookExposure") }
+            return l
+        }
+    }
+
+    /// 读取原图 (RAW 用系统的 RAW 解码, 再调成 Lightroom 的起点)
     func loadFull(_ url: URL) -> CIImage? {
-        if Renderer.isRaw(url), let raw = CIRAWFilter(imageURL: url), let img = raw.outputImage {
+        if Renderer.isRaw(url), let raw = CIRAWFilter(imageURL: url) {
+            let look = RawLook.current
+            raw.boostAmount = Float(look.boost)
+            if raw.isLuminanceNoiseReductionSupported { raw.luminanceNoiseReductionAmount = Float(look.noiseReduction) }
+            if look.exposure != 0 { raw.exposure = Float(look.exposure) }
+            guard var img = raw.outputImage else { return nil }
+            if look.saturation != 1 {
+                let f = CIFilter.colorControls()
+                f.inputImage = img
+                f.saturation = Float(look.saturation)
+                img = f.outputImage ?? img
+            }
             return img
         }
         return CIImage(contentsOf: url, options: [.applyOrientationProperty: true])
@@ -50,7 +82,8 @@ final class Renderer: @unchecked Sendable {
 
     // MARK: 渲染
 
-    func apply(_ settings: Settings, to input: CIImage) -> CIImage {
+    func apply(_ lrSettings: Settings, to input: CIImage) -> CIImage {
+        let settings = SliderCalibration.map(lrSettings)
         let extent = input.extent
         let long = max(extent.width, extent.height)
         var img = input
@@ -93,16 +126,10 @@ final class Renderer: @unchecked Sendable {
             img = (f.outputImage ?? img).cropped(to: extent)
         }
 
-        // 4. 暗角
+        // 4. 暗角: 按 Lightroom 实测的形状 (中间约 30% 不变, 往外快速变暗; -50 时四角约 -3 档)
         let vig = v("PostCropVignetteAmount")
         if vig != 0 {
-            let f = CIFilter.vignetteEffect()
-            f.inputImage = img
-            f.center = CGPoint(x: extent.midX, y: extent.midY)
-            f.radius = Float(long * 0.42)
-            f.intensity = Float(-vig / 100 * 0.9)
-            f.falloff = 0.6
-            img = (f.outputImage ?? img).cropped(to: extent)
+            img = applyVignette(img, amount: vig)
         }
 
         // 5. 颗粒
@@ -126,6 +153,38 @@ final class Renderer: @unchecked Sendable {
         return img
     }
 
+    /// 暗角系数图: 每个点的亮度倍数 (线性). 形状来自 Lightroom 渲染的对比测量:
+    /// -50 时 1 - 0.89 × smoothstep(0.33, 0.9, r), r = 到中心的距离 (四角 = 1, 按画面宽高各自归一化, 所以是椭圆);
+    /// 强度按「档」缩放: 倍数 = (-50 时的倍数) 的 |amount|/50 次方. 正值 (变亮) 用一半的强度往反方向.
+    static func vignetteFactor(r: Double, amount: Double) -> Double {
+        let t = min(1, max(0, (r - 0.33) / (0.9 - 0.33)))
+        let s = t * t * (3 - 2 * t)
+        let base = 1 - 0.89 * s
+        let k = abs(amount) / 50
+        return amount < 0 ? pow(base, k) : pow(base, -k * 0.5)
+    }
+
+    private func applyVignette(_ img: CIImage, amount: Double) -> CIImage {
+        let extent = img.extent
+        let n = 256
+        var px = [Float](repeating: 1, count: n * n * 4)
+        for y in 0..<n {
+            for x in 0..<n {
+                let dx = (Double(x) + 0.5) / Double(n) * 2 - 1, dy = (Double(y) + 0.5) / Double(n) * 2 - 1
+                let f = Float(Self.vignetteFactor(r: sqrt(dx * dx + dy * dy) / sqrt(2), amount: amount))
+                let i = (y * n + x) * 4
+                px[i] = f; px[i + 1] = f; px[i + 2] = f
+            }
+        }
+        let data = px.withUnsafeBufferPointer { Data(buffer: $0) }
+        let linear = CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!
+        let map = CIImage(bitmapData: data, bytesPerRow: n * 16, size: CGSize(width: n, height: n), format: .RGBAf, colorSpace: linear)
+            .transformed(by: CGAffineTransform(scaleX: extent.width / CGFloat(n), y: extent.height / CGFloat(n))
+                .concatenating(CGAffineTransform(translationX: extent.minX, y: extent.minY)))
+            .clampedToExtent().cropped(to: extent)
+        return img.applyingFilter("CIMultiplyCompositing", parameters: [kCIInputBackgroundImageKey: map]).cropped(to: extent)
+    }
+
     func makeNSImage(_ img: CIImage) -> NSImage? {
         guard let cg = context.createCGImage(img, from: img.extent, format: .RGBA8, colorSpace: sRGB) else { return nil }
         return NSImage(cgImage: cg, size: NSSize(width: img.extent.width, height: img.extent.height))
@@ -145,6 +204,44 @@ final class Renderer: @unchecked Sendable {
         let f = DateFormatter()
         f.dateFormat = "yyyy:MM:dd HH:mm:ss"
         return f.date(from: s)
+    }
+}
+
+// MARK: - 滑块校准
+
+/// 参数都是 Lightroom 的数值 (界面显示、发给 Lightroom 的都是这个); 渲染前换算成本引擎要用的强度,
+/// 让同一个数值在这里和在 Lightroom 里看起来一样 (系数用 Lightroom 自己渲染的参考图对比得出).
+/// 校准时可以用 defaults 覆盖: calib.<参数>+ / calib.<参数>- (正值 / 负值的系数)
+enum SliderCalibration {
+    /// 参数 -> (正值系数, 负值系数); 没列出的不变
+    /// 只收了「明显更接近、又不是极端值」的; 高光/白色/黑色/清晰度/纹理的形状和 Lightroom 不同, 单靠系数调不准, 先不动
+    static let gains: [String: (pos: Double, neg: Double)] = [
+        "Exposure2012": (1.0, 1.2),
+        "Contrast2012": (1.4, 1.4),
+        "Shadows2012": (1.2, 1.0),
+        "Whites2012": (1.0, 1.4),
+        "Blacks2012": (0.7, 1.0),
+        "Vibrance": (0.85, 1.2),
+        "SplitToningHighlightSaturation": (0.85, 1.0),
+        "SplitToningShadowSaturation": (0.85, 1.0),
+    ]
+
+    nonisolated(unsafe) static var overrides: [String: Double] = [:]   // 校准时临时指定, 键 "Contrast2012+"
+
+    static func gain(_ key: String, positive: Bool) -> Double {
+        let o = "calib.\(key)" + (positive ? "+" : "-")
+        if let v = overrides[key + (positive ? "+" : "-")] { return v }
+        if UserDefaults.standard.object(forKey: o) != nil { return UserDefaults.standard.double(forKey: o) }
+        guard let g = gains[key] else { return 1 }
+        return positive ? g.pos : g.neg
+    }
+
+    static func map(_ s: Settings) -> Settings {
+        var out = s
+        for (k, v) in s where v != 0 && !Params.noBlend.contains(k) {
+            out[k] = v * gain(k, positive: v > 0)
+        }
+        return out
     }
 }
 
