@@ -505,6 +505,9 @@ struct AccelerationBlock: View {
                 }
             }
 
+            Divider()
+            ComfyWarmupToggle()
+
             if LocalEngine.installed, let main = models.model(models.chatModel), !main.isBuiltin, !main.isCloud {
                 Divider()
                 VStack(alignment: .leading, spacing: 6) {
@@ -557,5 +560,20 @@ struct AccelerationBlock: View {
     var fastMemText: String {
         let gb = (Recommender.ramGB * 0.55).rounded()
         return String(localized: "两个模型会同时留在内存里，切换不用重新加载（两个加起来最好不超过 \(String(Int(gb))) GB）。")
+    }
+}
+
+/// 绘图 / 视频页预热的开关 (设置窗口「模型与加速」和模型页都会显示)
+struct ComfyWarmupToggle: View {
+    @AppStorage("comfyWarmup") private var on = true
+    var body: some View {
+        Toggle(isOn: Binding(get: { on }, set: { on = $0; ComfyWarmup.setEnabled($0) })) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("绘图 / 视频页预热")
+                Text("打开绘图或视频页时，在后台先启动 ComfyUI 并加载模型，第一次生成少等 15–50 秒。离开页面 5 分钟后自动释放内存。关掉后，已预加载的模型会立即卸载。")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityLabel(Text("绘图 / 视频页预热"))
     }
 }

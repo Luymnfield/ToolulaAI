@@ -24,6 +24,26 @@ enum ComfyWarmup {
     static var isWarming: Bool { warmTask != nil }
     static var enabled: Bool { UserDefaults.standard.object(forKey: "comfyWarmup") as? Bool ?? true }
 
+    /// 用户在设置里开关预热。打开: 正在看的绘图/视频页马上预热; 关闭: 不再排队预热,
+    /// 已经预加载好的模型立刻卸载腾出内存 (正在生成时不动, Comfy Desktop 不动)。
+    static func setEnabled(_ on: Bool) {
+        UserDefaults.standard.set(on, forKey: "comfyWarmup")
+        if on {
+            for p in visible.sorted() { enter(p) }
+            return
+        }
+        queue.removeAll()
+        Task {
+            await warmTask?.value          // 正在跑的小任务等它跑完, 中途打断 ComfyUI 反而更慢
+            guard !enabled, !busy, ComfyEngine.shared.owned, ComfyEngine.shared.online else { return }
+            await ComfyEngine.shared.free()
+            ImageStore.shared.modelsUnloaded()
+            VideoStore.shared.modelsUnloaded()
+            lastResult = "预热已关闭，已释放模型内存"
+            Run.appendLog("[预热] \(lastResult)\n")
+        }
+    }
+
     /// 打开了绘图 ("image") 或视频 ("video") 页, 或者在页面里换了模型
     static func enter(_ page: String) {
         visible.insert(page)

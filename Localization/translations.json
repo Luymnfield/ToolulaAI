@@ -4134,5 +4134,13 @@
  "预览（快速解码，画质略低）。高清版完成后会自动替换。": [
   "Preview (fast decode, slightly lower quality). It is replaced automatically when the full-quality version is done.",
   "Vorschau (schnell dekodiert, etwas geringere Qualität). Sie wird automatisch ersetzt, sobald die Version in voller Qualität fertig ist."
+ ],
+ "绘图 / 视频页预热": [
+  "Warm up Image / Video pages",
+  "Bild-/Video-Seiten vorwärmen"
+ ],
+ "打开绘图或视频页时，在后台先启动 ComfyUI 并加载模型，第一次生成少等 15–50 秒。离开页面 5 分钟后自动释放内存。关掉后，已预加载的模型会立即卸载。": [
+  "When you open the Image or Video page, ComfyUI starts in the background and loads the model, so the first generation waits 15–50 seconds less. Memory is released 5 minutes after you leave the page. Turning this off unloads pre-loaded models right away.",
+  "Beim Öffnen der Bild- oder Video-Seite startet ComfyUI im Hintergrund und lädt das Modell – die erste Erzeugung wartet 15–50 Sekunden weniger. 5 Minuten nach dem Verlassen der Seite wird der Speicher freigegeben. Beim Ausschalten werden vorgeladene Modelle sofort entladen."
  ]
 }

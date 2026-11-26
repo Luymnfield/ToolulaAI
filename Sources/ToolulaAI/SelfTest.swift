@@ -341,6 +341,19 @@ extension AppDelegate {
                 try? await Task.sleep(for: .seconds(1))
                 while ComfyWarmup.isWarming { try? await Task.sleep(for: .seconds(1)) }
                 log += "comfy-warmup \(page): \(ComfyWarmup.lastResult) (\(Int(Date().timeIntervalSince(t0)))s) patched=\(ComfyEngine.shared.patched)\n"
+                if args.contains("--comfy-toggle-test") {
+                    // 设置里关掉预热: 已预加载的模型要立刻卸载; 关着时进页面不预热; 再打开又会预热
+                    ComfyWarmup.setEnabled(false)
+                    try? await Task.sleep(for: .seconds(4))
+                    log += "comfy-toggle off: \(ComfyWarmup.lastResult) loaded=\(ImageStore.shared.isLoaded(ImageModels.shared.selectedId))\n"
+                    ComfyWarmup.leave(page); ComfyWarmup.enter(page)
+                    try? await Task.sleep(for: .seconds(1))
+                    log += "comfy-toggle enter while off: warming=\(ComfyWarmup.isWarming)\n"
+                    ComfyWarmup.setEnabled(true)
+                    try? await Task.sleep(for: .seconds(1))
+                    while ComfyWarmup.isWarming { try? await Task.sleep(for: .seconds(1)) }
+                    log += "comfy-toggle on: \(ComfyWarmup.lastResult) loaded=\(ImageStore.shared.isLoaded(ImageModels.shared.selectedId))\n"
+                }
                 if args.contains("--comfy-release-test") {
                     // 离开页面后自动释放: 把等待时间缩短到几秒来测
                     ComfyWarmup.unloadAfter = .seconds(3); ComfyWarmup.stopAfter = .seconds(3)
