@@ -412,7 +412,7 @@ enum Tools {
         if out.isEmpty { out = String(localized: "（没有输出）") }
         out = truncate(out)
         if timedOut { out += "\n" + String(localized: "（超过 \(Int(timeout)) 秒，已停止）") }
-        return String(localized: "退出码 \(p.terminationStatus)") + "\n" + out
+        return String(localized: "退出码 \(String(p.terminationStatus))") + "\n" + out
     }
 }
 

@@ -21,6 +21,11 @@ cp "$BIN" "$APP/Contents/MacOS/ToolulaAI"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp ../AIPhotoEdit.lrplugin/ai_edit.py "$APP/Contents/Resources/ai_edit.py"
 mkdir -p "$APP/Contents/Resources/AIPhotoEdit.lrplugin" && cp ../AIPhotoEdit.lrplugin/*.lua ../AIPhotoEdit.lrplugin/ai_edit.py ../AIPhotoEdit.lrplugin/desktop_process.py "$APP/Contents/Resources/AIPhotoEdit.lrplugin/"
+# 翻译检查: 有没翻译的界面文字时给警告 (不中断编译)
+MISSING=$(/usr/bin/python3 scripts/check_translations.py 2>&1 >/dev/null | grep -o '缺少翻译 [0-9]*' | grep -o '[0-9]*')
+if [[ -n "$MISSING" && "$MISSING" != "0" ]]; then
+  echo "⚠️  有 $MISSING 条界面文字缺少英文/德文翻译，运行 scripts/check_translations.py 查看"
+fi
 /usr/bin/python3 Localization/make_strings.py "$APP/Contents/Resources"
 for f in "$APP"/Contents/Resources/*.lproj/Localizable.strings; do plutil -lint "$f" >/dev/null || { echo "bad strings: $f"; exit 1; }; done
 cat > "$APP/Contents/Info.plist" <<PLIST

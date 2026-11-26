@@ -3686,5 +3686,429 @@
  "对话和修图已经在用 MTP 加速。": [
   "Chat and photo editing already use MTP.",
   "Chat und Fotobearbeitung nutzen bereits MTP."
+ ],
+ "Esc 关闭": [
+  "Esc to close",
+  "Esc schließt"
+ ],
+ "上下文用量": [
+  "Context usage",
+  "Kontextnutzung"
+ ],
+ "不认识这个按键：%@": [
+  "Unknown key: %@",
+  "Unbekannte Taste: %@"
+ ],
+ "为了安全，不操作这个程序。": [
+  "For safety, Toolula does not operate this app.",
+  "Aus Sicherheitsgründen bedient Toolula diese App nicht."
+ ],
+ "代码": [
+  "Code",
+  "Code"
+ ],
+ "公式：%@": [
+  "Formula: %@",
+  "Formel: %@"
+ ],
+ "共 %lld 个对话。删除前会先备份。": [
+  "%lld conversations. A backup is made before deleting.",
+  "%lld Unterhaltungen. Vor dem Löschen wird eine Sicherung erstellt."
+ ],
+ "关闭小窗 / 面板": [
+  "Close quick window / palette",
+  "Schnellfenster / Palette schließen"
+ ],
+ "分钟": [
+  "Minute",
+  "Minute"
+ ],
+ "切换页面": [
+  "Switch page",
+  "Seite wechseln"
+ ],
+ "删除全部对话": [
+  "Delete All Conversations",
+  "Alle Unterhaltungen löschen"
+ ],
+ "删除全部对话？": [
+  "Delete all conversations?",
+  "Alle Unterhaltungen löschen?"
+ ],
+ "删除前会先自动备份一份，可以从备份文件夹找回。": [
+  "A backup is made automatically before deleting; you can restore it from the backup folder.",
+  "Vor dem Löschen wird automatisch eine Sicherung erstellt, die du im Sicherungsordner wiederfindest."
+ ],
+ "前往：%@": [
+  "Go to: %@",
+  "Gehe zu: %@"
+ ],
+ "发送": [
+  "Send",
+  "Senden"
+ ],
+ "发送消息": [
+  "Send message",
+  "Nachricht senden"
+ ],
+ "后退": [
+  "Back",
+  "Zurück"
+ ],
+ "启动时自动备份对话（间隔至少 6 小时，保留最近 5 份）。": [
+  "Conversations are backed up automatically at launch (at most every 6 hours, last 5 kept).",
+  "Unterhaltungen werden beim Start automatisch gesichert (höchstens alle 6 Stunden, die letzten 5 bleiben erhalten)."
+ ],
+ "启动清理：%@": [
+  "Startup cleanup: %@",
+  "Aufräumen beim Start: %@"
+ ],
+ "命令面板": [
+  "Command palette",
+  "Befehlspalette"
+ ],
+ "命令面板…": [
+  "Command Palette…",
+  "Befehlspalette …"
+ ],
+ "命令面板搜索": [
+  "Command palette search",
+  "Suche in der Befehlspalette"
+ ],
+ "和「聚焦」(Spotlight) 冲突": [
+  "Conflicts with Spotlight",
+  "Kollidiert mit Spotlight"
+ ],
+ "和切换输入法冲突": [
+  "Conflicts with switching input sources",
+  "Kollidiert mit dem Wechsel der Eingabequelle"
+ ],
+ "和系统常用快捷键冲突": [
+  "Conflicts with a common system shortcut",
+  "Kollidiert mit einem gängigen Systemkurzbefehl"
+ ],
+ "和访达搜索冲突": [
+  "Conflicts with Finder search",
+  "Kollidiert mit der Finder-Suche"
+ ],
+ "在任何程序里用快捷键唤出": [
+  "Open with a shortcut from any app",
+  "In jeder App per Kurzbefehl öffnen"
+ ],
+ "在助手中继续": [
+  "Continue in Assistant",
+  "Im Assistenten fortfahren"
+ ],
+ "备份": [
+  "Backups",
+  "Sicherungen"
+ ],
+ "备份失败": [
+  "Backup failed",
+  "Sicherung fehlgeschlagen"
+ ],
+ "复制": [
+  "Copy",
+  "Kopieren"
+ ],
+ "复制代码": [
+  "Copy code",
+  "Code kopieren"
+ ],
+ "外观：%@": [
+  "Appearance: %@",
+  "Erscheinungsbild: %@"
+ ],
+ "存储位置": [
+  "Storage location",
+  "Speicherort"
+ ],
+ "对话数量": [
+  "Conversations",
+  "Unterhaltungen"
+ ],
+ "对话模型：%@": [
+  "Chat model: %@",
+  "Chat-Modell: %@"
+ ],
+ "导出诊断报告": [
+  "Export diagnostics report",
+  "Diagnosebericht exportieren"
+ ],
+ "导出诊断报告…": [
+  "Export Diagnostics Report…",
+  "Diagnosebericht exportieren …"
+ ],
+ "导出诊断报告失败": [
+  "Exporting the diagnostics report failed",
+  "Export des Diagnoseberichts fehlgeschlagen"
+ ],
+ "小时": [
+  "Hour",
+  "Stunde"
+ ],
+ "屏幕": [
+  "Screen",
+  "Bildschirm"
+ ],
+ "展开": [
+  "Expand",
+  "Ausklappen"
+ ],
+ "已备份": [
+  "Backed up",
+  "Gesichert"
+ ],
+ "已复制": [
+  "Copied",
+  "Kopiert"
+ ],
+ "已完成": [
+  "Done",
+  "Erledigt"
+ ],
+ "已按 %@": [
+  "Pressed %@",
+  "%@ gedrückt"
+ ],
+ "快捷键": [
+  "Shortcut",
+  "Kurzbefehl"
+ ],
+ "快捷键 %@ 已被其他程序占用，请换一个": [
+  "The shortcut %@ is already used by another app. Please choose another one.",
+  "Der Kurzbefehl %@ wird bereits von einer anderen App verwendet. Bitte wähle einen anderen."
+ ],
+ "快捷键：%@": [
+  "Shortcut: %@",
+  "Kurzbefehl: %@"
+ ],
+ "快速提问": [
+  "Quick Ask",
+  "Schnellfrage"
+ ],
+ "快速提问小窗": [
+  "Quick Ask window",
+  "Schnellfrage-Fenster"
+ ],
+ "快速提问小窗（全局）": [
+  "Quick Ask window (global)",
+  "Schnellfrage-Fenster (global)"
+ ],
+ "快速提问快捷键": [
+  "Quick Ask shortcut",
+  "Kurzbefehl für Schnellfrage"
+ ],
+ "快速提问：在助手中继续": [
+  "Quick Ask: continue in Assistant",
+  "Schnellfrage: im Assistenten fortfahren"
+ ],
+ "恢复默认": [
+  "Restore Default",
+  "Standard wiederherstellen"
+ ],
+ "截图": [
+  "Screenshot",
+  "Bildschirmfoto"
+ ],
+ "所有对话、记忆、设置都只存在这台 Mac 上。对话每个一个文件（conversations 文件夹），写入是原子的，不会写坏。": [
+  "All conversations, memories and settings stay on this Mac. Each conversation is its own file (conversations folder) and is written atomically, so it cannot be half-written.",
+  "Alle Unterhaltungen, Erinnerungen und Einstellungen bleiben auf diesem Mac. Jede Unterhaltung ist eine eigene Datei (Ordner „conversations“) und wird atomar geschrieben, sodass sie nicht beschädigt werden kann."
+ ],
+ "打包诊断报告失败：%@": [
+  "Packing the diagnostics report failed: %@",
+  "Packen des Diagnoseberichts fehlgeschlagen: %@"
+ ],
+ "打开「语言与地区」": [
+  "Open “Language & Region”",
+  "„Sprache & Region“ öffnen"
+ ],
+ "打开备份文件夹": [
+  "Open Backup Folder",
+  "Sicherungsordner öffnen"
+ ],
+ "打开日志所在文件夹": [
+  "Open Log Folder",
+  "Protokollordner öffnen"
+ ],
+ "打开程序": [
+  "Open app",
+  "App öffnen"
+ ],
+ "打开设置": [
+  "Open Settings",
+  "Einstellungen öffnen"
+ ],
+ "把日志、系统信息、模型和引擎状态、最近错误打成 zip 放到桌面，方便排查问题。不包含 API Key、对话内容和照片。": [
+  "Packs logs, system info, model and engine status and recent errors into a zip on the Desktop for troubleshooting. Contains no API keys, conversation content or photos.",
+  "Packt Protokolle, Systeminfos, Modell- und Engine-Status sowie letzte Fehler als ZIP auf den Schreibtisch, zur Fehlersuche. Enthält keine API-Schlüssel, Unterhaltungsinhalte oder Fotos."
+ ],
+ "按键": [
+  "Press key",
+  "Taste drücken"
+ ],
+ "提问": [
+  "Question",
+  "Frage"
+ ],
+ "搜索命令、页面、对话、模型…": [
+  "Search commands, pages, conversations, models…",
+  "Befehle, Seiten, Unterhaltungen, Modelle suchen …"
+ ],
+ "数据文件夹": [
+  "Data folder",
+  "Datenordner"
+ ],
+ "新建对话": [
+  "New conversation",
+  "Neue Unterhaltung"
+ ],
+ "新问题": [
+  "New Question",
+  "Neue Frage"
+ ],
+ "最近": [
+  "Recent",
+  "Zuletzt"
+ ],
+ "未完成": [
+  "Not done",
+  "Offen"
+ ],
+ "本地": [
+  "Local",
+  "Lokal"
+ ],
+ "正在压缩对话": [
+  "Compressing conversation",
+  "Unterhaltung wird komprimiert"
+ ],
+ "没有匹配的结果": [
+  "No matching results",
+  "Keine passenden Ergebnisse"
+ ],
+ "没有记录到问题。": [
+  "No problems recorded.",
+  "Keine Probleme aufgezeichnet."
+ ],
+ "注册快捷键失败（错误 %lld）": [
+  "Registering the shortcut failed (error %lld)",
+  "Registrieren des Kurzbefehls fehlgeschlagen (Fehler %lld)"
+ ],
+ "添加图片": [
+  "Add image",
+  "Bild hinzufügen"
+ ],
+ "清除数据": [
+  "Clear data",
+  "Daten löschen"
+ ],
+ "点一下切换": [
+  "Click to switch",
+  "Zum Wechseln klicken"
+ ],
+ "点击": [
+  "Click",
+  "Klicken"
+ ],
+ "点按钮后按下新的组合（至少带 ⌘、⌥ 或 ⌃）。被其他程序占用时会提示。": [
+  "Click the button, then press the new combination (with at least ⌘, ⌥ or ⌃). You will be told if another app already uses it.",
+  "Klicke auf die Taste und drücke dann die neue Kombination (mit mindestens ⌘, ⌥ oder ⌃). Ist sie schon belegt, erscheint ein Hinweis."
+ ],
+ "点菜单": [
+  "Click menu",
+  "Menü wählen"
+ ],
+ "界面语言跟随系统（简体中文、English、Deutsch）。想单独给 Toolula 换语言：系统设置 → 通用 → 语言与地区 → 应用程序。": [
+  "The interface follows the system language (简体中文, English, Deutsch). To change it just for Toolula: System Settings → General → Language & Region → Applications.",
+  "Die Oberfläche folgt der Systemsprache (简体中文, English, Deutsch). Nur für Toolula ändern: Systemeinstellungen → Allgemein → Sprache & Region → Apps."
+ ],
+ "登录 Mac 时自动打开": [
+  "Open at login",
+  "Beim Anmelden öffnen"
+ ],
+ "移除图片": [
+  "Remove image",
+  "Bild entfernen"
+ ],
+ "程序内": [
+  "In the app",
+  "In der App"
+ ],
+ "立即备份": [
+  "Back Up Now",
+  "Jetzt sichern"
+ ],
+ "筛选": [
+  "Filter",
+  "Filter"
+ ],
+ "继续问…": [
+  "Ask a follow-up…",
+  "Weiter fragen …"
+ ],
+ "至少要带 ⌘、⌥ 或 ⌃ 中的一个": [
+  "Must include at least one of ⌘, ⌥ or ⌃",
+  "Muss mindestens ⌘, ⌥ oder ⌃ enthalten"
+ ],
+ "诊断报告": [
+  "Diagnostics report",
+  "Diagnosebericht"
+ ],
+ "语言": [
+  "Language",
+  "Sprache"
+ ],
+ "请按下新的快捷键…": [
+  "Press the new shortcut…",
+  "Neuen Kurzbefehl drücken …"
+ ],
+ "读取标签页": [
+  "Read tabs",
+  "Tabs lesen"
+ ],
+ "读取界面": [
+  "Read interface",
+  "Oberfläche lesen"
+ ],
+ "输入文字": [
+  "Type text",
+  "Text eingeben"
+ ],
+ "运行快捷指令": [
+  "Run shortcut",
+  "Kurzbefehl ausführen"
+ ],
+ "运行脚本": [
+  "Run script",
+  "Skript ausführen"
+ ],
+ "这是密码框。为了安全 Toolula 不输入密码，请用户自己输入。": [
+  "This is a password field. For safety Toolula does not type passwords; please enter it yourself.",
+  "Dies ist ein Passwortfeld. Aus Sicherheitsgründen gibt Toolula keine Passwörter ein; bitte selbst eingeben."
+ ],
+ "退出码 %@": [
+  "Exit code %@",
+  "Exit-Code %@"
+ ],
+ "问 Toolula AI…": [
+  "Ask Toolula AI…",
+  "Toolula AI fragen …"
+ ],
+ "通用": [
+  "General",
+  "Allgemein"
+ ],
+ "模型与加速": [
+  "Models & Speed",
+  "Modelle & Tempo"
+ ],
+ "隐私与数据": [
+  "Privacy & Data",
+  "Datenschutz & Daten"
+ ],
+ "诊断": [
+  "Diagnostics",
+  "Diagnose"
  ]
 }
