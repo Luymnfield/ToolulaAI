@@ -209,6 +209,8 @@ struct ToolulaAIApp: App {
         NSApp.servicesProvider = ServiceProvider.shared
         NSUpdateDynamicServices()
         SpotlightIndex.schedule(chat.conversations)
+        // 连上设置里配置的 MCP 外部工具服务器 (在后台握手, 不耽误启动)
+        if !SelfTest.isActive || CommandLine.arguments.contains("--mcp-config") { MCPManager.shared.startAll() }
         automations.photoStore = store
         SystemInfo.shared.start()
         Task.detached(priority: .background) { StorageUsage.routineCleanup() }

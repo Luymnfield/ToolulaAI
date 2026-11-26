@@ -4814,5 +4814,221 @@
  "⚠️ 这条命令会永久删除文件（不进废纸篓，无法恢复）": [
   "⚠️ This command permanently deletes files (they won't go to the Trash and can't be recovered)",
   "⚠️ Dieser Befehl löscht Dateien endgültig (nicht in den Papierkorb, nicht wiederherstellbar)"
+ ],
+ "已停止。": [
+  "Stopped.",
+  "Angehalten."
+ ],
+ "子助手：": [
+  "Sub-assistant: ",
+  "Hilfsassistent: "
+ ],
+ "任务完成": [
+  "Task finished",
+  "Aufgabe erledigt"
+ ],
+ "任务做到一半，步数用完先停下了。": [
+  "The task paused halfway because it ran out of steps.",
+  "Die Aufgabe wurde in der Mitte angehalten, weil die Schritte aufgebraucht sind."
+ ],
+ "任务中途停下了（已经做了 %@ 步）。": [
+  "The task stopped partway (%@ steps done).",
+  "Die Aufgabe wurde unterbrochen (%@ Schritte erledigt)."
+ ],
+ "继续": [
+  "Continue",
+  "Weiter"
+ ],
+ "把刚才完成这个任务的做法总结成一个以后可以反复使用的技能并保存（用 use_skill，同时给 name、description 和 instructions；步骤写得通用一些，具体的文件名、数字换成「用户指定的…」这类说法）。": [
+  "Summarize how you just completed this task as a reusable skill and save it (use use_skill with name, description and instructions; keep the steps general, replacing specific file names and numbers with phrases like \"the file the user specifies\").",
+  "Fasse zusammen, wie du diese Aufgabe gerade erledigt hast, als wiederverwendbaren Skill und speichere ihn (mit use_skill, inklusive name, description und instructions; formuliere die Schritte allgemein und ersetze konkrete Dateinamen und Zahlen durch Formulierungen wie „die vom Benutzer angegebene Datei“)."
+ ],
+ "把这次的做法存成技能，下次一句话就能用": [
+  "Save this as a skill so one sentence does it next time",
+  "Als Skill speichern – nächstes Mal reicht ein Satz"
+ ],
+ "交给子助手": [
+  "Delegate to sub-assistant",
+  "An Hilfsassistent übergeben"
+ ],
+ "项目说明": [
+  "Project notes",
+  "Projekthinweise"
+ ],
+ "服务器要求登录或授权（HTTP %@），请在 headers 里填上令牌": [
+  "The server requires sign-in or authorization (HTTP %@). Add a token under headers.",
+  "Der Server verlangt Anmeldung oder Autorisierung (HTTP %@). Trage unter headers ein Token ein."
+ ],
+ "（返回了一张图片）": [
+  "(returned an image)",
+  "(hat ein Bild zurückgegeben)"
+ ],
+ "配置不完整：要有 command（本机程序）或 url（网络服务）": [
+  "Incomplete configuration: it needs a command (local program) or a url (web service)",
+  "Unvollständige Konfiguration: Es braucht command (lokales Programm) oder url (Webdienst)"
+ ],
+ "等待回应超时（%@）": [
+  "Timed out waiting for a reply (%@)",
+  "Zeitüberschreitung beim Warten auf Antwort (%@)"
+ ],
+ "服务器程序退出了": [
+  "The server program exited",
+  "Das Serverprogramm wurde beendet"
+ ],
+ "使用「%@」的工具 %@": [
+  "Use tool %2$@ from “%1$@”",
+  "Werkzeug %2$@ von „%1$@“ verwenden"
+ ],
+ "外部工具": [
+  "External Tools",
+  "Externe Werkzeuge"
+ ],
+ "MCP 是一套通用的工具接口。接上别人做好的 MCP 服务器（日历、Notion、GitHub、数据库……），助手就能直接用里面的工具。会改动东西的工具，每次使用前都会先问你。": [
+  "MCP is a common interface for tools. Connect ready-made MCP servers (calendar, Notion, GitHub, databases…) and the assistant can use their tools directly. Tools that change things always ask you first.",
+  "MCP ist eine gemeinsame Schnittstelle für Werkzeuge. Verbinde fertige MCP-Server (Kalender, Notion, GitHub, Datenbanken …), dann kann der Assistent ihre Werkzeuge direkt nutzen. Werkzeuge, die etwas ändern, fragen dich vorher jedes Mal."
+ ],
+ "还没有添加外部工具": [
+  "No external tools added yet",
+  "Noch keine externen Werkzeuge hinzugefügt"
+ ],
+ "名字": [
+  "Name",
+  "Name"
+ ],
+ "粘贴服务器的配置 JSON（和 Claude Desktop 的写法一样，可以是一个服务器，也可以是整段 mcpServers）。网络服务写成 {\"url\": \"https://…\"}。": [
+  "Paste the server's JSON configuration (same format as Claude Desktop: one server or a whole mcpServers block). For a web service, use {\"url\": \"https://…\"}.",
+  "Füge die JSON-Konfiguration des Servers ein (gleiches Format wie Claude Desktop: ein Server oder ein ganzer mcpServers-Block). Für einen Webdienst {\"url\": \"https://…\"} verwenden."
+ ],
+ "从 Claude Desktop 导入": [
+  "Import from Claude Desktop",
+  "Aus Claude Desktop importieren"
+ ],
+ "导入了 %@ 个服务器": [
+  "Imported %@ server(s)",
+  "%@ Server importiert"
+ ],
+ "没有可以导入的新服务器": [
+  "No new servers to import",
+  "Keine neuen Server zum Importieren"
+ ],
+ "编辑配置文件": [
+  "Edit Config File",
+  "Konfigurationsdatei bearbeiten"
+ ],
+ "重新读取": [
+  "Reload",
+  "Neu laden"
+ ],
+ "看不懂这段配置：要有 command（本机程序）或 url（网络服务）": [
+  "Couldn't understand this configuration: it needs a command (local program) or a url (web service)",
+  "Diese Konfiguration ist unverständlich: Es braucht command (lokales Programm) oder url (Webdienst)"
+ ],
+ "已添加，正在连接…": [
+  "Added, connecting…",
+  "Hinzugefügt, verbinde …"
+ ],
+ "%lld 个工具": [
+  "%lld tools",
+  "%lld Werkzeuge"
+ ],
+ "正在连接…": [
+  "Connecting…",
+  "Verbinde …"
+ ],
+ "已关闭": [
+  "Off",
+  "Aus"
+ ],
+ "连接失败": [
+  "Connection failed",
+  "Verbindung fehlgeschlagen"
+ ],
+ "重新连接": [
+  "Reconnect",
+  "Neu verbinden"
+ ],
+ "更多": [
+  "More",
+  "Mehr"
+ ],
+ "插入 U 盘或移动硬盘时": [
+  "When a USB drive or external disk is connected",
+  "Wenn ein USB-Stick oder externes Laufwerk angeschlossen wird"
+ ],
+ "打开某个程序时": [
+  "When an app is opened",
+  "Wenn eine App geöffnet wird"
+ ],
+ "电脑从睡眠中唤醒时": [
+  "When the Mac wakes from sleep",
+  "Wenn der Mac aus dem Ruhezustand aufwacht"
+ ],
+ "插入磁盘时": [
+  "On disk connect",
+  "Bei Laufwerk"
+ ],
+ "打开 %@ 时": [
+  "When %@ opens",
+  "Wenn %@ geöffnet wird"
+ ],
+ "唤醒时": [
+  "On wake",
+  "Beim Aufwachen"
+ ],
+ "插入 U 盘、移动硬盘、相机存储卡时运行，磁盘的路径会自动附在任务后面（例如：把存储卡里的新照片导入并修图）。": [
+  "Runs when a USB drive, external disk or camera card is connected; the disk's path is added to the task automatically (e.g. import and edit new photos from a memory card).",
+  "Läuft, wenn ein USB-Stick, externes Laufwerk oder eine Kamerakarte angeschlossen wird; der Pfad wird automatisch an die Aufgabe angehängt (z. B. neue Fotos von der Speicherkarte importieren und bearbeiten)."
+ ],
+ "程序名": [
+  "App name",
+  "App-Name"
+ ],
+ "从正在运行的程序选": [
+  "Choose from running apps",
+  "Aus laufenden Apps wählen"
+ ],
+ "打开这个程序时运行（名字写一部分就行）。": [
+  "Runs when this app opens (part of the name is enough).",
+  "Läuft, wenn diese App geöffnet wird (ein Teil des Namens genügt)."
+ ],
+ "每次电脑从睡眠中唤醒时运行（例如：早上打开电脑时汇总今天的日程和待办）。": [
+  "Runs every time the Mac wakes from sleep (e.g. summarize today's schedule and to-dos in the morning).",
+  "Läuft jedes Mal, wenn der Mac aus dem Ruhezustand aufwacht (z. B. morgens Termine und Aufgaben des Tages zusammenfassen)."
+ ],
+ "停止朗读": [
+  "Stop reading",
+  "Vorlesen stoppen"
+ ],
+ "朗读": [
+  "Read aloud",
+  "Vorlesen"
+ ],
+ "正在听…": [
+  "Listening…",
+  "Höre zu …"
+ ],
+ "正在听…再按一下结束": [
+  "Listening… click again to finish",
+  "Höre zu … zum Beenden erneut klicken"
+ ],
+ "说话输入": [
+  "Voice input",
+  "Spracheingabe"
+ ],
+ "停止听写": [
+  "Stop dictation",
+  "Diktat beenden"
+ ],
+ "没有麦克风权限：请在「系统设置 → 隐私与安全性 → 麦克风」里允许 Toolula AI": [
+  "No microphone access: allow Toolula AI in System Settings → Privacy & Security → Microphone",
+  "Kein Mikrofonzugriff: Erlaube Toolula AI unter Systemeinstellungen → Datenschutz & Sicherheit → Mikrofon"
+ ],
+ "没有语音识别权限：请在「系统设置 → 隐私与安全性 → 语音识别」里允许 Toolula AI": [
+  "No speech recognition access: allow Toolula AI in System Settings → Privacy & Security → Speech Recognition",
+  "Kein Zugriff auf Spracherkennung: Erlaube Toolula AI unter Systemeinstellungen → Datenschutz & Sicherheit → Spracherkennung"
+ ],
+ "这台电脑上暂时用不了语音识别": [
+  "Speech recognition isn't available on this Mac right now",
+  "Spracherkennung ist auf diesem Mac gerade nicht verfügbar"
  ]
 }

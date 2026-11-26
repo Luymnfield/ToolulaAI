@@ -3,13 +3,14 @@ import SwiftUI
 
 /// 统一设置窗口 (⌘,)。各页面里原有的入口还在, 但以这里为准。
 enum SettingsTab: Int, CaseIterable, Identifiable {
-    case general, models, computer, shortcuts, privacy, diagnostics
+    case general, models, computer, connections, shortcuts, privacy, diagnostics
     var id: Int { rawValue }
     var title: LocalizedStringKey {
         switch self {
         case .general: return "通用"
         case .models: return "模型与加速"
         case .computer: return "操作电脑"
+        case .connections: return "外部工具"
         case .shortcuts: return "快捷键"
         case .privacy: return "隐私与数据"
         case .diagnostics: return "诊断"
@@ -20,6 +21,7 @@ enum SettingsTab: Int, CaseIterable, Identifiable {
         case .general: return "gearshape"
         case .models: return "bolt.horizontal"
         case .computer: return "cursorarrow.click"
+        case .connections: return "puzzlepiece.extension"
         case .shortcuts: return "command"
         case .privacy: return "lock.shield"
         case .diagnostics: return "stethoscope"
@@ -38,6 +40,7 @@ struct SettingsView: View {
                     case .general: GeneralSettings()
                     case .models: ScrollView { AccelerationBlock().padding(20) }
                     case .computer: ScrollView { ComputerControlPanel().frame(maxWidth: .infinity) }
+                    case .connections: MCPSettings()
                     case .shortcuts: ShortcutSettings()
                     case .privacy: PrivacySettings()
                     case .diagnostics: DiagnosticsSettings()
@@ -288,5 +291,123 @@ struct StorageSection: View {
         measuring = true
         items = await Task.detached(priority: .utility) { StorageUsage.measure() }.value
         measuring = false
+    }
+}
+
+
+// MARK: - 外部工具 (MCP)
+
+struct MCPSettings: View {
+    @ObservedObject var mcp = MCPManager.shared
+    @State private var name = ""
+    @State private var pasted = ""
+    @State private var message: String?
+
+    var body: some View {
+        Form {
+            Section {
+                Text("MCP 是一套通用的工具接口。接上别人做好的 MCP 服务器（日历、Notion、GitHub、数据库……），助手就能直接用里面的工具。会改动东西的工具，每次使用前都会先问你。")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("已添加") {
+                if mcp.names.isEmpty { Text("还没有添加外部工具").foregroundStyle(.secondary) }
+                ForEach(mcp.names, id: \.self) { n in MCPServerRow(name: n) }
+            }
+            Section("添加") {
+                TextField("名字", text: $name, prompt: Text(verbatim: "memory"))
+                TextEditor(text: $pasted)
+                    .font(.system(.caption, design: .monospaced))
+                    .frame(height: 80)
+                    .overlay(alignment: .topLeading) {
+                        if pasted.isEmpty {
+                            Text(verbatim: #"{"command": "npx", "args": ["-y", "@modelcontextprotocol/server-memory"]}"#)
+                                .font(.system(.caption, design: .monospaced)).foregroundStyle(.tertiary).padding(5).allowsHitTesting(false)
+                        }
+                    }
+                Text("粘贴服务器的配置 JSON（和 Claude Desktop 的写法一样，可以是一个服务器，也可以是整段 mcpServers）。网络服务写成 {\"url\": \"https://…\"}。")
+                    .font(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Button("添加") { add() }.disabled(pasted.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    Spacer()
+                    if FileManager.default.fileExists(atPath: MCPManager.claudeDesktopConfig.path) {
+                        Button("从 Claude Desktop 导入") {
+                            let n = mcp.importFrom(MCPManager.claudeDesktopConfig)
+                            message = n > 0 ? String(localized: "导入了 \(String(n)) 个服务器") : String(localized: "没有可以导入的新服务器")
+                        }
+                    }
+                    Button("编辑配置文件") { mcp.openFile() }
+                    Button("重新读取") { mcp.reload() }
+                }
+                if let message { Text(message).font(.caption).foregroundStyle(.secondary) }
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    func add() {
+        let n = name.trimmingCharacters(in: .whitespaces)
+        guard let servers = MCPManager.parse(pasted, name: n.isEmpty ? nil : n), !servers.isEmpty else {
+            message = String(localized: "看不懂这段配置：要有 command（本机程序）或 url（网络服务）")
+            return
+        }
+        for (k, v) in servers { mcp.add(k, v) }
+        message = String(localized: "已添加，正在连接…")
+        pasted = ""; name = ""
+    }
+}
+
+struct MCPServerRow: View {
+    @ObservedObject var mcp = MCPManager.shared
+    let name: String
+    @State private var showTools = false
+
+    var body: some View {
+        let cfg = mcp.config.mcpServers[name]
+        let st = mcp.status[name] ?? .off
+        let tools = mcp.tools.filter { $0.server == name }
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Circle().fill(color(st)).frame(width: 8, height: 8)
+                Text(verbatim: name).font(.body.weight(.medium))
+                switch st {
+                case .ready: Text("\(tools.count) 个工具").font(.caption).foregroundStyle(.secondary)
+                case .starting: ProgressView().controlSize(.mini); Text("正在连接…").font(.caption).foregroundStyle(.secondary)
+                case .off: Text("已关闭").font(.caption).foregroundStyle(.secondary)
+                case .failed: Text("连接失败").font(.caption).foregroundStyle(.red)
+                }
+                Spacer()
+                Toggle("", isOn: Binding(get: { cfg?.disabled != true }, set: { mcp.setEnabled(name, $0) }))
+                    .labelsHidden().toggleStyle(.switch).controlSize(.small)
+                Menu {
+                    Button("重新连接") { mcp.start(name) }
+                    if !tools.isEmpty { Button(showTools ? "隐藏工具列表" : "显示工具列表") { showTools.toggle() } }
+                    Divider()
+                    Button("删除", role: .destructive) { mcp.remove(name) }
+                } label: { Image(systemName: "ellipsis.circle") }
+                .menuStyle(.borderlessButton).fixedSize()
+                .accessibilityLabel(Text("更多"))
+            }
+            Text(verbatim: cfg?.summary ?? "").font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+            if case .failed(let m) = st { Text(verbatim: m).font(.caption).foregroundStyle(.red).lineLimit(3).textSelection(.enabled) }
+            if showTools {
+                ForEach(tools) { t in
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Image(systemName: t.readOnly ? "eye" : "pencil").font(.caption2).foregroundStyle(.secondary)
+                        Text(verbatim: t.title).font(.caption.weight(.medium))
+                        Text(verbatim: t.description).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    func color(_ s: MCPManager.Status) -> Color {
+        switch s {
+        case .ready: return .green
+        case .starting: return .orange
+        case .off: return .gray
+        case .failed: return .red
+        }
     }
 }

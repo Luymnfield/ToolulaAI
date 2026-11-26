@@ -67,7 +67,8 @@ TASKS = []
 
 def task(id, cat, prompt, timeout=300):
     def deco(cls):
-        TASKS.append(dict(id=id, cat=cat, prompt=prompt, timeout=timeout, setup=cls.setup, check=cls.check))
+        TASKS.append(dict(id=id, cat=cat, prompt=prompt, timeout=timeout, setup=cls.setup, check=cls.check,
+                          app_args=getattr(cls, "app_args", None)))
         return cls
     return deco
 
@@ -568,6 +569,124 @@ class _:
         says_missing = any(k in a for k in ["没有", "不存在", "找不到", "未找到", "没找到", "无法"])
         invented = [n for n in nums(a) if n not in ("2025", "2024", "1200")]
         return says_missing and not any(len(n) >= 3 for n in invented), a[:100]
+
+
+# ───────────────────────── 长任务 (第二批) ─────────────────────────
+
+@task("project_notes", "长任务", "把 data.csv 做一个简单汇总（一共几行、amount 列的总和），保存成 summary.txt。")
+class _:
+    def setup(d):
+        W(d, "TOOLULA.md", "# 这个项目的约定\n- 生成的所有文件都放进 output 文件夹（没有就新建），不要放在根目录。\n")
+        W(d, "data.csv", "name,amount\na,10\nb,20\nc,30\nd,40\n")
+
+    def check(d, r):
+        if E(d, "summary.txt"):
+            return False, "放在了根目录 (没按 TOOLULA.md 约定)"
+        if not E(d, "output/summary.txt"):
+            return False, "没有 output/summary.txt"
+        t = R(d, "output/summary.txt")
+        return has_num(t, 100) and has_num(t, 4), t[:80]
+
+
+@task("review_stats", "长任务", "reviews 文件夹里有 18 条用户评价。统计好评（4~5 星）、中评（3 星）、差评（1~2 星）各有多少条，再找出差评里被抱怨最多的问题，写成 stats.md。", timeout=500)
+class _:
+    def setup(d):
+        rnd = random.Random(7)
+        stars = [5, 4, 5, 3, 1, 2, 4, 5, 1, 3, 4, 2, 5, 1, 4, 3, 5, 1]
+        bad = ["物流太慢，等了两周", "快递很慢，催了好几次", "发货慢", "包装破损", "物流慢得离谱", "客服不理人"]
+        bi = 0
+        for i, s in enumerate(stars):
+            if s <= 2:
+                body = bad[bi]; bi += 1
+            elif s == 3:
+                body = "一般般，没什么特别的"
+            else:
+                body = rnd.choice(["很好用，推荐", "质量不错", "超出预期", "会回购"])
+            W(d, f"reviews/r{i + 1:02d}.txt", f"用户：u{i}\n评分：{s}/5\n内容：{body}\n")
+
+    def check(d, r):
+        if not E(d, "stats.md"):
+            return False, "没有 stats.md"
+        t = R(d, "stats.md")
+        # 好评 9、中评 3、差评 6; 抱怨最多的是物流/发货慢
+        ok = has_num(t, 9) and has_num(t, 3) and has_num(t, 6) and any(k in t for k in ["物流", "快递", "发货"])
+        return ok, t.replace("\n", " ")[:120]
+
+
+@task("readme_batch", "长任务", "projects 文件夹里有很多子项目。给每个还没有 README.md 的子项目建一个 README.md，第一行写「# 项目名」（项目名就是文件夹名）；已经有 README.md 的不要动。最后告诉我新建了几个。", timeout=500)
+class _:
+    def setup(d):
+        for i in range(15):
+            W(d, f"projects/proj-{i:02d}/main.py", "print('hi')\n")
+            if i % 3 == 0:
+                W(d, f"projects/proj-{i:02d}/README.md", f"原有说明 {i}\n")
+
+    def check(d, r):
+        for i in range(15):
+            f = f"projects/proj-{i:02d}/README.md"
+            if not E(d, f):
+                return False, f"缺 {f}"
+            t = R(d, f)
+            if i % 3 == 0 and t != f"原有说明 {i}\n":
+                return False, f"改了已有的 {f}"
+            if i % 3 != 0 and not t.strip().startswith(f"# proj-{i:02d}"):
+                return False, f"{f} 第一行不对: {t[:30]}"
+        return has_num(r["answer"], 10), r["answer"][:80]
+
+
+@task("delegate_summary", "长任务", "docs 文件夹里有 3 份产品文档。请用 delegate 让子助手分别读每份文档并提炼要点，最后把三份的要点汇总成 summary.md（每份文档一节）。", timeout=600)
+class _:
+    def setup(d):
+        W(d, "docs/alpha.md", "# Alpha 相机\n" + "Alpha 相机主打夜景，使用 1 英寸传感器，续航 8 小时。\n" * 30)
+        W(d, "docs/beta.md", "# Beta 耳机\n" + "Beta 耳机支持主动降噪，重量 4.8 克，售价 899 元。\n" * 30)
+        W(d, "docs/gamma.md", "# Gamma 手表\n" + "Gamma 手表有血氧监测，防水 50 米，可用 14 天。\n" * 30)
+
+    def check(d, r):
+        if not E(d, "summary.md"):
+            return False, "没有 summary.md"
+        t = R(d, "summary.md")
+        used = any(c["name"] == "delegate" for m in r["messages"] for c in (m.get("calls") or []))
+        ok = all(k in t for k in ["夜景", "降噪", "防水"]) and used
+        return ok, ("用了子助手" if used else "没用子助手") + " " + t.replace("\n", " ")[:80]
+
+
+# ───────────────────────── 外部工具 MCP (第三批) ─────────────────────────
+
+MCP_SERVER = r'''
+import sys, json
+for line in sys.stdin:
+    m = json.loads(line)
+    if "id" not in m: continue
+    meth, p = m["method"], m.get("params") or {}
+    if meth == "initialize":
+        r = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}}, "serverInfo": {"name": "inventory", "version": "1"}}
+    elif meth == "tools/list":
+        r = {"tools": [{"name": "stock_lookup", "description": "查询商品库存（仓库系统）。参数 sku 是商品编号。",
+                        "inputSchema": {"type": "object", "properties": {"sku": {"type": "string"}}, "required": ["sku"]},
+                        "annotations": {"readOnlyHint": True}}]}
+    elif meth == "tools/call":
+        sku = (p.get("arguments") or {}).get("sku", "")
+        stock = {"A-100": 37, "B-200": 0, "C-300": 512}.get(sku.upper())
+        r = {"content": [{"type": "text", "text": f"{sku}: 库存 {stock} 件" if stock is not None else f"没有商品 {sku}"}]}
+    else:
+        sys.stdout.write(json.dumps({"jsonrpc": "2.0", "id": m["id"], "error": {"code": -32601, "message": "no"}}) + "\n"); sys.stdout.flush(); continue
+    sys.stdout.write(json.dumps({"jsonrpc": "2.0", "id": m["id"], "result": r}) + "\n"); sys.stdout.flush()
+'''
+
+
+@task("mcp_inventory", "外部工具", "用仓库系统查一下商品 A-100 和 C-300 现在各有多少库存。")
+class _:
+    def setup(d):
+        os.makedirs(os.path.join(d, ".mcp"), exist_ok=True)
+        W(d, ".mcp/server.py", MCP_SERVER)
+        W(d, ".mcp/mcp.json", json.dumps({"mcpServers": {"inventory": {"command": "/usr/bin/python3", "args": [os.path.join(d, ".mcp/server.py")]}}}))
+
+    def app_args(d):
+        return ["--mcp-config", os.path.join(d, ".mcp/mcp.json")]
+
+    def check(d, r):
+        used = any(c["name"].startswith("mcp_inventory") for m in r["messages"] for c in (m.get("calls") or []))
+        return used and has_num(r["answer"], 37) and has_num(r["answer"], 512), ("用了外部工具 " if used else "没用外部工具 ") + r["answer"][:80]
 
 
 TASKS_BY_ID = {t["id"]: t for t in TASKS}

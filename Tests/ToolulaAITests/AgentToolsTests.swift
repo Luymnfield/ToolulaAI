@@ -193,4 +193,43 @@ final class AgentToolsTests: XCTestCase {
         let hint = FileTools.notFound(URL(fileURLWithPath: "/nonexistent/work"), workDir: dir, folder: true)
         XCTAssertTrue(hint.contains(dir.appendingPathComponent("work").path), hint)
     }
+
+    func testProjectNotes() throws {
+        XCTAssertNil(ProjectNotes.prompt(workDir: dir.path))
+        try write("AGENTS.md", "用 pnpm，不要用 npm")
+        XCTAssertTrue(ProjectNotes.prompt(workDir: dir.path)?.contains("用 pnpm") == true)
+        try write("TOOLULA.md", "输出文件放 out/ 文件夹")
+        let p = ProjectNotes.prompt(workDir: dir.path) ?? ""
+        XCTAssertTrue(p.contains("out/ 文件夹") && !p.contains("pnpm"), p)   // 有 TOOLULA.md 就只用它
+    }
+
+    func testInterruptedAndResumeDetection() {
+        var c = Conversation(model: "m")
+        c.messages = [ChatMessage(role: "user", text: "整理")]
+        XCTAssertNil(ChatStore.interrupted(c))
+        var a = ChatMessage(role: "assistant"); a.toolCalls = [call("list_directory", ["path": "."])]
+        c.messages.append(a)
+        XCTAssertNotNil(ChatStore.interrupted(c))
+        c.messages.append(ChatMessage(role: "tool", text: "ok", toolCallId: "t", toolName: "list_directory"))
+        XCTAssertNotNil(ChatStore.interrupted(c))
+        c.messages.append(ChatMessage(role: "assistant", text: "整理好了"))
+        XCTAssertNil(ChatStore.interrupted(c))
+        var p = ChatMessage(role: "assistant", text: "先停一下"); p.paused = true
+        c.messages.append(p)
+        XCTAssertNotNil(ChatStore.interrupted(c))
+    }
+
+    func testSkillSuggestionNeedsRealWork() {
+        var c = Conversation(model: "m")
+        c.messages = [ChatMessage(role: "user", text: "做事")]
+        var a = ChatMessage(role: "assistant")
+        a.toolCalls = (0..<4).map { call("read_file", ["path": "f\($0)"]) }
+        c.messages.append(a)
+        c.messages.append(ChatMessage(role: "assistant", text: "完成"))
+        XCTAssertNil(ConversationView.skillWorthy(c))
+        c.messages[1].toolCalls.append(call("run_shell", ["command": "ls"]))
+        XCTAssertEqual(ConversationView.skillWorthy(c), c.messages.last?.id)
+        c.messages[2].stuck = true
+        XCTAssertNil(ConversationView.skillWorthy(c))
+    }
 }

@@ -48,6 +48,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.photography</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>NSMicrophoneUsageDescription</key><string>说话输入：把你说的话变成文字发给助手。</string>
+  <key>NSSpeechRecognitionUsageDescription</key><string>说话输入：在本机把语音识别成文字。</string>
   <key>NSPrincipalClass</key><string>NSApplication</string>
   <key>CFBundleURLTypes</key><array><dict>
     <key>CFBundleURLName</key><string>com.toolula.ai</string>
@@ -106,6 +108,23 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   </array>
 </dict></plist>
 PLIST
+# 麦克风、语音识别权限说明在各语言里的写法
+while IFS='|' read -r L M S; do
+  [[ -z "$L" ]] && continue
+  mkdir -p "$APP/Contents/Resources/$L.lproj"
+  printf '"NSMicrophoneUsageDescription" = "%s";\n"NSSpeechRecognitionUsageDescription" = "%s";\n' "$M" "$S" > "$APP/Contents/Resources/$L.lproj/InfoPlist.strings"
+done <<'USAGE'
+en|Voice input: turns what you say into text for the assistant.|Voice input: recognizes your speech as text on this Mac.
+de|Spracheingabe: wandelt Gesagtes in Text für den Assistenten um.|Spracheingabe: erkennt Sprache auf diesem Mac als Text.
+zh-Hant|語音輸入：把你說的話變成文字傳給助手。|語音輸入：在本機把語音辨識成文字。
+ja|音声入力：話した内容をテキストにしてアシスタントに送ります。|音声入力：この Mac 上で音声をテキストに変換します。
+ko|음성 입력: 말한 내용을 텍스트로 바꿔 어시스턴트에게 보냅니다.|음성 입력: 이 Mac에서 음성을 텍스트로 인식합니다.
+fr|Saisie vocale : transforme ce que vous dites en texte pour l'assistant.|Saisie vocale : reconnaît votre voix en texte sur ce Mac.
+es|Dictado: convierte lo que dices en texto para el asistente.|Dictado: reconoce tu voz como texto en este Mac.
+pt-BR|Entrada por voz: transforma o que você diz em texto para o assistente.|Entrada por voz: reconhece sua fala como texto neste Mac.
+pt|Entrada por voz: transforma o que você diz em texto para o assistente.|Entrada por voz: reconhece sua fala como texto neste Mac.
+ru|Голосовой ввод: превращает сказанное в текст для ассистента.|Голосовой ввод: распознаёт речь в текст на этом Mac.
+USAGE
 # 服务菜单 (访达右键) 在各语言里的名字
 while IFS='|' read -r L S1 S2 S3 S4; do
   [[ -z "$L" ]] && continue

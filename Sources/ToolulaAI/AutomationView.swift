@@ -108,6 +108,22 @@ struct TaskEditor: View {
                         }
                     }
                     Text("只处理选好文件夹之后新放进去的文件，新文件的路径会自动附在任务后面。").font(.caption).foregroundStyle(.secondary)
+                case .diskMounted:
+                    Text("插入 U 盘、移动硬盘、相机存储卡时运行，磁盘的路径会自动附在任务后面（例如：把存储卡里的新照片导入并修图）。").font(.caption).foregroundStyle(.secondary)
+                case .appLaunched:
+                    HStack {
+                        TextField("程序名", text: Binding(get: { task.appName ?? "" }, set: { v in auto.update(taskId) { $0.appName = v } }),
+                                  prompt: Text(verbatim: "Lightroom"))
+                        Menu("从正在运行的程序选") {
+                            ForEach(NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular }.compactMap(\.localizedName).sorted(), id: \.self) { n in
+                                Button(n) { auto.update(taskId) { $0.appName = n } }
+                            }
+                        }
+                        .fixedSize()
+                    }
+                    Text("打开这个程序时运行（名字写一部分就行）。").font(.caption).foregroundStyle(.secondary)
+                case .wake:
+                    Text("每次电脑从睡眠中唤醒时运行（例如：早上打开电脑时汇总今天的日程和待办）。").font(.caption).foregroundStyle(.secondary)
                 case .manual:
                     Text("只在你点「立即运行」时执行。").font(.caption).foregroundStyle(.secondary)
                 }

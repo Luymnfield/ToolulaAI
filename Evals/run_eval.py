@@ -81,7 +81,8 @@ def main():
                         json.dump(dict(prompt=t["prompt"], workdir=box, timeout=t["timeout"], out=res_path, model=args.model or ""), f, ensure_ascii=False)
                     try:
                         subprocess.run(["open", "-n", "-W", "-a", args.app, "--args", "--snapshot", os.path.join(out_dir, f"{tid}.png"),
-                                        "--section", "chat", "--eval-task", spec, "-AppleLanguages", "(zh-Hans)", "-ApplePersistenceIgnoreState", "YES"],
+                                        "--section", "chat", "--eval-task", spec, "-AppleLanguages", "(zh-Hans)", "-ApplePersistenceIgnoreState", "YES"]
+                                       + (t["app_args"](box) if t.get("app_args") else []),
                                        timeout=t["timeout"] + 120)
                     except subprocess.TimeoutExpired:
                         subprocess.run(["pkill", "-f", "build/selftest/Toolula AI.app"])

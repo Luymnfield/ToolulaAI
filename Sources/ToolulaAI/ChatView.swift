@@ -201,6 +201,7 @@ struct ConversationView: View {
                     if let conv {
                         if conv.messages.isEmpty { suggestions }
                         let results = toolResults(conv)
+                        let skillable = Self.skillWorthy(conv)
                         ForEach(conv.messages.filter { $0.hidden != true }) { m in
                             LiveMessage(live: chat.live, message: m,
                                         toolResult: m.toolCalls.isEmpty ? [:] : results.filter { k, _ in m.toolCalls.contains { $0.id == k } },
@@ -211,7 +212,8 @@ struct ConversationView: View {
                                             edit: { t in chat.editAndResend(conversationId, message: m.id, text: t) },
                                             branch: { chat.branch(conversationId, upTo: m.id) },
                                             retry: { chat.retryLast() },
-                                            retryWith: { chat.retry(with: $0) }))
+                                            retryWith: { chat.retry(with: $0) },
+                                            saveSkill: skillable == m.id ? { chat.send(String(localized: "把刚才完成这个任务的做法总结成一个以后可以反复使用的技能并保存（用 use_skill，同时给 name、description 和 instructions；步骤写得通用一些，具体的文件名、数字换成「用户指定的…」这类说法）。")) } : nil))
                                 .id(m.id)
                             if m.id == conv.summaryUntil, let s = conv.summary { CompressedDivider(conversationId: conversationId, summary: s, tokens: conv.compressedTokens) }
                         }
@@ -219,6 +221,15 @@ struct ConversationView: View {
                             HStack { ProgressView().controlSize(.small); Text("正在压缩较早的对话…").foregroundStyle(.secondary) }
                         }
                         if let a = chat.approval, a.conversationId == conversationId { ApprovalCard(approval: a) }
+                        if !isRunning, let why = ChatStore.interrupted(conv) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "pause.circle").foregroundStyle(.orange)
+                                Text(why).font(.callout).foregroundStyle(.secondary)
+                                Button("继续") { chat.resume(conversationId) }.buttonStyle(.borderedProminent).tint(.green)
+                            }
+                            .padding(8)
+                            .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                        }
                         if isRunning { ThinkingIndicator(live: chat.live, last: conv.messages.last, conversationId: conversationId) }
                     }
                     Color.clear.frame(height: 1).id("bottom")
@@ -232,6 +243,15 @@ struct ConversationView: View {
             .onChange(of: conv?.messages.count) { _, _ in withAnimation { proxy.scrollTo("bottom", anchor: .bottom) } }
             .onChange(of: chat.approval?.id) { _, _ in withAnimation { proxy.scrollTo("bottom", anchor: .bottom) } }
         }
+    }
+
+    /// 刚做完的这一轮用了 5 次以上工具、顺利完成、还没存过技能: 返回最后那条回答的 id (在它下面建议「存成技能」)
+    static func skillWorthy(_ conv: Conversation) -> UUID? {
+        guard let last = conv.messages.last, last.role == "assistant", !last.text.isEmpty, last.stuck != true, last.error == nil else { return nil }
+        let start = conv.messages.lastIndex { $0.role == "user" && $0.hidden != true } ?? 0
+        let calls = conv.messages[start...].flatMap(\.toolCalls)
+        guard calls.filter({ $0.name != "plan" }).count >= 5, !calls.contains(where: { Tools.normalize($0).name == "create_skill" }) else { return nil }
+        return last.id
     }
 
     /// 所有工具结果 (调用 id -> 结果), 每次刷新只算一遍
@@ -318,6 +338,7 @@ struct ConversationView: View {
                     }
                 }
             }
+            DictationPreview()
             HStack(alignment: .bottom, spacing: 8) {
                 Button {
                     let p = NSOpenPanel(); p.allowsMultipleSelection = true; p.canChooseDirectories = false
@@ -325,6 +346,8 @@ struct ConversationView: View {
                 } label: { Image(systemName: "paperclip").font(.title3) }
                 .buttonStyle(.plain).help("添加图片或文档：PDF、Word、Excel、PPT、文本、代码（也可以直接拖进来）")
                 .accessibilityLabel(Text("添加图片或文档"))
+
+                DictationButton { t in input += (input.isEmpty || input.hasSuffix(" ") ? "" : " ") + t }
 
                 ZStack(alignment: .topLeading) {
                     if input.isEmpty {
@@ -393,6 +416,7 @@ struct MessageView: View, Equatable {
 
     static func == (a: MessageView, b: MessageView) -> Bool {
         a.message == b.message && a.toolResult == b.toolResult && a.actions.busy == b.actions.busy && a.actions.isLast == b.actions.isLast
+            && (a.actions.saveSkill == nil) == (b.actions.saveSkill == nil)
     }
 
     func copy(_ s: String) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(s, forType: .string) }
@@ -406,6 +430,7 @@ struct MessageView: View, Equatable {
                 Button { draft = message.text; editing = true } label: { Image(systemName: "pencil") }
                     .help(Text("编辑后重新发送")).accessibilityLabel(Text("编辑后重新发送"))
             }
+            if !user { SpeakButton(id: message.id, text: message.text) }
             if !user, actions.isLast, actions.retry != nil {
                 Button { actions.retry?() } label: { Image(systemName: "arrow.clockwise") }
                     .help(Text("重新回答")).accessibilityLabel(Text("重新回答"))
@@ -494,6 +519,10 @@ struct MessageView: View, Equatable {
                     }
                 }
                 if message.stuck == true, actions.isLast, !actions.busy, let retryWith = actions.retryWith { StuckBar(retryWith: retryWith) }
+                if let save = actions.saveSkill, !actions.busy {
+                    Button { save() } label: { Label("把这次的做法存成技能，下次一句话就能用", systemImage: "sparkles") }
+                        .buttonStyle(.link).font(.callout)
+                }
                 if !message.text.isEmpty { actionBar(user: false) }
             }
             .onHover { hovering = $0 }
@@ -508,8 +537,11 @@ struct ToolCallCard: View {
     let result: String?
     @State private var open = false
 
-    var title: String {
-        let call = Tools.normalize(self.call)   // 合并写法 (如 browser_open 不填 url) 显示成实际做的事
+    var title: String { Self.describe(call) }
+
+    /// 工具调用的一句话说明 (卡片标题; 子助手的进度也用它)
+    static func describe(_ original: ToolCall) -> String {
+        let call = Tools.normalize(original)   // 合并写法 (如 browser_open 不填 url) 显示成实际做的事
         let a = call.args
         switch call.name {
         case "run_shell": return String(localized: "执行命令") + "  " + (a["command"] as? String ?? "")
@@ -530,8 +562,12 @@ struct ToolCallCard: View {
         case "use_skill": return String(localized: "使用技能") + "  " + (a["name"] as? String ?? "")
         case "create_skill": return String(localized: "保存新技能") + "  " + (a["name"] as? String ?? "")
         case "edit_file": return String(localized: "修改文件") + "  " + (a["path"] as? String ?? "")
+        case "delegate": return String(localized: "交给子助手") + "  " + String((a["task"] as? String ?? "").prefix(80))
+        case "plan": return String(localized: "计划")
         case "search_files": return String(localized: "搜索文件") + "  " + ([a["text"], a["name"]].compactMap { $0 as? String }.first { !$0.isEmpty } ?? "")
-        default: return call.name
+        default:
+            if let t = MCPManager.shared.tool(call.name) { return "🧩 " + t.server + " · " + t.title }
+            return call.name
         }
     }
 
@@ -681,6 +717,11 @@ struct ContextBar: View {
         let threshold = ModelManager.compressThreshold(limit)
         let nearly = limit > 0 && Double(used) > Double(threshold) * 0.8
         HStack(spacing: 10) {
+            if let notes = ProjectNotes.files(workDir: conv.workDir).last, conv.agent {
+                Label("项目说明", systemImage: "doc.text")
+                    .help(Text(verbatim: notes.path))
+                    .onTapGesture { NSWorkspace.shared.open(notes) }
+            }
             if limit > 0 && !conv.messages.isEmpty {
                 HStack(spacing: 6) {
                     UsageBar(fraction: frac, height: 5).frame(width: 70)
@@ -808,6 +849,7 @@ struct MessageActions {
     var branch: (() -> Void)?
     var retry: (() -> Void)?
     var retryWith: ((String) -> Void)?
+    var saveSkill: (() -> Void)?
 }
 
 struct ThinkingIndicator: View {
@@ -884,6 +926,34 @@ struct DocChip: View {
         .help(doc.note ?? doc.source)
         .onTapGesture {
             if FileManager.default.fileExists(atPath: doc.source) { NSWorkspace.shared.open(URL(fileURLWithPath: doc.source)) }
+        }
+    }
+}
+
+
+/// 朗读这条回答 / 停止朗读
+struct SpeakButton: View {
+    @ObservedObject var speaker = Speaker.shared
+    let id: UUID
+    let text: String
+    var body: some View {
+        let on = speaker.speaking == id
+        Button { speaker.toggle(id, text) } label: { Image(systemName: on ? "stop.circle" : "speaker.wave.2") }
+            .help(on ? Text("停止朗读") : Text("朗读")).accessibilityLabel(on ? Text("停止朗读") : Text("朗读"))
+    }
+}
+
+/// 说话时, 在输入框上面实时显示识别出的文字
+struct DictationPreview: View {
+    @ObservedObject var d = Dictation.shared
+    var body: some View {
+        if d.listening {
+            HStack(spacing: 6) {
+                Image(systemName: "waveform").foregroundStyle(.red).symbolEffect(.variableColor, isActive: true)
+                Text(d.partial.isEmpty ? String(localized: "正在听…") : d.partial).font(.callout).foregroundStyle(.secondary).lineLimit(2)
+                Spacer()
+            }
+            .padding(.horizontal, 4)
         }
     }
 }

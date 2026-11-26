@@ -7,6 +7,10 @@ struct ToolContext {
     /// 需要用户确认时调用 (返回 true = 允许)
     var approve: @MainActor (ToolCall, String) async -> Bool
     var photoStore: Store?
+    /// 把子任务交给子助手 (只有对话里有; 子助手自己不能再分派)
+    var delegate: (@MainActor (String) async -> String)?
+    /// 子助手每做一步告诉界面 (显示在「正在思考」那一行)
+    var progress: (@MainActor (String) -> Void)?
 }
 
 enum Tools {
@@ -17,7 +21,7 @@ enum Tools {
     /// 旧的工具名照样可以调用 (旧对话、自定义模型不受影响)。
     /// automation: 自动化任务才提供 notify_user
     @MainActor
-    static func definitions(photo: Bool, automation: Bool = false) -> [[String: Any]] {
+    static func definitions(photo: Bool, automation: Bool = false, delegate: Bool = false) -> [[String: Any]] {
         func fn(_ name: String, _ desc: String, _ props: [String: Any], _ required: [String] = []) -> [String: Any] {
             var params: [String: Any] = ["type": "object", "properties": props]
             if !required.isEmpty { params["required"] = required }
@@ -39,6 +43,10 @@ enum Tools {
             fn("plan", "多步任务先列计划，每做完一步再调用更新 current", ["steps": ["type": "array", "items": ["type": "string"]],
                "current": described("正在做第几步（从 1 开始）；全部做完填 0")], ["steps", "current"]),
         ]
+        if delegate {
+            defs.append(fn("delegate", "把一个独立的子任务交给子助手（全新的对话、同样的工具），只拿回它的结论。适合要读很多文件或网页的部分，能让对话保持简短",
+                           ["task": described("写清楚背景、要做什么、要返回什么（子助手看不到前面的对话）")], ["task"]))
+        }
         if automation {
             defs.append(fn("notify_user", "发 macOS 通知", ["title": str, "message": str], ["title", "message"]))
         }
@@ -83,6 +91,8 @@ enum Tools {
                 fn("chrome_click", "点 Chrome 页面编号元素；给了 text 就改为输入", ["id": int, "text": str, "submit": bool], ["id"]),
             ]
         }
+        // 接上的 MCP 外部工具 (放最后: 连接情况会变, 不影响前面部分的提示词缓存)
+        defs += MCPManager.shared.definitions()
         return defs
     }
 
@@ -227,6 +237,11 @@ enum Tools {
             let cur = PlanState.current(a)
             if cur == 0 || cur > steps.count { return "计划已全部完成。核对一下结果，然后向用户汇报。" }
             return "已记下计划（共 \(steps.count) 步）。现在做第 \(cur) 步：\(steps[cur - 1])"
+
+        case "delegate":
+            guard let task = a["task"] as? String, !task.isEmpty else { return "错误：缺少 task" }
+            guard let d = ctx.delegate else { return "错误：子助手不能再分派子任务，请自己完成。" }
+            return await d(task)
 
         case "notify_user":
             Notifier.send(title: a["title"] as? String ?? "Toolula AI", body: a["message"] as? String ?? "")
@@ -438,6 +453,7 @@ enum Tools {
             return result
 
         default:
+            if MCPManager.shared.tool(call.name) != nil { return await MCPManager.shared.run(call, ctx: ctx) }
             let known = definitions(photo: ctx.photoStore != nil).compactMap { ($0["function"] as? [String: Any])?["name"] as? String }
             return "错误：没有叫 \(call.name) 的工具。可用的工具：" + known.joined(separator: "、")
         }

@@ -17,6 +17,10 @@ enum EvalTask {
     static func run(spec url: URL, chat: ChatStore, app: AppState) async -> String {
         guard let d = try? Data(contentsOf: url), let spec = try? JSONDecoder().decode(Spec.self, from: d) else { return "eval: bad spec\n" }
         app.section = .chat
+        // 有 MCP 配置的题: 等外部工具连上 (最多 30 秒)
+        if CommandLine.arguments.contains("--mcp-config") {
+            for _ in 0..<60 where MCPManager.shared.tools.isEmpty { try? await Task.sleep(for: .seconds(0.5)) }
+        }
         let id = chat.newConversation()
         chat.update(id) { c in
             c.workDir = spec.workdir
