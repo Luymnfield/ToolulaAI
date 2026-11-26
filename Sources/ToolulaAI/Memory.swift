@@ -21,7 +21,7 @@ final class MemoryStore: ObservableObject {
     @Published var autoSave = UserDefaults.standard.object(forKey: "memoryAutoSave") as? Bool ?? true {
         didSet { UserDefaults.standard.set(autoSave, forKey: "memoryAutoSave") }
     }
-    private let file = AppPaths.support.appendingPathComponent("memory.json")
+    private let file = AppPaths.dataFile("memory.json")
 
     init() {
         if let list = SafeJSON.load([MemoryItem].self, from: file) { items = list }

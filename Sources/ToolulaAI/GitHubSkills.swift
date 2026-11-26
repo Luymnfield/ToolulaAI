@@ -207,7 +207,7 @@ enum GitHub {
 
 extension SkillStore {
     var skillsFolder: URL {
-        let u = AppPaths.support.appendingPathComponent("skills")
+        let u = AppPaths.data.appendingPathComponent("Skills")
         try? FileManager.default.createDirectory(at: u, withIntermediateDirectories: true)
         return u
     }

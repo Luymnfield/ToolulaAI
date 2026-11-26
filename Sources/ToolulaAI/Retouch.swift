@@ -271,7 +271,7 @@ final class Inpainter: @unchecked Sendable {
     private var model: MLModel?
     private let lock = NSLock()
 
-    static var dir: URL { AppPaths.support.appendingPathComponent("Models") }
+    static var dir: URL { AppPaths.models.appendingPathComponent("Retouch") }
     static var compiled: URL { dir.appendingPathComponent("LaMa.mlmodelc") }
     static var installed: Bool { FileManager.default.fileExists(atPath: compiled.path) }
     static let files = ["Manifest.json", "Data/com.apple.CoreML/model.mlmodel", "Data/com.apple.CoreML/weights/weight.bin"]

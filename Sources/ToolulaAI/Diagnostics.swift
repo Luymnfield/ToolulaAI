@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 
-/// 「导出诊断报告」: 把日志、系统信息、模型和引擎状态、最近错误打成 zip 放到桌面。
+/// 「导出诊断报告」: 把日志、系统信息、模型和引擎状态、最近错误打成 zip 放到 ~/Toolula/Logs/Diagnostics。
 /// 不包含: API Key (存在钥匙串, 不读)、对话内容、照片。日志里像密钥的字符串和提示词内容会被涂掉。
 @MainActor
 enum Diagnostics {
@@ -11,9 +11,10 @@ enum Diagnostics {
 
     /// 生成报告, 返回 zip 路径
     @discardableResult
-    static func export(to folder: URL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")) async throws -> URL {
+    static func export(to folder: URL = AppPaths.logs.appendingPathComponent("Diagnostics", isDirectory: true)) async throws -> URL {
         let state = stateReport()
-        let support = AppPaths.support
+        let support = AppPaths.logs
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         return try await Task.detached(priority: .userInitiated) {
             let fm = FileManager.default
             let name = "Toolula-诊断-\(SafeJSON.stamp())"
@@ -25,7 +26,7 @@ enum Diagnostics {
 
             try put("状态.txt", state)
             try put("系统.txt", systemReport())
-            try put("数据文件夹.txt", dataListing(support))
+            try put("数据文件夹.txt", dataListing(AppPaths.root))
             try put("进程.txt", processReport())
             for n in logNames {
                 let u = support.appendingPathComponent(n)

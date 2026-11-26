@@ -28,7 +28,7 @@ final class SkillStore: ObservableObject {
 
     @Published var skills: [Skill] = [] { didSet { save() } }
     @Published var selected: UUID?
-    private let file = AppPaths.support.appendingPathComponent("skills.json")
+    private let file = AppPaths.dataFile("skills.json")
 
     static var starters: [Skill] {
         [

@@ -207,8 +207,7 @@ extension Store {
         recordForLearning(items)
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd_HHmmss"
-        let folder = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Pictures/" + String(localized: "Toolula AI修图") + "/\(f.string(from: Date()))")
+        let folder = AppPaths.exports.appendingPathComponent("Edited Photos/\(f.string(from: Date()))")
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         working = true
         Task {

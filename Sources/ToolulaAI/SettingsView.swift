@@ -117,14 +117,9 @@ struct PrivacySettings: View {
 
     var body: some View {
         Form {
-            Section("存储位置") {
-                LabeledContent("数据文件夹") {
-                    Button(AppPaths.support.path.replacingOccurrences(of: NSHomeDirectory(), with: "~")) {
-                        NSWorkspace.shared.activateFileViewerSelecting([AppPaths.support])
-                    }
-                    .buttonStyle(.link)
-                }
-                Text("所有对话、记忆、设置都只存在这台 Mac 上。对话每个一个文件（conversations 文件夹），写入是原子的，不会写坏。")
+            StorageSection()
+            Section("对话") {
+                Text("对话每个一个文件（Chats 文件夹），写入是原子的，不会写坏。")
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 LabeledContent("对话数量") { Text("\(chat.conversations.count)") }
             }
@@ -169,7 +164,7 @@ struct DiagnosticsSettings: View {
     var body: some View {
         Form {
             Section("诊断报告") {
-                Text("把日志、系统信息、模型和引擎状态、最近错误打成 zip 放到桌面，方便排查问题。不包含 API Key、对话内容和照片。")
+                Text("把日志、系统信息、模型和引擎状态、最近错误打成 zip 放到 Toolula 文件夹的 Logs/Diagnostics 里，方便排查问题。不包含 API Key、对话内容和照片。")
                     .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Button("导出诊断报告…") {
@@ -187,7 +182,7 @@ struct DiagnosticsSettings: View {
                     if exporting { ProgressView().controlSize(.small) }
                     if let result { Text(result).font(.caption).foregroundStyle(.secondary) }
                 }
-                Button("打开日志所在文件夹") { NSWorkspace.shared.open(AppPaths.support) }
+                Button("打开日志所在文件夹") { NSWorkspace.shared.open(AppPaths.logs) }
             }
             Section("最近") {
                 if ProcessJanitor.lastCleanup.isEmpty && SafeJSON.lastErrors.isEmpty {
@@ -199,5 +194,88 @@ struct DiagnosticsSettings: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// 存储空间: Toolula 文件夹里每一类占多少, 一键打开、清理缓存
+struct StorageSection: View {
+    @State private var items: [StorageUsage.Item] = []
+    @State private var measuring = false
+    @State private var confirmClear = false
+    @State private var note: String?
+
+    static func title(_ id: String) -> String {
+        switch id {
+        case "Images": return String(localized: "生成的图片")
+        case "Videos": return String(localized: "生成的视频")
+        case "Exports": return String(localized: "修图导出和 LUT")
+        case "Chats": return String(localized: "对话")
+        case "Attachments": return String(localized: "对话附件和截图")
+        case "Backups": return String(localized: "对话备份")
+        case "Data": return String(localized: "记忆、技能、自动化等数据")
+        case "Logs": return String(localized: "日志和诊断报告")
+        case "Cache": return String(localized: "缓存（可以清理）")
+        case "Engines": return String(localized: "本地 AI 引擎")
+        case "Models": return String(localized: "Toolula 下载的模型")
+        default: return id
+        }
+    }
+
+    var cacheBytes: Int64 { items.first { $0.id == "Cache" }?.bytes ?? 0 }
+
+    var body: some View {
+        Section {
+            LabeledContent("Toolula 文件夹") {
+                Button(AppPaths.root.path.replacingOccurrences(of: NSHomeDirectory(), with: "~")) {
+                    NSWorkspace.shared.open(AppPaths.root)
+                }
+                .buttonStyle(.link)
+            }
+            if items.isEmpty {
+                HStack { ProgressView().controlSize(.small); Text("正在计算占用空间…").foregroundStyle(.secondary) }
+            }
+            ForEach(items) { it in
+                HStack {
+                    Text(Self.title(it.id))
+                    Text(it.id + "/").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Spacer()
+                    Text(ByteCountFormatter.string(fromByteCount: it.bytes, countStyle: .file)).monospacedDigit().foregroundStyle(.secondary)
+                    Button { NSWorkspace.shared.open(it.url) } label: { Image(systemName: "folder") }
+                        .buttonStyle(.borderless)
+                        .help(Text("在访达中打开"))
+                        .accessibilityLabel(Text("在访达中打开 \(Self.title(it.id))"))
+                }
+            }
+            HStack {
+                Button("清理缓存…") { confirmClear = true }
+                    .disabled(cacheBytes == 0)
+                Button("重新计算") { Task { await measure() } }.disabled(measuring)
+                if let note { Text(note).font(.caption).foregroundStyle(.secondary) }
+            }
+        } header: {
+            Text("存储空间")
+        } footer: {
+            Text("所有对话、记忆、作品都只存在这台 Mac 上，按类别放在这个文件夹里。缓存会自动控制大小（提示词缓存最多 4 GB），清理后第一次回答会稍慢。")
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+        .task { await measure() }
+        .confirmationDialog("清理缓存？", isPresented: $confirmClear) {
+            Button("清理 \(ByteCountFormatter.string(fromByteCount: cacheBytes, countStyle: .file))") {
+                Task {
+                    MLXEngine.shared.stop()      // 提示词缓存正在被 MTP 引擎使用时先停掉它
+                    let freed = await Task.detached { StorageUsage.clearCache() }.value
+                    note = String(localized: "已释放 \(ByteCountFormatter.string(fromByteCount: freed, countStyle: .file))")
+                    await measure()
+                }
+            }
+        } message: {
+            Text("会删除提示词缓存、视频预览和修图临时图片。对话、作品和模型都不受影响。")
+        }
+    }
+
+    func measure() async {
+        measuring = true
+        items = await Task.detached(priority: .utility) { StorageUsage.measure() }.value
+        measuring = false
     }
 }

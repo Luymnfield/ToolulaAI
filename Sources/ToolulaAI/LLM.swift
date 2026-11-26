@@ -189,7 +189,7 @@ final class ModelManager: ObservableObject {
         }
     }
 
-    private let providersFile = AppPaths.support.appendingPathComponent("providers.json")
+    private let providersFile = AppPaths.dataFile("providers.json")
 
     /// 自动压缩的触发点: 上下文的 75%, 但最多 3.2 万 token (再长读起来就明显变慢了)
     nonisolated static func compressThreshold(_ limit: Int) -> Int { min(Int(Double(limit) * 0.75), 32_000) }
@@ -282,7 +282,7 @@ final class ModelManager: ObservableObject {
             ["base": ep.isLocal && !photoModel.hasPrefix("builtin:") ? "" : ep.base.absoluteString,
              "model": ep.model, "builtin": photoModel.hasPrefix("builtin:"), "cloud": !ep.isLocal]
         if let data = try? JSONSerialization.data(withJSONObject: cfg, options: .prettyPrinted) {
-            try? data.write(to: AppPaths.support.appendingPathComponent("photo_model.json"))
+            try? data.write(to: AppPaths.dataFile("photo_model.json"))
         }
     }
 

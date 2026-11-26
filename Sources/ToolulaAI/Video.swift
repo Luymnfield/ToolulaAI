@@ -114,7 +114,7 @@ final class ComfyEngine: ObservableObject {
             if let i = inst.input { args += ["--input-directory", i.path] }
             if let o = inst.output { args += ["--output-directory", o.path] }
             p.arguments = args
-            let log = AppPaths.support.appendingPathComponent("comfyui.log")
+            let log = AppPaths.log("comfyui.log")
             FileManager.default.createFile(atPath: log.path, contents: nil)
             if let h = try? FileHandle(forWritingTo: log) { p.standardOutput = h; p.standardError = h }
             do { try p.run(); process = p } catch { message = error.localizedDescription; return }
@@ -133,6 +133,14 @@ final class ComfyEngine: ObservableObject {
             if online { message = nil; return }
         }
         message = String(localized: "ComfyUI 启动超时，可以打开 Comfy Desktop 看看有没有报错。")
+    }
+
+    /// 把 ComfyUI 输出文件夹里 Toolula 生成的文件挪到 Toolula 文件夹 (同一个磁盘上只是改名, 不留两份)。
+    /// 别的程序生成的文件 (不在 Toolula 子文件夹里) 只复制, 不动原文件。
+    static func takeOutput(_ out: URL, to dest: URL) {
+        let fm = FileManager.default
+        if out.deletingLastPathComponent().lastPathComponent == "Toolula", (try? fm.moveItem(at: out, to: dest)) != nil { return }
+        try? fm.copyItem(at: out, to: dest)
     }
 
     /// Toolula 退出时关掉自己启动的 ComfyUI
@@ -316,7 +324,7 @@ final class VideoStore: ObservableObject {
     private var lastSpec: String?
     private var runningSpec = ""
     private var socket: URLSessionWebSocketTask?
-    private let file = AppPaths.support.appendingPathComponent("videos.json")
+    private let file = AppPaths.dataFile("videos.json")
 
     init() {
         if let list = SafeJSON.load([VideoItem].self, from: file) {
@@ -417,7 +425,7 @@ final class VideoStore: ObservableObject {
         }
         guard let f = await runPrompt(g, output: "16", clientId: clientId, firstStage: previewG == nil),
               let fname = f["filename"] as? String else { return nil }
-        let dest = Self.videosFolder.appendingPathComponent(fname)
+        let dest = AppPaths.unique(fname, in: Self.videosFolder)
         _ = await outputFile(f, saveTo: dest)
         var item = VideoItem(prompt: text, path: dest.path, width: w, height: h, seconds: Double(length) / 24, seed: s,
                              fromImage: uploaded != nil, elapsed: Date().timeIntervalSince(startedAt ?? Date()))
@@ -443,7 +451,7 @@ final class VideoStore: ObservableObject {
         if let p = previewPath, let f = previewFile, let name = f["filename"] as? String,
            let out = Self.comfyOutput(f), out.lastPathComponent == name, p == out.path {
             try? FileManager.default.removeItem(at: out)
-        } else if let p = previewPath, p.hasPrefix(AppPaths.support.path) {
+        } else if let p = previewPath, p.hasPrefix(AppPaths.cache.path) {
             try? FileManager.default.removeItem(atPath: p)
         }
         previewPath = nil
@@ -498,10 +506,10 @@ final class VideoStore: ObservableObject {
         let out = Self.comfyOutput(f)
         let exists = out.map { FileManager.default.fileExists(atPath: $0.path) } ?? false
         if dest == nil, exists { return out }
-        let target = dest ?? AppPaths.support.appendingPathComponent("preview-" + fname)
+        let target = dest ?? AppPaths.cacheDir("Previews").appendingPathComponent(fname)
         if exists, let out {
             try? FileManager.default.removeItem(at: target)
-            try? FileManager.default.copyItem(at: out, to: target)
+            ComfyEngine.takeOutput(out, to: target)
         }
         if !FileManager.default.fileExists(atPath: target.path) {
             var c = URLComponents(url: ComfyEngine.shared.base.appendingPathComponent("view"), resolvingAgainstBaseURL: false)!
@@ -579,11 +587,7 @@ final class VideoStore: ObservableObject {
         }
     }
 
-    static var videosFolder: URL {
-        let u = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Movies/Toolula AI")
-        try? FileManager.default.createDirectory(at: u, withIntermediateDirectories: true)
-        return u
-    }
+    static var videosFolder: URL { AppPaths.videos }
 
     /// 用对话模型把一句话想法扩写成 H3 擅长的英文提示词
     func improvePrompt() {

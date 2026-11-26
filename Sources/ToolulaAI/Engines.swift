@@ -4,25 +4,25 @@ import SwiftUI
 // MARK: - Toolula 自己管理的运行环境
 //
 // 别人的 Mac 上可能什么都没装. 这里的东西都由 Toolula 按需下载到
-// ~/Library/Application Support/ToolulaAI/Engines, 不需要用户自己装 LM Studio / ComfyUI / Python.
+// ~/Toolula/Engines, 不需要用户自己装 LM Studio / ComfyUI / Python.
 //   - 内置对话引擎: llama.cpp 的 llama-server (开源, MIT), 跑 GGUF 模型, 能看图, 支持工具调用
 //   - 视频引擎: ComfyUI (开源, GPL) + 独立的 Python 环境 (用 uv 安装)
 //   - Python: 修图脚本需要; 没装 Xcode 命令行工具的 Mac 上 /usr/bin/python3 不能用
 
 enum EnginePaths {
-    static let root: URL = AppPaths.support.appendingPathComponent("Engines")
+    static let root: URL = AppPaths.engines
     static let llama = root.appendingPathComponent("llama")
     static let llamaServer = llama.appendingPathComponent("llama-server")
     static let uv = root.appendingPathComponent("uv/uv")
     static let pythonInstalls = root.appendingPathComponent("python")
     static let pyenv = root.appendingPathComponent("pyenv")
     static let comfy = root.appendingPathComponent("Comfy")
-    static let uvCache = root.appendingPathComponent("uv-cache")
+    static let uvCache = AppPaths.cache.appendingPathComponent("uv")
     /// 内置引擎的模型 (每个模型一个文件夹: 模型 .gguf + 看图用的 mmproj .gguf)
-    static let models = AppPaths.support.appendingPathComponent("LocalModels")
+    static let models = AppPaths.models.appendingPathComponent("Chat")
     /// 给修图脚本 (Lightroom 插件也会用) 的启动信息
-    static let engineInfo = AppPaths.support.appendingPathComponent("engine.json")
-    static let log = AppPaths.support.appendingPathComponent("engines.log")
+    static let engineInfo = AppPaths.dataFile("engine.json")
+    static let log = AppPaths.log("engines.log")
 }
 
 /// 固定版本 (测试过的), 不跟着上游每天变
@@ -228,7 +228,7 @@ final class BuiltinEngine: ObservableObject {
         p.executableURL = EnginePaths.llamaServer
         p.arguments = Self.launchArgs
         p.currentDirectoryURL = EnginePaths.llama
-        let log = AppPaths.support.appendingPathComponent("llama.log")
+        let log = AppPaths.log("llama.log")
         FileManager.default.createFile(atPath: log.path, contents: nil)
         if let h = try? FileHandle(forWritingTo: log) { p.standardOutput = h; p.standardError = h }
         try p.run()

@@ -46,19 +46,6 @@ struct ChatStats: Codable, Hashable {
     var promptSeconds = 0.0    // 开始回答前读提示词用的时间
 }
 
-enum AppPaths {
-    static let support: URL = {
-        let u = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/ToolulaAI")
-        try? FileManager.default.createDirectory(at: u, withIntermediateDirectories: true)
-        return u
-    }()
-    static let attachments: URL = {
-        let u = support.appendingPathComponent("attachments")
-        try? FileManager.default.createDirectory(at: u, withIntermediateDirectories: true)
-        return u
-    }()
-}
-
 // MARK: - Agent: 对话 + 工具循环 (对话和自动化共用)
 
 enum Agent {
@@ -245,8 +232,8 @@ final class ChatStore: ObservableObject {
     private var tasks: [UUID: Task<Void, Never>] = [:]
     let storage: ConversationStorage
 
-    init(root: URL = AppPaths.support) {
-        storage = ConversationStorage(root: root)
+    init(root: URL? = nil) {
+        storage = root.map { ConversationStorage(root: $0) } ?? ConversationStorage(dir: AppPaths.chats, backups: AppPaths.backups, legacy: AppPaths.dataFile("conversations.json"))
         let list = storage.load()
         // 启动时清掉没说过话的空对话
         conversations = list.filter { !$0.messages.isEmpty }

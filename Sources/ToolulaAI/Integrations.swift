@@ -50,7 +50,7 @@ enum EditorApp: String, CaseIterable, Identifiable {
 
 enum Integrations {
     static var baseFolder: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures/Toolula AI")
+        AppPaths.exports
     }
 
     static func stampFolder(_ name: String) -> URL {

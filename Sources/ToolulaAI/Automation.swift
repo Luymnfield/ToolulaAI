@@ -84,8 +84,8 @@ final class AutomationStore: ObservableObject {
     @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
     weak var photoStore: Store?
     private var timer: Timer?
-    private let tasksFile = AppPaths.support.appendingPathComponent("automations.json")
-    private let runsFile = AppPaths.support.appendingPathComponent("automation_runs.json")
+    private let tasksFile = AppPaths.dataFile("automations.json")
+    private let runsFile = AppPaths.dataFile("automation_runs.json")
 
     init() {
         if let t = SafeJSON.load([AutomationTask].self, from: tasksFile) { tasks = t }

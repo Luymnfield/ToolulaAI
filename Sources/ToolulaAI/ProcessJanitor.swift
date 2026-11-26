@@ -19,7 +19,7 @@ enum ProcessJanitor {
 
     struct PSInfo { let ppid: Int32; let started: String; let command: String }
 
-    nonisolated(unsafe) static var dir = AppPaths.support.appendingPathComponent("pids", isDirectory: true)
+    nonisolated(unsafe) static var dir = AppPaths.cache.appendingPathComponent("run", isDirectory: true)
     nonisolated(unsafe) static var lastCleanup: [String] = []
 
     /// 文件名带 pid: 新启动的进程不会覆盖上次残留进程的记录

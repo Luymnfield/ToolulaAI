@@ -90,6 +90,9 @@ struct ToolulaAIApp: App {
     @AppStorage("backgroundMode") private var backgroundMode = false
 
     init() {
+        // 第一次启动新版本: 把旧位置的数据和作品搬进 ~/Toolula (要在任何地方读写数据之前)
+        StorageMigration.runIfNeeded()
+        StorageUsage.trimMLXCache()     // 引擎还没启动, 这时清提示词缓存最安全
         // 滚动条只在滚动时出现 (只影响 Toolula 自己, 不改系统设置)
         UserDefaults.standard.set("WhenScrolling", forKey: "AppleShowScrollBars")
     }
@@ -173,6 +176,7 @@ struct ToolulaAIApp: App {
         QuickAsk.shared.setup(chat: chat, app: app)
         automations.photoStore = store
         SystemInfo.shared.start()
+        Task.detached(priority: .background) { StorageUsage.routineCleanup() }
         Task.detached { LightroomSetup.syncPlugin() }
         ModelManager.shared.refresh()
         if BuiltinEngine.installed { BuiltinEngine.writeInfo() }

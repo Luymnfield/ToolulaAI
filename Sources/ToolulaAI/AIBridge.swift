@@ -16,9 +16,7 @@ enum AIBridge {
     }
 
     static let workDir: URL = {
-        let d = FileManager.default.temporaryDirectory.appendingPathComponent("ToolulaAI", isDirectory: true)
-        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
-        return d
+        AppPaths.cacheDir("Photo")
     }()
 
     /// 同步执行, 请在后台线程调用

@@ -72,11 +72,17 @@ final class ConversationStorage: @unchecked Sendable {
     private var saved: [UUID: Conversation] = [:]     // 上次写到硬盘的内容 (只在 queue 上访问)
     private var savedOrder: [UUID] = []
 
-    init(root: URL) {
-        self.root = root
-        dir = root.appendingPathComponent("conversations", isDirectory: true)
-        backups = root.appendingPathComponent("backups", isDirectory: true)
-        legacy = root.appendingPathComponent("conversations.json")
+    convenience init(root: URL) {
+        self.init(dir: root.appendingPathComponent("conversations", isDirectory: true),
+                  backups: root.appendingPathComponent("backups", isDirectory: true),
+                  legacy: root.appendingPathComponent("conversations.json"))
+    }
+
+    init(dir: URL, backups: URL, legacy: URL) {
+        self.root = dir.deletingLastPathComponent()
+        self.dir = dir
+        self.backups = backups
+        self.legacy = legacy
     }
 
     private var indexFile: URL { dir.appendingPathComponent("index.json") }

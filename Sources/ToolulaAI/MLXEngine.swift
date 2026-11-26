@@ -65,7 +65,7 @@ final class MLXEngine: ObservableObject {
 
     nonisolated static var envDir: URL { EnginePaths.root.appendingPathComponent("mlx") }
     nonisolated static var python: URL { envDir.appendingPathComponent("bin/python3") }
-    nonisolated static var cacheDir: URL { EnginePaths.root.appendingPathComponent("mlx-cache") }
+    nonisolated static var cacheDir: URL { AppPaths.cache.appendingPathComponent("MLX") }
     nonisolated static var runtimeInstalled: Bool { FileManager.default.isExecutableFile(atPath: python.path) }
 
     @Published var installing = false
@@ -155,12 +155,13 @@ final class MLXEngine: ObservableObject {
         proc.arguments = ["-m", "mlx_vlm.server", "--host", "127.0.0.1", "--port", String(Self.port),
                           "--model", target.path, "--draft-model", p.draftDir.path, "--draft-kind", "mtp", "--max-num-seqs", "4"]
         var env = ProcessInfo.processInfo.environment
+        env["APC_DISK_MAX_GB"] = "4"                      // 硬盘上的提示词缓存最多 4 GB (默认 20 GB), 超过自动删最旧的
         env["APC_ENABLED"] = "1"                          // 前缀缓存: 对话里没变的部分不重新读
         env["APC_CHECKPOINT_INTERVAL_TOKENS"] = "512"     // Qwen3.8 是混合结构, 只能从检查点接着用缓存
         env["MLX_VLM_CACHE_HOME"] = Self.cacheDir.path
         env["HF_HUB_OFFLINE"] = "1"                       // 只用本地文件, 不联网
         proc.environment = env
-        let log = AppPaths.support.appendingPathComponent("mlx.log")
+        let log = AppPaths.log("mlx.log")
         FileManager.default.createFile(atPath: log.path, contents: nil)
         if let h = try? FileHandle(forWritingTo: log) { proc.standardOutput = h; proc.standardError = h }
         try proc.run()

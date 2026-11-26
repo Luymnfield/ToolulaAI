@@ -280,7 +280,7 @@ final class ImageStore: ObservableObject {
     @Published var improving = false
     private var loadedSpec: String?
     private var socket: URLSessionWebSocketTask?
-    private let file = AppPaths.support.appendingPathComponent("images.json")
+    private let file = AppPaths.dataFile("images.json")
 
     init() {
         if let list = SafeJSON.load([ImageItem].self, from: file) {
@@ -293,11 +293,7 @@ final class ImageStore: ObservableObject {
         SafeJSON.save(items, to: file)
     }
 
-    static var folder: URL {
-        let u = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures/Toolula AI")
-        try? FileManager.default.createDirectory(at: u, withIntermediateDirectories: true)
-        return u
-    }
+    static var folder: URL { AppPaths.images }
 
     var currentEstimate: Double {
         let (w, h) = quality.size(aspect)
@@ -374,11 +370,11 @@ final class ImageStore: ObservableObject {
             for f in files {
                 guard let fname = f["filename"] as? String else { continue }
                 let sub = f["subfolder"] as? String ?? ""
-                let dest = Self.folder.appendingPathComponent(fname)
+                // 不覆盖以前的作品; 从 ComfyUI 输出文件夹挪过来 (不留两份)
+                let dest = AppPaths.unique(fname, in: Self.folder)
                 if let out = ComfyEngine.findInstall()?.output?.appendingPathComponent(sub).appendingPathComponent(fname),
                    FileManager.default.fileExists(atPath: out.path) {
-                    try? FileManager.default.removeItem(at: dest)
-                    try? FileManager.default.copyItem(at: out, to: dest)
+                    ComfyEngine.takeOutput(out, to: dest)
                 }
                 if !FileManager.default.fileExists(atPath: dest.path) {
                     var c = URLComponents(url: engine.base.appendingPathComponent("view"), resolvingAgainstBaseURL: false)!

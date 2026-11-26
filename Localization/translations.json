@@ -4142,5 +4142,89 @@
  "打开绘图或视频页时，在后台先启动 ComfyUI 并加载模型，第一次生成少等 15–50 秒。离开页面 5 分钟后自动释放内存。关掉后，已预加载的模型会立即卸载。": [
   "When you open the Image or Video page, ComfyUI starts in the background and loads the model, so the first generation waits 15–50 seconds less. Memory is released 5 minutes after you leave the page. Turning this off unloads pre-loaded models right away.",
   "Beim Öffnen der Bild- oder Video-Seite startet ComfyUI im Hintergrund und lädt das Modell – die erste Erzeugung wartet 15–50 Sekunden weniger. 5 Minuten nach dem Verlassen der Seite wird der Speicher freigegeben. Beim Ausschalten werden vorgeladene Modelle sofort entladen."
+ ],
+ "对话每个一个文件（Chats 文件夹），写入是原子的，不会写坏。": [
+  "Each chat is its own file (Chats folder), written atomically so it can't be corrupted.",
+  "Jeder Chat ist eine eigene Datei (Ordner Chats), atomar geschrieben – sie kann nicht beschädigt werden."
+ ],
+ "把日志、系统信息、模型和引擎状态、最近错误打成 zip 放到 Toolula 文件夹的 Logs/Diagnostics 里，方便排查问题。不包含 API Key、对话内容和照片。": [
+  "Packs logs, system info, model and engine status and recent errors into a zip in Logs/Diagnostics inside the Toolula folder, for troubleshooting. No API keys, chat content or photos are included.",
+  "Packt Protokolle, Systeminfos, Modell- und Engine-Status sowie letzte Fehler als ZIP in Logs/Diagnostics im Toolula-Ordner – zur Fehlersuche. Ohne API-Schlüssel, Chat-Inhalte und Fotos."
+ ],
+ "修图导出和 LUT": [
+  "Photo exports and LUTs",
+  "Foto-Exporte und LUTs"
+ ],
+ "对话附件和截图": [
+  "Chat attachments and screenshots",
+  "Chat-Anhänge und Bildschirmfotos"
+ ],
+ "对话备份": [
+  "Chat backups",
+  "Chat-Backups"
+ ],
+ "记忆、技能、自动化等数据": [
+  "Memory, skills, automations and other data",
+  "Erinnerungen, Skills, Automationen und andere Daten"
+ ],
+ "日志和诊断报告": [
+  "Logs and diagnostic reports",
+  "Protokolle und Diagnoseberichte"
+ ],
+ "缓存（可以清理）": [
+  "Cache (safe to clear)",
+  "Cache (kann geleert werden)"
+ ],
+ "本地 AI 引擎": [
+  "Local AI engines",
+  "Lokale KI-Engines"
+ ],
+ "Toolula 下载的模型": [
+  "Models downloaded by Toolula",
+  "Von Toolula geladene Modelle"
+ ],
+ "Toolula 文件夹": [
+  "Toolula folder",
+  "Toolula-Ordner"
+ ],
+ "正在计算占用空间…": [
+  "Calculating space used…",
+  "Belegter Speicher wird berechnet …"
+ ],
+ "在访达中打开 %@": [
+  "Open %@ in Finder",
+  "%@ im Finder öffnen"
+ ],
+ "清理缓存…": [
+  "Clear Cache…",
+  "Cache leeren …"
+ ],
+ "重新计算": [
+  "Recalculate",
+  "Neu berechnen"
+ ],
+ "存储空间": [
+  "Storage",
+  "Speicherplatz"
+ ],
+ "所有对话、记忆、作品都只存在这台 Mac 上，按类别放在这个文件夹里。缓存会自动控制大小（提示词缓存最多 4 GB），清理后第一次回答会稍慢。": [
+  "All chats, memories and creations stay on this Mac, sorted by type in this folder. Caches are size-limited automatically (prompt cache up to 4 GB); after clearing, the first answer is a bit slower.",
+  "Alle Chats, Erinnerungen und Werke bleiben auf diesem Mac, nach Art sortiert in diesem Ordner. Caches werden automatisch begrenzt (Prompt-Cache höchstens 4 GB); nach dem Leeren dauert die erste Antwort etwas länger."
+ ],
+ "清理缓存？": [
+  "Clear the cache?",
+  "Cache leeren?"
+ ],
+ "清理 %@": [
+  "Clear %@",
+  "%@ leeren"
+ ],
+ "已释放 %@": [
+  "Freed %@",
+  "%@ freigegeben"
+ ],
+ "会删除提示词缓存、视频预览和修图临时图片。对话、作品和模型都不受影响。": [
+  "Deletes the prompt cache, video previews and temporary photo-editing images. Chats, creations and models are not affected.",
+  "Löscht Prompt-Cache, Videovorschauen und temporäre Bilder der Fotobearbeitung. Chats, Werke und Modelle bleiben unberührt."
  ]
 }

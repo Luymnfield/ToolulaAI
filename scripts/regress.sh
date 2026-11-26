@@ -26,7 +26,7 @@ done
 
 APP="$ROOT/build/selftest/Toolula AI.app"
 DOMAIN=com.toolula.ai-photo-edit
-DATA="$HOME/Library/Application Support/ToolulaAI"
+DATA="$HOME/Toolula"
 STAMP=$(date +%Y%m%d-%H%M%S)
 OUT="$ROOT/regress-results/$STAMP"
 PREVS=("$ROOT"/regress-results/2*(/N))
@@ -50,7 +50,7 @@ fi
 OLD_CHAT=$(defaults read $DOMAIN chatModel 2>/dev/null || echo "")
 OLD_PHOTO=$(defaults read $DOMAIN photoModel 2>/dev/null || echo "")
 OLD_SECTION=$(defaults read $DOMAIN section 2>/dev/null || echo "")
-CONV_BEFORE=$(ls "$DATA/conversations" 2>/dev/null | grep -c '\.json$' || true)
+CONV_BEFORE=$(ls "$DATA/Chats" 2>/dev/null | grep -c '\.json$' || true)
 LMS=~/.lmstudio/bin/lms
 lms_loaded() { [[ -x $LMS ]] && $LMS ps --json 2>/dev/null | /usr/bin/python3 -c 'import json,sys
 try: print("\n".join(sorted(m.get("identifier") or m.get("modelKey") or "" for m in json.load(sys.stdin))))
@@ -146,7 +146,7 @@ if (( ! QUICK )); then
 fi
 
 # 用户数据核对: 测试前后对话数量一致
-CONV_AFTER=$(ls "$DATA/conversations" 2>/dev/null | grep -c '\.json$' || true)
+CONV_AFTER=$(ls "$DATA/Chats" 2>/dev/null | grep -c '\.json$' || true)
 if [[ "$CONV_BEFORE" != "$CONV_AFTER" ]]; then
   FAIL=$((FAIL+1)); ROWS+=("| 用户数据 | ❌ | | 对话文件数 $CONV_BEFORE -> $CONV_AFTER | |")
 else
