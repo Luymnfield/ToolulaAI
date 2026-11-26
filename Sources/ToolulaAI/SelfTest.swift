@@ -12,6 +12,46 @@ enum SelfTest {
 }
 
 #if TOOLULA_SELFTEST
+import Carbon.HIToolbox
+
+/// 用 CGEvent 模拟按键 (自测用)
+enum SelfTestKeys {
+    static let named: [String: Int] = ["return": kVK_Return, "down": kVK_DownArrow, "up": kVK_UpArrow, "esc": kVK_Escape,
+                                       "tab": kVK_Tab, "space": kVK_Space, "k": kVK_ANSI_K, "n": kVK_ANSI_N, ",": kVK_ANSI_Comma]
+    static func post(_ step: String) {
+        if step.hasPrefix("text:") {
+            for ch in step.dropFirst(5) {
+                let u = Array(String(ch).utf16)
+                for down in [true, false] {
+                    let e = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: down)
+                    e?.keyboardSetUnicodeString(stringLength: u.count, unicodeString: u)
+                    e?.postToPid(getpid())
+                }
+                usleep(30_000)
+            }
+            return
+        }
+        var parts = step.split(separator: "+").map(String.init)
+        let key = parts.removeLast()
+        var flags: CGEventFlags = []
+        for m in parts {
+            switch m {
+            case "cmd": flags.insert(.maskCommand)
+            case "opt": flags.insert(.maskAlternate)
+            case "ctrl": flags.insert(.maskControl)
+            case "shift": flags.insert(.maskShift)
+            default: break
+            }
+        }
+        guard let code = named[key] else { return }
+        for down in [true, false] {
+            let e = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(code), keyDown: down)
+            e?.flags = flags
+            e?.post(tap: .cghidEventTap)
+        }
+    }
+}
+
 extension AppDelegate {
     /// 自测: 模拟一台什么都没装的 Mac (不影响真实文件, 只影响检测结果)
     func applySelfTestFlags() {
@@ -38,7 +78,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -248,6 +288,18 @@ extension AppDelegate {
                     let zip = try await Diagnostics.export(to: URL(fileURLWithPath: dd))
                     log += "diagnostics: \(zip.path)\n"
                 } catch { log += "diagnostics error: \(error.localizedDescription)\n" }
+            }
+            if let pq = val("--palette-query") { CommandPalette.seed = pq }
+            if let spec = val("--keys") {
+                // 模拟键盘操作 (需要辅助功能权限), 例: "cmd+k|text:模型|down|return"
+                NSApp.activate(ignoringOtherApps: true)
+                try? await Task.sleep(for: .seconds(0.5))
+                for step in spec.split(separator: "|").map(String.init) {
+                    SelfTestKeys.post(step)
+                    try? await Task.sleep(for: .seconds(0.6))
+                }
+                try? await Task.sleep(for: .seconds(1))
+                log += "keys: section=\(app.section) palette=\(app.showPalette) chatModel=\(ModelManager.shared.chatModel) selected=\(chat.current?.title ?? "-")\n"
             }
             if args.contains("--hotkey-check") {
                 log += "hotkey check: \(HotKeyCenter.shared.quickAsk.display) error=\(HotKeyCenter.shared.error ?? "-") conflict(⌘Space)=\(HotKey(keyCode: 49, modifiers: 256).systemConflict ?? "-")\n"

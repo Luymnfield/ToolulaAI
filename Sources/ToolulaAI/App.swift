@@ -147,6 +147,8 @@ struct ToolulaAIApp: App {
                 }
             }
             CommandMenu("前往") {
+                Button("命令面板…") { app.showPalette.toggle() }.keyboardShortcut("k")
+                Divider()
                 ForEach(Array(AppSection.allCases.enumerated()), id: \.element) { i, s in
                     Button(s.rawValue.locKey) { app.section = s }.keyboardShortcut(KeyEquivalent(Character("\(i + 1)")), modifiers: .command)
                 }

@@ -33,6 +33,7 @@ final class AppState: ObservableObject {
     @Published var section: AppSection = AppSection(rawValue: UserDefaults.standard.string(forKey: "section") ?? "") ?? .home {
         didSet { UserDefaults.standard.set(section.rawValue, forKey: "section") }
     }
+    @Published var showPalette = false
 }
 
 /// Toolula 的品牌绿 (取自变色龙 logo)
@@ -42,6 +43,7 @@ extension Color {
 
 struct RootView: View {
     @EnvironmentObject var app: AppState
+    @EnvironmentObject var chat: ChatStore
     @EnvironmentObject var automations: AutomationStore
     @ObservedObject var models = ModelManager.shared
     @ObservedObject var info = SystemInfo.shared
@@ -71,6 +73,7 @@ struct RootView: View {
             ToolbarItem(placement: .primaryAction) { AppearanceButton() }
         }
         .sheet(isPresented: $wizard.show) { SetupWizard().environmentObject(app) }
+        .sheet(isPresented: $app.showPalette) { CommandPalette().environmentObject(app).environmentObject(chat) }
         .onAppear { WindowOpener.open = openWindow }
         .modifier(PageTitle(section: app.section))
     }
