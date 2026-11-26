@@ -149,6 +149,8 @@ final class MLXEngine: ObservableObject {
         if !loadedInLMS.isEmpty, FileManager.default.fileExists(atPath: lms) {
             await Task.detached { for id in loadedInLMS { _ = Exporter.shell(lms, ["unload", id]) } }.value
         }
+        // 统一调度内存: 放不下就请最久没用的模型让位
+        await MemoryBroker.shared.makeRoom(MemoryBroker.folderGB(target.path) * 1.1 + 2, for: .mlx)
         try? FileManager.default.createDirectory(at: Self.cacheDir, withIntermediateDirectories: true)
         let proc = Process()
         proc.executableURL = Self.python

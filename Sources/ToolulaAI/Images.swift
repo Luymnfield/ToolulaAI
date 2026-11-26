@@ -327,13 +327,15 @@ final class ImageStore: ObservableObject {
         stage = String(localized: "启动图片引擎…")
         await engine.start()
         guard engine.online else { error = engine.message ?? String(localized: "ComfyUI 没有启动"); return [] }
-        // 内存不大的电脑: 先让对话模型放下
-        if Recommender.ramGB < 64 {
-            stage = String(localized: "释放对话模型占用的内存…")
-            BuiltinEngine.shared.stop()
-            MLXEngine.shared.stop()
-            _ = await Task.detached { FileManager.default.fileExists(atPath: ModelManager.lms) ? Exporter.shell(ModelManager.lms, ["unload", "--all"]) : (0, "") }.value
+        // 统一调度内存: 模型还没加载时, 内存不够才请最久没用的模型让位 (够就都留着, 切回对话不用重新加载)
+        if loadedSpec != spec.id {
+            let broker = MemoryBroker.shared
+            if VideoStore.shared.loadedId != nil || loadedSpec != nil { await broker.evict(.comfy) }   // ComfyUI 里换模型
+            let need = spec.files.reduce(0) { $0 + $1.sizeGB } * 1.15
+            if !broker.fits(need) { stage = String(localized: "腾出内存…") }
+            await broker.makeRoom(need, for: .comfy)
         }
+        MemoryBroker.shared.touch(.comfy)
         guard let g = spec.graph(prompt: text, width: w, height: h, count: num, seed: s, files: models.installed[spec.id] ?? [:]) else {
             error = String(localized: "模型文件不完整"); return []
         }
@@ -402,6 +404,7 @@ final class ImageStore: ObservableObject {
 
     // 预热 (ComfyWarmup) 用
     func isLoaded(_ id: String) -> Bool { loadedSpec == id }
+    var loadedId: String? { loadedSpec }
     func markLoaded(_ id: String) { loadedSpec = id }
     func modelsUnloaded() { loadedSpec = nil }
 

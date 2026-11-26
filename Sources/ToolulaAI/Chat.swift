@@ -515,6 +515,8 @@ final class ChatStore: ObservableObject {
         warmingConv = id
         let t = Task.detached(priority: .utility) {
             await prev?.value
+            // 预热只是「可能会用到」: 要请别的模型让位才放得下时就不预热
+            guard await MemoryBroker.shared.canWarm(model) else { await MainActor.run { ChatStore.lastWarmError = "skipped: memory" }; return }
             do { _ = try await LLMClient.stream(model: model, messages: msgs, tools: tools, reasoning: "none", useDraft: false, maxTokens: 1) { _, _ in } }
             catch { await MainActor.run { ChatStore.lastWarmError = "\(error)" } }
         }

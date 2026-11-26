@@ -54,3 +54,19 @@ final class StorageLayoutTests: XCTestCase {
         XCTAssertTrue(fm.fileExists(atPath: dst.appendingPathComponent("f").path))
     }
 }
+
+/// 内存调度的小工具
+final class MemoryBrokerTests: XCTestCase {
+    func testTenantForModel() {
+        XCTAssertNil(MemoryBroker.Tenant.forModel("cloud:abc/gpt"))
+        XCTAssertEqual(MemoryBroker.Tenant.forModel("mlx:qwen3.8-27b"), .mlx)
+        XCTAssertEqual(MemoryBroker.Tenant.forModel("builtin:qwen"), .builtin)
+        XCTAssertEqual(MemoryBroker.Tenant.forModel("qwen/qwen3.8-27b"), .lmstudio("qwen/qwen3.8-27b"))
+    }
+
+    func testInstanceBaseId() {
+        XCTAssertEqual(MemoryBroker.baseId("qwen/qwen3.8-27b:2"), "qwen/qwen3.8-27b")
+        XCTAssertNil(MemoryBroker.baseId("qwen/qwen3.8-27b"))
+        XCTAssertNil(MemoryBroker.baseId("model:latest"))
+    }
+}

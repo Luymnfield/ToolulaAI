@@ -154,6 +154,9 @@ final class ModelManager: ObservableObject {
         if let url = URL(string: "\(LLMClient.base.absoluteString)/api/v0/models/\(enc)"),
            let (d, _) = try? await URLSession.shared.data(from: url),
            let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any], obj["state"] as? String == "loaded" { return }
+        // 正在加载 (例如预热触发的按需加载) 也算: 不要再加载第二份 (会变成 "id:2", 占两倍内存)
+        if await MemoryBroker.lmsInstances().contains(where: { $0.modelKey == id || $0.identifier == id }) { return }
+        await MemoryBroker.shared.prepareChat(id)
         let lms = Self.lms
         _ = await Task.detached { Exporter.shell(lms, ["load", id, "--ttl", "3600", "-y"]) }.value
         refresh()
@@ -457,6 +460,13 @@ enum LLMClient {
     static func stream(model: String, messages: [[String: Any]], tools: [[String: Any]]?, reasoning: String,
                        useDraft: Bool = true, maxTokens: Int? = nil,
                        onDelta: @escaping @MainActor (String, String) -> Void) async throws -> LLMResult {
+        // 统一调度内存: 这个模型还没在内存里就先腾地方; 用的期间标记为「正在用」, 不会被请去让位
+        let tenant = MemoryBroker.Tenant.forModel(model)
+        if let tenant {
+            await MemoryBroker.shared.prepareChat(model)
+            await MemoryBroker.shared.begin(tenant)
+        }
+        defer { if let tenant { Task { @MainActor in MemoryBroker.shared.end(tenant) } } }
         let ep = await ModelManager.shared.endpoint(model)
         let draft = useDraft && !model.hasPrefix("builtin:") && !model.hasPrefix("mlx:") && ep.isLocal ? await ModelManager.shared.draftModel(for: model) : nil
         if model.hasPrefix("builtin:") { try await BuiltinEngine.shared.ensureRunning() }

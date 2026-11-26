@@ -117,7 +117,7 @@ struct RootView: View {
                 .help(models.online ? Text("本地 AI 在线") : Text("本地 AI 离线"))
                 .accessibilityElement()
                 .accessibilityLabel(models.online ? Text("本地 AI 在线") : Text("本地 AI 离线"))
-            MachineBadge(compact: true)
+            MemoryBadgeButton()
                 .frame(width: 70)
                 .padding(.bottom, 10)
         }

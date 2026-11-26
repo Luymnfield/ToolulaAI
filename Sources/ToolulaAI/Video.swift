@@ -380,11 +380,15 @@ final class VideoStore: ObservableObject {
         guard engine.online else { error = engine.message ?? String(localized: "视频引擎没有启动"); return nil }
         if lastSpec != spec.id { modelsLoaded = false }
 
-        // 视频模型很占内存: 先让对话引擎 (LM Studio / 内置引擎) 把对话模型放下
-        stage = String(localized: "释放对话模型占用的内存…")
-        BuiltinEngine.shared.stop()
-        MLXEngine.shared.stop()
-        _ = await Task.detached { FileManager.default.fileExists(atPath: ModelManager.lms) ? Exporter.shell(ModelManager.lms, ["unload", "--all"]) : (0, "") }.value
+        // 统一调度内存: 视频模型 (尤其 H3 约 97 GB) 很占内存; 内存不够才按最久没用的顺序请别的模型让位
+        if !(modelsLoaded && lastSpec == spec.id) {
+            let broker = MemoryBroker.shared
+            if ImageStore.shared.loadedId != nil || modelsLoaded { await broker.evict(.comfy) }   // ComfyUI 里换模型
+            let need = spec.files.filter { !$0.optional }.reduce(0) { $0 + $1.sizeGB } * 1.15
+            if !broker.fits(need) { stage = String(localized: "释放其他模型占用的内存…") }
+            await broker.makeRoom(need, for: .comfy)
+        }
+        MemoryBroker.shared.touch(.comfy)
 
         var uploaded: String?
         if let frame {
@@ -530,6 +534,7 @@ final class VideoStore: ObservableObject {
 
     // 预热 (ComfyWarmup) 用
     func isLoaded(_ id: String) -> Bool { modelsLoaded && lastSpec == id }
+    var loadedId: String? { modelsLoaded ? lastSpec : nil }
     func markLoaded(_ id: String) { modelsLoaded = true; lastSpec = id }
     func modelsUnloaded() { modelsLoaded = false }
 

@@ -134,7 +134,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -520,6 +520,39 @@ extension AppDelegate {
                     log += "queue-job: \(j.prompt) state=\(j.state) started=+\(Int(j.started?.timeIntervalSince(t0) ?? -1))s finished=+\(Int(j.finished?.timeIntervalSince(t0) ?? -1))s results=\(j.results.count)\n"
                     for r in j.results { if let it = ImageStore.shared.items.first(where: { $0.id == r }) { ImageStore.shared.delete(it) } }
                 }
+            }
+            if args.contains("--broker-test") {
+                // 内存调度: 先加载一个对话模型 -> 小需求不卸 -> 正在用时大需求也不卸 -> 不在用时大需求按最久没用让位
+                let b = MemoryBroker.shared
+                let model = val("--broker-model") ?? "qwen/qwen3.8-27b"
+                @MainActor func state(_ tag: String) async {
+                    await b.refresh(); SystemInfo.shared.updateMemory()
+                    log += "broker \(tag): avail=\(Int(b.availableGB))GB residents=\(b.residents.map { "\($0.name)=\(Int($0.gb))GB busy=\($0.busy)" })\n"
+                }
+                await ModelManager.shared.ensureLoaded(model)
+                await state("loaded")
+                let small = await b.makeRoom(20, for: .comfy)
+                await state("after small(20GB) ok=\(small)")
+                b.begin(.lmstudio(model))
+                let bigBusy = await b.makeRoom(200, for: .comfy)
+                await state("after big while busy ok=\(bigBusy)")
+                b.end(.lmstudio(model))
+                let big = await b.makeRoom(200, for: .comfy)
+                await state("after big idle ok=\(big) event=\(b.lastEvent ?? "-")")
+                // 面板截图 (重新加载模型让面板里有内容)
+                await ModelManager.shared.ensureLoaded(model)
+                let host = NSHostingView(rootView: MemoryUsageView())
+                let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 300), styleMask: [.borderless], backing: .buffered, defer: false)
+                w.contentView = host
+                w.orderFront(nil)
+                try? await Task.sleep(for: .seconds(3))
+                host.layoutSubtreeIfNeeded()
+                if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
+                    host.cacheDisplay(in: host.bounds, to: rep)
+                    try? rep.representation(using: .png, properties: [:])?.write(to: out.deletingPathExtension().appendingPathExtension("memory.png"))
+                }
+                w.orderOut(nil)
+                await b.evict(.lmstudio(model))
             }
             if let spec = val("--doc-test") {
                 // 自测: 读文档 (竖线分隔的路径), 可选 --doc-ask 把它们发给 AI 提问, 记录回答后删掉测试对话

@@ -24,17 +24,27 @@ enum AIBridge {
                     extra: [String] = []) -> Result {
         guard let script = scriptURL else { return Result(error: String(localized: "找不到 AI 脚本 ai_edit.py")) }
         guard PythonRuntime.ready else { return Result(error: String(localized: "修图功能需要 Python。请打开设置向导一键安装。")) }
+        // 只读本地记录的命令 (修图习惯 taste / record / learn) 用不到模型, 不要为它们启动引擎
+        // (以前每次打开 Toolula 读一下修图习惯, 就会把 32 GB 的 MTP 引擎拉起来)
+        let needsModel = !["taste", "record", "learn"].contains(mode)
         // 修图模型在内置引擎上: 先确保引擎在跑
-        if UserDefaults.standard.string(forKey: "photoModel")?.hasPrefix("builtin:") == true {
+        if needsModel, UserDefaults.standard.string(forKey: "photoModel")?.hasPrefix("builtin:") == true {
             let sem = DispatchSemaphore(value: 0)
             Task { @MainActor in try? await BuiltinEngine.shared.ensureRunning(); sem.signal() }
             sem.wait()
         }
-        if let pm = UserDefaults.standard.string(forKey: "photoModel"), let pair = MTPPair.pair(for: pm) {
+        if needsModel, let pm = UserDefaults.standard.string(forKey: "photoModel"), let pair = MTPPair.pair(for: pm) {
             let sem = DispatchSemaphore(value: 0)
             Task { @MainActor in try? await MLXEngine.shared.ensureRunning(pair); sem.signal() }
             sem.wait()
         }
+        // 修图期间修图模型标记为「正在用」, 不会被请去让位
+        let photoTenant = needsModel ? UserDefaults.standard.string(forKey: "photoModel").flatMap(MemoryBroker.Tenant.forModel) : nil
+        if let photoTenant {
+            if Thread.isMainThread { MainActor.assumeIsolated { MemoryBroker.shared.begin(photoTenant) } }
+            else { DispatchQueue.main.sync { MainActor.assumeIsolated { MemoryBroker.shared.begin(photoTenant) } } }
+        }
+        defer { if let photoTenant { DispatchQueue.main.async { MainActor.assumeIsolated { MemoryBroker.shared.end(photoTenant) } } } }
         let id = UUID().uuidString.prefix(8)
         let out = workDir.appendingPathComponent("out_\(mode)_\(id).txt")
         var args = ["-I", script.path, mode, "--out", out.path]

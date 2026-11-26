@@ -4670,5 +4670,77 @@
  "Toolula 对话": [
   "Toolula Chat",
   "Toolula-Chat"
+ ],
+ "腾出内存…": [
+  "Freeing memory…",
+  "Speicher wird freigegeben …"
+ ],
+ "内置模型": [
+  "Built-in model",
+  "Integriertes Modell"
+ ],
+ "为了腾出 %lld GB，让 %@ 先让出了内存": [
+  "To free %lld GB, %@ was unloaded",
+  "Um %lld GB freizugeben, wurde %@ entladen"
+ ],
+ "内存去哪了": [
+  "Where's my memory?",
+  "Wo ist mein Speicher?"
+ ],
+ "现在没有 AI 模型在内存里。": [
+  "No AI models are in memory right now.",
+  "Gerade sind keine KI-Modelle im Speicher."
+ ],
+ "正在使用": [
+  "in use",
+  "in Verwendung"
+ ],
+ "%@ 用过": [
+  "used %@",
+  "verwendet %@"
+ ],
+ "释放": [
+  "Free",
+  "Freigeben"
+ ],
+ "释放 %@": [
+  "Free %@",
+  "%@ freigeben"
+ ],
+ "系统和其他程序": [
+  "System and other apps",
+  "System und andere Apps"
+ ],
+ "约 %lld GB": [
+  "about %lld GB",
+  "ca. %lld GB"
+ ],
+ "Toolula 会自动安排：内存够时对话、绘图、视频的模型同时留在内存里，切换不用重新加载；不够时让最久没用的先让位，正在工作的不会被卸载。": [
+  "Toolula manages this automatically: when there's room, chat, image and video models stay loaded together so switching needs no reload; when there isn't, the least recently used model makes room. Models that are working are never unloaded.",
+  "Toolula regelt das automatisch: Wenn genug Platz ist, bleiben Chat-, Bild- und Videomodelle gleichzeitig geladen – Wechseln ohne Neuladen. Sonst macht das am längsten ungenutzte Modell Platz. Arbeitende Modelle werden nie entladen."
+ ],
+ "点一下查看内存被哪些模型占用": [
+  "Click to see which models are using memory",
+  "Klicken, um zu sehen, welche Modelle Speicher belegen"
+ ],
+ "对话模型 · LM Studio": [
+  "Chat model · LM Studio",
+  "Chat-Modell · LM Studio"
+ ],
+ "对话模型 · MTP 加速引擎": [
+  "Chat model · MTP engine",
+  "Chat-Modell · MTP-Engine"
+ ],
+ "对话模型 · 内置引擎": [
+  "Chat model · built-in engine",
+  "Chat-Modell · integrierte Engine"
+ ],
+ "绘图 / 视频模型 · ComfyUI": [
+  "Image / video model · ComfyUI",
+  "Bild-/Videomodell · ComfyUI"
+ ],
+ "释放其他模型占用的内存…": [
+  "Freeing memory used by other models…",
+  "Speicher anderer Modelle wird freigegeben …"
  ]
 }

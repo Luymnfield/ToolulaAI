@@ -84,11 +84,7 @@ enum ComfyWarmup {
     private static var busy: Bool { ImageStore.shared.running || VideoStore.shared.running }
 
     /// 模型放得下吗: 按模型文件大小估算, 和现在没被占用的内存比
-    static func fits(_ needGB: Double) -> Bool {
-        let info = SystemInfo.shared
-        let free = info.totalGB - info.usedGB - marginGB
-        return needGB <= free
-    }
+    static func fits(_ needGB: Double) -> Bool { MemoryBroker.shared.fits(needGB) }
 
     private static func warm(_ page: String) async {
         guard !busy else { return }
