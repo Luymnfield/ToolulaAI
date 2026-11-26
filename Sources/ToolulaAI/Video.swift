@@ -355,14 +355,14 @@ final class VideoStore: ObservableObject {
     /// 生成视频. 返回生成好的视频 (失败返回 nil, 错误在 error 里)
     @discardableResult
     func generate(prompt p: String? = nil, image: URL? = nil, seconds sec: Double? = nil, quality q: VideoQuality? = nil,
-                  aspect a: VideoAspect? = nil) async -> VideoItem? {
+                  aspect a: VideoAspect? = nil, model: String? = nil) async -> VideoItem? {
         guard !running else { error = String(localized: "已经有一个视频在生成了"); return nil }
         let engine = ComfyEngine.shared
         let models = VideoModels.shared
         let text = (p ?? prompt).trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { error = String(localized: "请先写下想要的视频内容"); return nil }
         models.scan()
-        let spec = models.selected
+        let spec = model.flatMap { id in VideoModelSpec.all.first { $0.id == id } } ?? models.selected
         guard models.isReady(spec) else {
             error = String(localized: "还没有下载 \(spec.name) 模型。请在上面的「视频模型」里点下载。")
             return nil
@@ -439,7 +439,7 @@ final class VideoStore: ObservableObject {
             await engine.free()
             modelsLoaded = false
         }
-        Notifier.send(title: String(localized: "视频生成好了"), body: String(text.prefix(80)))
+        Notifier.send(title: String(localized: "视频生成好了"), body: String(text.prefix(80)), link: "toolula://video/\(item.id.uuidString)")
         return item
     }
 

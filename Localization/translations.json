@@ -4374,5 +4374,105 @@
  "\n…（全文 %lld 字，这次读到第 %@ 字；接着读用 offset=%@）": [
   "\n… (%lld characters in total, read up to %@; continue with offset=%@)",
   "\n… (insgesamt %lld Zeichen, gelesen bis %@; weiter mit offset=%@)"
+ ],
+ "队列里的任务都做完了": [
+  "All queued tasks are done",
+  "Alle Aufgaben in der Warteschlange sind fertig"
+ ],
+ "完成 %@ 个": [
+  "%@ completed",
+  "%@ erledigt"
+ ],
+ "任务": [
+  "Tasks",
+  "Aufgaben"
+ ],
+ "任务中心：正在进行和排队中的任务": [
+  "Task Center: running and queued tasks",
+  "Aufgabenzentrale: laufende und wartende Aufgaben"
+ ],
+ "任务中心": [
+  "Task Center",
+  "Aufgabenzentrale"
+ ],
+ "清除已完成": [
+  "Clear finished",
+  "Erledigte entfernen"
+ ],
+ "没有正在进行的任务": [
+  "Nothing running",
+  "Keine laufenden Aufgaben"
+ ],
+ "绘图和视频": [
+  "Images and videos",
+  "Bilder und Videos"
+ ],
+ "排队中 · %@": [
+  "Queued · %@",
+  "In Warteschlange · %@"
+ ],
+ "往前排": [
+  "Move up",
+  "Nach vorne"
+ ],
+ "移出队列": [
+  "Remove from queue",
+  "Aus Warteschlange entfernen"
+ ],
+ "完成 · %@": [
+  "Done · %@",
+  "Fertig · %@"
+ ],
+ "查看": [
+  "Show",
+  "Anzeigen"
+ ],
+ "其他": [
+  "Other",
+  "Sonstiges"
+ ],
+ "自动化任务": [
+  "Automation",
+  "Automation"
+ ],
+ "自动化任务运行中": [
+  "Automation running",
+  "Automation läuft"
+ ],
+ "下载模型：%@": [
+  "Downloading model: %@",
+  "Modell wird geladen: %@"
+ ],
+ "%@ 分 %@ 秒": [
+  "%@ min %@ s",
+  "%@ Min. %@ s"
+ ],
+ "生成中…": [
+  "Generating…",
+  "Wird erzeugt …"
+ ],
+ "每行一个提示词，会用现在的模型和设置一个接一个生成。可以先加入，晚上让它慢慢做。": [
+  "One prompt per line. They're generated one after another with the current model and settings – add them now and let them run overnight.",
+  "Ein Prompt pro Zeile. Sie werden nacheinander mit dem aktuellen Modell und den aktuellen Einstellungen erzeugt – jetzt hinzufügen und über Nacht laufen lassen."
+ ],
+ "加入 %lld 个任务": [
+  "Add %lld tasks",
+  "%lld Aufgaben hinzufügen"
+ ],
+ "还有 %lld 个在排队": [
+  "%lld more in the queue",
+  "Noch %lld in der Warteschlange"
+ ],
+ "批量：每行一个提示词，一个接一个生成": [
+  "Batch: one prompt per line, generated one after another",
+  "Stapel: ein Prompt pro Zeile, nacheinander erzeugt"
+ ],
+ "批量画图": [
+  "Batch images",
+  "Bilder im Stapel"
+ ],
+ "批量生成视频": [
+  "Batch videos",
+  "Videos im Stapel"
  ]
 }

@@ -6,6 +6,8 @@ struct VideoView: View {
     @ObservedObject var store = VideoStore.shared
     @ObservedObject var engine = ComfyEngine.shared
     @ObservedObject var models = VideoModels.shared
+    @ObservedObject var queue = GenQueue.shared
+    @State private var showBatch = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -215,13 +217,20 @@ struct VideoView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Button {
-                    Task { await store.generate() }
-                } label: {
-                    Label("生成视频", systemImage: "film").frame(maxWidth: .infinity)
+                HStack {
+                    Button { GenQueue.shared.addVideos([store.prompt]) } label: {
+                        Label(queue.busy ? "加入队列" : "生成视频", systemImage: queue.busy ? "text.badge.plus" : "film").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent).tint(Color.toolula).controlSize(.large)
+                    .disabled(store.prompt.trimmingCharacters(in: .whitespaces).isEmpty || !models.isReady(models.selected))
+                    Button { showBatch = true } label: { Image(systemName: "list.bullet.rectangle") }
+                        .controlSize(.large)
+                        .help(Text("批量：每行一个提示词，一个接一个生成"))
+                        .accessibilityLabel(Text("批量生成视频"))
+                        .disabled(!models.isReady(models.selected))
                 }
-                .buttonStyle(.borderedProminent).tint(Color.toolula).controlSize(.large)
-                .disabled(store.running || store.prompt.trimmingCharacters(in: .whitespaces).isEmpty || !models.isReady(models.selected))
+                .sheet(isPresented: $showBatch) { BatchPromptSheet(kind: .video, isPresented: $showBatch) }
+                QueueHint(kind: .video)
 
                 Text("生成时会暂时让出对话模型占用的内存，对话时会自动重新加载。")
                     .font(.caption2).foregroundStyle(.tertiary)

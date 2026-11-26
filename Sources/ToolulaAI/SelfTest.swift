@@ -134,7 +134,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -451,6 +451,30 @@ extension AppDelegate {
                 }
                 log += "markdown blocks: \(MarkdownParser.parse(md).map { "\($0)".prefix(20) })\n"
                 chat.delete(id)
+            }
+            if let spec = val("--queue-test") {
+                // 自测: 竖线分隔的几个提示词一起加入绘图队列, 第一个开始后打开任务中心截图, 全部做完后记下结果并删掉测试图片
+                app.section = .image
+                let q = GenQueue.shared
+                if let m = val("--image-model") { ImageModels.shared.scan(); ImageModels.shared.selectedId = m }
+                let t0 = Date()
+                q.addImages(spec.split(separator: "|").map(String.init))
+                log += "queue: added=\(q.jobs.count) waiting=\(q.waiting.count) busy=\(q.busy)\n"
+                while q.running == nil || ImageStore.shared.steps == 0 { try? await Task.sleep(for: .seconds(1)); if Date().timeIntervalSince(t0) > 300 { break } }
+                app.showTasks = true
+                try? await Task.sleep(for: .seconds(2))
+                for (n, w) in NSApp.windows.filter({ $0.isVisible && $0.className.contains("Popover") }).enumerated() {
+                    if let v = w.contentView?.superview ?? w.contentView, let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds) {
+                        v.cacheDisplay(in: v.bounds, to: rep)
+                        try? rep.representation(using: .png, properties: [:])?.write(to: out.deletingPathExtension().appendingPathExtension("tasks\(n).png"))
+                    }
+                }
+                app.showTasks = false
+                while q.busy || !q.waiting.isEmpty { try? await Task.sleep(for: .seconds(1)) }
+                for j in q.jobs {
+                    log += "queue-job: \(j.prompt) state=\(j.state) started=+\(Int(j.started?.timeIntervalSince(t0) ?? -1))s finished=+\(Int(j.finished?.timeIntervalSince(t0) ?? -1))s results=\(j.results.count)\n"
+                    for r in j.results { if let it = ImageStore.shared.items.first(where: { $0.id == r }) { ImageStore.shared.delete(it) } }
+                }
             }
             if let spec = val("--doc-test") {
                 // 自测: 读文档 (竖线分隔的路径), 可选 --doc-ask 把它们发给 AI 提问, 记录回答后删掉测试对话

@@ -34,6 +34,7 @@ final class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(section.rawValue, forKey: "section") }
     }
     @Published var showPalette = false
+    @Published var showTasks = false
 }
 
 /// Toolula 的品牌绿 (取自变色龙 logo)
@@ -70,6 +71,7 @@ struct RootView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .toolbar {
+            ToolbarItem(placement: .primaryAction) { TaskCenterButton() }
             ToolbarItem(placement: .primaryAction) { AppearanceButton() }
         }
         .sheet(isPresented: $wizard.show) { SetupWizard().environmentObject(app) }

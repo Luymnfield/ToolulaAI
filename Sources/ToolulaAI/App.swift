@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UserNotifications
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var store: Store?
@@ -23,8 +24,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case "photo":
             app.section = .photo
             if parts.contains("add") { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { openPanel(store) } }
-        case "image": app.section = .image
-        case "video": app.section = .video
+        case "image":
+            app.section = .image
+            if parts.count > 1, let id = UUID(uuidString: parts[1]) { ImageStore.shared.selected = id }
+        case "video":
+            app.section = .video
+            if parts.count > 1, let id = UUID(uuidString: parts[1]) { VideoStore.shared.selected = id }
+        case "tasks":
+            app.showTasks = true
         case "models": app.section = .models
         default: app.section = .home
         }
@@ -38,6 +45,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // 点通知 -> 跳到对应的结果 (例如生成好的图片)
+        UNUserNotificationCenter.current().delegate = self
         // 上次崩溃留下的 llama.cpp / MTP 引擎 / ComfyUI (只清理 Toolula 自己启动、已失去父进程的)
         Task.detached(priority: .utility) { ProcessJanitor.cleanupOrphans() }
         NSApp.setActivationPolicy(.regular)
@@ -226,5 +235,17 @@ enum WindowOpener {
         } else {
             open?(id: "main")
         }
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    /// Toolula 在前台时也显示通知横幅
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+        [.banner, .sound]
+    }
+
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        guard let s = response.notification.request.content.userInfo["link"] as? String, let u = URL(string: s) else { return }
+        await MainActor.run { self.handleLink(u) }
     }
 }

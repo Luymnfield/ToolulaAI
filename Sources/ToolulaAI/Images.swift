@@ -303,14 +303,15 @@ final class ImageStore: ObservableObject {
 
     /// 生成图片, 返回生成好的图片 (失败返回空, 错误在 error 里)
     @discardableResult
-    func generate(prompt p: String? = nil, aspect a: ImageAspect? = nil, quality q: ImageQuality? = nil, count n: Int? = nil) async -> [ImageItem] {
+    func generate(prompt p: String? = nil, aspect a: ImageAspect? = nil, quality q: ImageQuality? = nil, count n: Int? = nil,
+                  model: String? = nil, seed fixedSeed: Int? = nil) async -> [ImageItem] {
         guard !running else { error = String(localized: "已经有图片在生成了"); return [] }
         let engine = ComfyEngine.shared
         let models = ImageModels.shared
         let text = (p ?? prompt).trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { error = String(localized: "请先写下想要的画面"); return [] }
         models.scan()
-        let spec = models.selected
+        let spec = model.flatMap { id in ImageModelSpec.all.first { $0.id == id } } ?? models.selected
         guard models.isReady(spec) else {
             error = String(localized: "还没有下载 \(spec.name) 模型。请在「图片模型」里点下载。")
             return []
@@ -318,7 +319,7 @@ final class ImageStore: ObservableObject {
         guard !VideoStore.shared.running else { error = String(localized: "视频正在生成，请等它完成后再画图"); return [] }
         let (w, h) = (q ?? quality).size(a ?? aspect)
         let num = max(1, min(4, n ?? count))
-        let s = randomSeed ? Int.random(in: 1...999_999_999) : seed
+        let s = fixedSeed ?? (randomSeed ? Int.random(in: 1...999_999_999) : seed)
         running = true; error = nil; step = 0; steps = 0; startedAt = Date()
         defer { running = false; startedAt = nil; stage = "" }
         estimateSeconds = spec.estimate(w: w, h: h, count: num, loaded: loadedSpec == spec.id)
@@ -390,7 +391,7 @@ final class ImageStore: ObservableObject {
             selected = made.first?.id
             save()
             loadedSpec = spec.id
-            if !NSApp.isActive { Notifier.send(title: String(localized: "图片生成好了"), body: String(text.prefix(80))) }
+            if !NSApp.isActive { Notifier.send(title: String(localized: "图片生成好了"), body: String(text.prefix(80)), link: "toolula://image/\(made[0].id.uuidString)") }
             return made
         }
     }
@@ -472,6 +473,8 @@ final class ImageStore: ObservableObject {
 // MARK: - 界面
 
 struct ImageView: View {
+    @ObservedObject var queue = GenQueue.shared
+    @State private var showBatch = false
     @ObservedObject var store = ImageStore.shared
     @ObservedObject var engine = ComfyEngine.shared
     @ObservedObject var models = ImageModels.shared
@@ -634,12 +637,22 @@ struct ImageView: View {
                     Label(e, systemImage: "exclamationmark.triangle").foregroundStyle(.orange).font(.callout)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Button { Task { await store.generate() } } label: {
-                    Label("生成图片", systemImage: "paintbrush.pointed").frame(maxWidth: .infinity)
+                // 生成中再点: 排到队列后面
+                HStack {
+                    Button { GenQueue.shared.addImages([store.prompt]) } label: {
+                        Label(queue.busy ? "加入队列" : "生成图片", systemImage: queue.busy ? "text.badge.plus" : "paintbrush.pointed").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent).tint(Color.toolula).controlSize(.large)
+                    .keyboardShortcut(.return, modifiers: .command)
+                    .disabled(store.prompt.trimmingCharacters(in: .whitespaces).isEmpty || !models.isReady(models.selected))
+                    Button { showBatch = true } label: { Image(systemName: "list.bullet.rectangle") }
+                        .controlSize(.large)
+                        .help(Text("批量：每行一个提示词，一个接一个生成"))
+                        .accessibilityLabel(Text("批量画图"))
+                        .disabled(!models.isReady(models.selected))
                 }
-                .buttonStyle(.borderedProminent).tint(Color.toolula).controlSize(.large)
-                .keyboardShortcut(.return, modifiers: .command)
-                .disabled(store.running || store.prompt.trimmingCharacters(in: .whitespaces).isEmpty || !models.isReady(models.selected))
+                .sheet(isPresented: $showBatch) { BatchPromptSheet(kind: .image, isPresented: $showBatch) }
+                QueueHint(kind: .image)
                 if engine.online {
                     Button("释放图片模型内存") { store.freeMemory() }.controlSize(.small)
                 }

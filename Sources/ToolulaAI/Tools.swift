@@ -428,11 +428,13 @@ enum Notifier {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
-    static func send(title: String, body: String) {
+    /// link: 点通知时打开的 toolula:// 地址 (例如直接跳到生成好的图片)
+    static func send(title: String, body: String, link: String? = nil) {
         let c = UNMutableNotificationContent()
         c.title = title
         c.body = String(body.prefix(500))
         c.sound = .default
+        if let link { c.userInfo = ["link": link] }
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: c, trigger: nil))
     }
 }
