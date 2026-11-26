@@ -134,7 +134,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -317,6 +317,21 @@ extension AppDelegate {
                 }
                 log += "roots: \(VideoModels.modelRoots.map(\.path)) installed: \(VideoModels.shared.installed)\n"
                 log += "video-model: \(VideoModels.shared.selected.name) ready=\(VideoModels.shared.isReady(VideoModels.shared.selected)) recommended=\(VideoModels.shared.recommended?.name ?? "-")\n"
+            }
+            if let page = val("--comfy-warmup") {
+                if page == "image", let mid = val("--image-model") { ImageModels.shared.scan(); ImageModels.shared.selectedId = mid }
+                let t0 = Date()
+                ComfyWarmup.enter(page)
+                try? await Task.sleep(for: .seconds(1))
+                while ComfyWarmup.isWarming { try? await Task.sleep(for: .seconds(1)) }
+                log += "comfy-warmup \(page): \(ComfyWarmup.lastResult) (\(Int(Date().timeIntervalSince(t0)))s) patched=\(ComfyEngine.shared.patched)\n"
+                if args.contains("--comfy-release-test") {
+                    // 离开页面后自动释放: 把等待时间缩短到几秒来测
+                    ComfyWarmup.unloadAfter = .seconds(3); ComfyWarmup.stopAfter = .seconds(3)
+                    ComfyWarmup.leave("image"); ComfyWarmup.leave("video")
+                    try? await Task.sleep(for: .seconds(15))
+                    log += "comfy-release: \(ComfyWarmup.lastResult) online=\(ComfyEngine.shared.online)\n"
+                }
             }
             if let ip = val("--image") {
                 let im = ImageModels.shared

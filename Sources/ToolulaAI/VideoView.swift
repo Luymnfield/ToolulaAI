@@ -16,6 +16,9 @@ struct VideoView: View {
             settings.frame(width: 360)
         }
         .task { models.scan(); await engine.check() }
+        .onAppear { ComfyWarmup.enter("video") }
+        .onDisappear { ComfyWarmup.leave("video") }
+        .onChange(of: models.selectedId) { ComfyWarmup.enter("video") }
     }
 
     // MARK: 左边: 生成过的视频

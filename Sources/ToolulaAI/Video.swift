@@ -520,6 +520,11 @@ final class VideoStore: ObservableObject {
         Task { await ComfyEngine.shared.free(); modelsLoaded = false }
     }
 
+    // 预热 (ComfyWarmup) 用
+    func isLoaded(_ id: String) -> Bool { modelsLoaded && lastSpec == id }
+    func markLoaded(_ id: String) { modelsLoaded = true; lastSpec = id }
+    func modelsUnloaded() { modelsLoaded = false }
+
     /// 监听 ComfyUI 的进度
     private func listen(clientId: String) {
         let url = URL(string: "ws://127.0.0.1:\(ComfyEngine.shared.port)/ws?clientId=\(clientId)")!

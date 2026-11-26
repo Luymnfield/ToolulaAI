@@ -403,6 +403,11 @@ final class ImageStore: ObservableObject {
 
     func freeMemory() { Task { await ComfyEngine.shared.free(); loadedSpec = nil } }
 
+    // 预热 (ComfyWarmup) 用
+    func isLoaded(_ id: String) -> Bool { loadedSpec == id }
+    func markLoaded(_ id: String) { loadedSpec = id }
+    func modelsUnloaded() { loadedSpec = nil }
+
     func delete(_ item: ImageItem) {
         try? FileManager.default.trashItem(at: URL(fileURLWithPath: item.path), resultingItemURL: nil)
         items.removeAll { $0.id == item.id }
@@ -486,6 +491,9 @@ struct ImageView: View {
             settings.frame(width: 360)
         }
         .task { models.scan(); await engine.check() }
+        .onAppear { ComfyWarmup.enter("image") }
+        .onDisappear { ComfyWarmup.leave("image") }
+        .onChange(of: models.selectedId) { ComfyWarmup.enter("image") }
     }
 
     var history: some View {
