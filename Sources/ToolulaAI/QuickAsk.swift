@@ -9,6 +9,8 @@ struct HotKey: Equatable, Codable {
     var modifiers: UInt32          // Carbon: cmdKey / optionKey / controlKey / shiftKey
 
     static let defaultQuickAsk = HotKey(keyCode: UInt32(kVK_Space), modifiers: UInt32(optionKey))
+    /// 选中文字后按: 翻译 / 解释 / 改写
+    static let defaultTextAction = HotKey(keyCode: UInt32(kVK_Space), modifiers: UInt32(optionKey | shiftKey))
 
     var display: String {
         var s = ""
@@ -79,13 +81,73 @@ final class HotKeyCenter: ObservableObject {
     private var handler: EventHandlerRef?
     var onPress: (() -> Void)?
 
+    /// 第二个快捷键: 处理选中的文字
+    @Published private(set) var textAction: HotKey
+    @Published private(set) var textError: String?
+    @Published var textEnabled: Bool { didSet { UserDefaults.standard.set(textEnabled, forKey: "textActionEnabled"); registerText() } }
+    private var textRef: EventHotKeyRef?
+    var onTextAction: (() -> Void)?
+
     private init() {
         if let d = UserDefaults.standard.data(forKey: "quickAskHotKey"), let k = try? JSONDecoder().decode(HotKey.self, from: d) {
             quickAsk = k
         } else {
             quickAsk = .defaultQuickAsk
         }
+        if let d = UserDefaults.standard.data(forKey: "textActionHotKey"), let k = try? JSONDecoder().decode(HotKey.self, from: d) {
+            textAction = k
+        } else {
+            textAction = .defaultTextAction
+        }
         enabled = UserDefaults.standard.object(forKey: "quickAskEnabled") as? Bool ?? true
+        textEnabled = UserDefaults.standard.object(forKey: "textActionEnabled") as? Bool ?? true
+    }
+
+    @discardableResult
+    func setText(_ k: HotKey) -> String? {
+        if let c = k.systemConflict { textError = c; return c }
+        if k == quickAsk { textError = String(localized: "和快速提问的快捷键重复了"); return textError }
+        let old = textAction
+        textAction = k
+        if let e = registerText() { textAction = old; registerText(); textError = e; return e }
+        if let d = try? JSONEncoder().encode(k) { UserDefaults.standard.set(d, forKey: "textActionHotKey") }
+        return nil
+    }
+
+    func resetTextDefault() { setText(.defaultTextAction) }
+
+    @discardableResult
+    func registerText() -> String? {
+        if let textRef { UnregisterEventHotKey(textRef); self.textRef = nil }
+        guard textEnabled else { textError = nil; return nil }
+        installHandler()
+        let id = EventHotKeyID(signature: OSType(0x544C_4151), id: 2)
+        var r: EventHotKeyRef?
+        let st = RegisterEventHotKey(textAction.keyCode, textAction.modifiers, id, GetApplicationEventTarget(), OptionBits(kEventHotKeyExclusive), &r)
+        if st == noErr { textRef = r; textError = nil; return nil }
+        let msg = st == OSStatus(eventHotKeyExistsErr)
+            ? String(localized: "快捷键 \(textAction.display) 已被其他程序占用，请换一个")
+            : String(localized: "注册快捷键失败（错误 \(Int(st))）")
+        textError = msg
+        return msg
+    }
+
+    /// 两个快捷键共用一个事件处理: 按 id 分发
+    private func installHandler() {
+        guard handler == nil else { return }
+        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        InstallEventHandler(GetApplicationEventTarget(), { _, event, _ in
+            var hk = EventHotKeyID()
+            GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil,
+                              MemoryLayout<EventHotKeyID>.size, nil, &hk)
+            let which = hk.id
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    if which == 2 { HotKeyCenter.shared.onTextAction?() } else { HotKeyCenter.shared.onPress?() }
+                }
+            }
+            return noErr
+        }, 1, &spec, nil, &handler)
     }
 
     /// 换快捷键。返回冲突说明 (nil = 成功)
@@ -110,13 +172,7 @@ final class HotKeyCenter: ObservableObject {
     func register() -> String? {
         if let ref { UnregisterEventHotKey(ref); self.ref = nil }
         guard enabled else { error = nil; return nil }
-        if handler == nil {
-            var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-            InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
-                DispatchQueue.main.async { MainActor.assumeIsolated { HotKeyCenter.shared.onPress?() } }
-                return noErr
-            }, 1, &spec, nil, &handler)
-        }
+        installHandler()
         let id = EventHotKeyID(signature: OSType(0x544C_4151), id: 1)   // 'TLAQ'
         var r: EventHotKeyRef?
         let st = RegisterEventHotKey(quickAsk.keyCode, quickAsk.modifiers, id, GetApplicationEventTarget(), OptionBits(kEventHotKeyExclusive), &r)
@@ -136,17 +192,21 @@ final class HotKeyCenter: ObservableObject {
 /// 录制快捷键的按钮: 点一下, 再按想要的组合
 struct HotKeyRecorder: View {
     @ObservedObject var center = HotKeyCenter.shared
+    /// true: 录「选中文字」的快捷键; false: 快速提问
+    var text = false
     @State private var recording = false
     @State private var monitor: Any?
 
+    var current: HotKey { text ? center.textAction : center.quickAsk }
+
     var body: some View {
         HStack {
-            Button(recording ? String(localized: "请按下新的快捷键…") : center.quickAsk.display) { recording ? stop() : start() }
+            Button(recording ? String(localized: "请按下新的快捷键…") : current.display) { recording ? stop() : start() }
                 .frame(minWidth: 160)
-                .accessibilityLabel(Text("快速提问快捷键"))
-                .accessibilityValue(Text(center.quickAsk.display))
-            Button("恢复默认") { center.resetDefault() }
-            if let e = center.error { Label(e, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange).font(.caption) }
+                .accessibilityLabel(Text(text ? "选中文字快捷键" : "快速提问快捷键"))
+                .accessibilityValue(Text(current.display))
+            Button("恢复默认") { text ? center.resetTextDefault() : center.resetDefault() }
+            if let e = text ? center.textError : center.error { Label(e, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange).font(.caption) }
         }
         .onDisappear(perform: stop)
     }
@@ -155,7 +215,8 @@ struct HotKeyRecorder: View {
         recording = true
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { e in
             if e.keyCode == UInt16(kVK_Escape) { stop(); return nil }
-            center.set(HotKey(keyCode: UInt32(e.keyCode), modifiers: HotKey.carbon(e.modifierFlags)))
+            let k = HotKey(keyCode: UInt32(e.keyCode), modifiers: HotKey.carbon(e.modifierFlags))
+            if text { center.setText(k) } else { center.set(k) }
             stop()
             return nil
         }
@@ -171,9 +232,10 @@ struct HotKeyRecorder: View {
 // MARK: - 浮动小窗
 
 final class QuickPanel: NSPanel {
+    var onCancel: (() -> Void)?
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
-    override func cancelOperation(_ sender: Any?) { QuickAsk.shared.close() }
+    override func cancelOperation(_ sender: Any?) { onCancel.map { $0() } ?? QuickAsk.shared.close() }
 }
 
 @MainActor

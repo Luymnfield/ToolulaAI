@@ -134,7 +134,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -260,10 +260,55 @@ extension AppDelegate {
                 log += "  \(p.role): \(p.best.map { "\($0.id.split(separator: "/").last!) \($0.sizeGB)GB" } ?? "-") | alt: \(p.alt.map { "\($0.id.split(separator: "/").last!) \($0.sizeGB)GB" } ?? "-")\n"
             }
             log += "defaults: chat=\(ModelManager.shared.chatModel) photo=\(ModelManager.shared.photoModel)\n"
+            // 自测时临时换对话模型 (测完换回来, 不改用户设置)
+            let savedChatModel = ModelManager.shared.chatModel
+            if let m = val("--use-chat-model") { ModelManager.shared.chatModel = m }
+            defer { if val("--use-chat-model") != nil { ModelManager.shared.chatModel = savedChatModel } }
             if let l = val("--link").flatMap(URL.init(string:)) {
+                let before = Set(chat.conversations.map(\.id))
                 self.handleLink(l)
                 try? await Task.sleep(for: .seconds(1))
-                log += "link: \(l.absoluteString) -> section=\(app.section) computerPanel=\(ComputerControl.shared.showPanel) conversations=\(chat.conversations.count)\n"
+                log += "link: \(l.absoluteString) -> section=\(app.section) computerPanel=\(ComputerControl.shared.showPanel) conversations=\(chat.conversations.count) quickVisible=\(QuickAsk.shared.isVisible) queue=\(GenQueue.shared.jobs.count)\n"
+                // 网址提问: 等回答完, 记下回答, 删掉测试对话
+                let added = chat.conversations.filter { !before.contains($0.id) }
+                for c in added {
+                    while chat.running.contains(c.id) { try? await Task.sleep(for: .seconds(0.5)) }
+                    let a = chat.conversations.first { $0.id == c.id }?.messages.last { $0.role == "assistant" }
+                    log += "link-answer: \((a?.text ?? a?.error ?? "-").replacingOccurrences(of: "\n", with: " "))\n"
+                    chat.delete(c.id)
+                }
+                GenQueue.shared.cancelAllWaiting()
+                QuickAsk.shared.close()
+            }
+            if let text = val("--assist-test") {
+                // 选中文字处理: 直接给文字, 依次翻译和润色
+                let t = TextAssist.shared
+                t.source = text
+                for a in [TextAssist.Action.translate, .polish] {
+                    let t0 = Date()
+                    t.run(a)
+                    try? await Task.sleep(for: .seconds(0.5))
+                    while t.running { try? await Task.sleep(for: .seconds(0.3)) }
+                    log += "assist \(a.rawValue): \(String(format: "%.1f", Date().timeIntervalSince(t0)))s \(t.error ?? "") \(t.result.replacingOccurrences(of: "\n", with: " "))\n"
+                }
+            }
+            if args.contains("--spotlight-test") {
+                // 聚焦搜索: 造一个带特殊词的对话 -> 能搜到 -> 删掉 -> 搜不到
+                let word = "Zebrafinch\(Int.random(in: 1000...9999))"
+                let id = chat.newConversation()
+                chat.update(id) { c in c.title = "聚焦自测"; c.messages = [ChatMessage(role: "user", text: "测试 \(word)"), ChatMessage(role: "assistant", text: "好的")] }
+                chat.save()
+                func count() async -> Int {
+                    let p = Process(); p.executableURL = URL(fileURLWithPath: "/usr/bin/mdfind")
+                    p.arguments = ["-onlyin", SpotlightIndex.folder.path, word]
+                    let pipe = Pipe(); p.standardOutput = pipe; try? p.run(); p.waitUntilExit()
+                    return String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self).split(separator: "\n").count
+                }
+                try? await Task.sleep(for: .seconds(6))
+                log += "spotlight: indexed found=\(await count())\n"
+                chat.delete(id)
+                try? await Task.sleep(for: .seconds(6))
+                log += "spotlight: after delete found=\(await count())\n"
             }
             if args.contains("--setup") || val("--setup-install") != nil {
                 let st = SetupWizardState.shared
@@ -507,7 +552,7 @@ extension AppDelegate {
                 if let q = val("--doc-ask"), !docs.isEmpty {
                     app.section = .chat
                     let id = chat.newConversation()
-                    if let m = val("--chat-model") { chat.update(id) { $0.model = m } }
+                    if let m = val("--doc-model") { chat.update(id) { $0.model = m } }
                     let t0 = Date()
                     chat.send(q, docs: docs, to: id)
                     try? await Task.sleep(for: .seconds(1))

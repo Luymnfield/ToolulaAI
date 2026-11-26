@@ -12,6 +12,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func handleLink(_ u: URL) {
         guard let app, let chat, let store else { return }
+        // toolula://ask?q=问题: 只弹出快速提问小窗直接问, 不打开主窗口
+        if u.host == "ask" {
+            let q = QuickAsk.shared
+            q.newQuestion()
+            q.show()
+            if let text = URLActions.query(u, "q"), !text.isEmpty { q.text = text; q.ask() }
+            return
+        }
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         WindowOpener.showMain()
@@ -19,17 +27,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switch parts.first ?? "" {
         case "chat":
             app.section = .chat
-            chat.newConversation()
+            if parts.count > 1, let id = UUID(uuidString: parts[1]), chat.conversations.contains(where: { $0.id == id }) { chat.selected = id }
+            else { chat.newConversation() }
             if parts.contains("computer") { ComputerControl.shared.showPanel = true }
+        case "ask": break   // 上面已经处理
         case "photo":
             app.section = .photo
             if parts.contains("add") { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { openPanel(store) } }
         case "image":
             app.section = .image
             if parts.count > 1, let id = UUID(uuidString: parts[1]) { ImageStore.shared.selected = id }
+            if let p = URLActions.query(u, "prompt"), !p.isEmpty { ImageStore.shared.prompt = p; GenQueue.shared.addImages([p]) }
         case "video":
             app.section = .video
             if parts.count > 1, let id = UUID(uuidString: parts[1]) { VideoStore.shared.selected = id }
+            if let p = URLActions.query(u, "prompt"), !p.isEmpty { VideoStore.shared.prompt = p; GenQueue.shared.addVideos([p]) }
         case "tasks":
             app.showTasks = true
         case "models": app.section = .models
@@ -68,7 +80,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for l in links {
             if store != nil { Task { @MainActor in self.handleLink(l) } } else { pendingLinks.append(l) }
         }
-        let urls = urls.filter { $0.isFileURL }
+        var urls = urls.filter { $0.isFileURL }
+        // 聚焦搜索里点了某个对话 (.toolulachat 文件)
+        for f in urls where f.pathExtension == SpotlightIndex.ext {
+            if let id = SpotlightIndex.id(in: f), let l = URL(string: "toolula://chat/\(id.uuidString)") {
+                if store != nil { Task { @MainActor in self.handleLink(l) } } else { pendingLinks.append(l) }
+            }
+        }
+        urls.removeAll { $0.pathExtension == SpotlightIndex.ext }
         guard !urls.isEmpty else { return }
         if let store {
             Task { @MainActor in
@@ -183,6 +202,13 @@ struct ToolulaAIApp: App {
         chat.photoStore = store
         Diagnostics.chat = chat
         QuickAsk.shared.setup(chat: chat, app: app)
+        TextAssist.shared.setup(chat: chat, app: app)
+        IntentRunner.app = app; IntentRunner.store = store
+        // 访达右键菜单 (服务)
+        ServiceProvider.shared.chat = chat; ServiceProvider.shared.app = app; ServiceProvider.shared.store = store
+        NSApp.servicesProvider = ServiceProvider.shared
+        NSUpdateDynamicServices()
+        SpotlightIndex.schedule(chat.conversations)
         automations.photoStore = store
         SystemInfo.shared.start()
         Task.detached(priority: .background) { StorageUsage.routineCleanup() }
@@ -249,3 +275,4 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         await MainActor.run { self.handleLink(u) }
     }
 }
+

@@ -4474,5 +4474,201 @@
  "批量生成视频": [
   "Batch videos",
   "Videos im Stapel"
+ ],
+ "还没有可用的对话模型。请先打开 Toolula 设置一个模型。": [
+  "No chat model available yet. Open Toolula and choose one first.",
+  "Noch kein Chat-Modell verfügbar. Bitte zuerst in Toolula eines auswählen."
+ ],
+ "读不到这个文件": [
+  "Can't read this file",
+  "Diese Datei kann nicht gelesen werden"
+ ],
+ "已加入绘图队列，生成好会通知你。": [
+  "Added to the image queue – you'll get a notification when it's ready.",
+  "Zur Bild-Warteschlange hinzugefügt – du bekommst eine Mitteilung, wenn es fertig ist."
+ ],
+ "已加入视频队列，生成好会通知你。": [
+  "Added to the video queue – you'll get a notification when it's ready.",
+  "Zur Video-Warteschlange hinzugefügt – du bekommst eine Mitteilung, wenn es fertig ist."
+ ],
+ "和快速提问的快捷键重复了": [
+  "Same as the Quick Ask shortcut",
+  "Gleich wie das Kurzbefehl für Schnellfrage"
+ ],
+ "聚焦搜索": [
+  "Spotlight",
+  "Spotlight"
+ ],
+ "在聚焦搜索（⌘Space）里能搜到对话": [
+  "Show chats in Spotlight (⌘Space)",
+  "Chats in Spotlight (⌘Leertaste) anzeigen"
+ ],
+ "每个对话在 Toolula 文件夹的 Chats/Search 里有一份纯文本索引，只存在这台 Mac 上。关掉后会立即删除。": [
+  "Each chat gets a plain-text index file in Chats/Search inside the Toolula folder, only on this Mac. Turning this off deletes them right away.",
+  "Jeder Chat erhält eine Textindex-Datei in Chats/Search im Toolula-Ordner, nur auf diesem Mac. Beim Ausschalten werden sie sofort gelöscht."
+ ],
+ "处理选中的文字（全局）": [
+  "Selected text (system-wide)",
+  "Markierter Text (systemweit)"
+ ],
+ "在任何程序里选中文字后用快捷键翻译、解释、改写": [
+  "Translate, explain or rewrite selected text in any app with a shortcut",
+  "Markierten Text in jeder App per Kurzbefehl übersetzen, erklären oder umschreiben"
+ ],
+ "需要「辅助功能」权限。改写和翻译的结果可以一键替换原文。": [
+  "Needs Accessibility permission. Rewrites and translations can replace the original with one click.",
+  "Benötigt die Bedienungshilfen-Berechtigung. Umschreibungen und Übersetzungen können das Original mit einem Klick ersetzen."
+ ],
+ "总结这些文件的主要内容，列出关键信息。": [
+  "Summarize the main content of these files and list the key information.",
+  "Fasse den Inhalt dieser Dateien zusammen und liste die wichtigsten Informationen auf."
+ ],
+ "翻译": [
+  "Translate",
+  "Übersetzen"
+ ],
+ "解释": [
+  "Explain",
+  "Erklären"
+ ],
+ "改写润色": [
+  "Polish",
+  "Verbessern"
+ ],
+ "总结": [
+  "Summarize",
+  "Zusammenfassen"
+ ],
+ "帮我回复": [
+  "Draft reply",
+  "Antwort entwerfen"
+ ],
+ "处理选中的文字": [
+  "Selected text",
+  "Markierter Text"
+ ],
+ "来自 %@ 的文字": [
+  "Text from %@",
+  "Text aus %@"
+ ],
+ "选中的文字": [
+  "Selected text",
+  "Markierter Text"
+ ],
+ "关闭": [
+  "Close",
+  "Schließen"
+ ],
+ "需要「辅助功能」权限才能读取其他程序里选中的文字。": [
+  "Accessibility permission is needed to read text selected in other apps.",
+  "Die Bedienungshilfen-Berechtigung wird benötigt, um markierten Text in anderen Apps zu lesen."
+ ],
+ "打开系统设置": [
+  "Open System Settings",
+  "Systemeinstellungen öffnen"
+ ],
+ "没有读到选中的文字。先在其他程序里选中一段文字，再按 %@。": [
+  "No selected text found. Select some text in another app first, then press %@.",
+  "Kein markierter Text gefunden. Markiere zuerst Text in einer anderen App und drücke dann %@."
+ ],
+ "或者告诉它要怎么处理…": [
+  "Or tell it what to do…",
+  "Oder sag, was damit passieren soll …"
+ ],
+ "处理中…": [
+  "Working…",
+  "Wird bearbeitet …"
+ ],
+ "替换原文": [
+  "Replace original",
+  "Original ersetzen"
+ ],
+ "用结果替换刚才选中的文字（⌘↩）": [
+  "Replace the selected text with the result (⌘↩)",
+  "Markierten Text durch das Ergebnis ersetzen (⌘↩)"
+ ],
+ "问 Toolula": [
+  "Ask Toolula",
+  "Toolula fragen"
+ ],
+ "用 Toolula 总结文件": [
+  "Summarize Files with Toolula",
+  "Dateien mit Toolula zusammenfassen"
+ ],
+ "用 Toolula 画图": [
+  "Create Image with Toolula",
+  "Bild mit Toolula erstellen"
+ ],
+ "用 Toolula 生成视频": [
+  "Create Video with Toolula",
+  "Video mit Toolula erstellen"
+ ],
+ "用 Toolula 修图": [
+  "Edit Photos with Toolula",
+  "Fotos mit Toolula bearbeiten"
+ ],
+ "问题": [
+  "Question",
+  "Frage"
+ ],
+ "文件": [
+  "Files",
+  "Dateien"
+ ],
+ "要求": [
+  "Instruction",
+  "Anweisung"
+ ],
+ "画面描述": [
+  "Image description",
+  "Bildbeschreibung"
+ ],
+ "视频描述": [
+  "Video description",
+  "Videobeschreibung"
+ ],
+ "照片": [
+  "Photos",
+  "Fotos"
+ ],
+ "总结主要内容，列出关键信息": [
+  "Summarize the main content and list the key information",
+  "Fasse den Inhalt zusammen und liste die wichtigsten Informationen auf"
+ ],
+ "问 Toolula：%@": [
+  "Ask Toolula: %@",
+  "Toolula fragen: %@"
+ ],
+ "总结文件": [
+  "Summarize Files",
+  "Dateien zusammenfassen"
+ ],
+ "画图": [
+  "Create Image",
+  "Bild erstellen"
+ ],
+ "用本机 AI 回答一个问题，返回回答的文字。不联网，不打开窗口。": [
+  "Answers a question with the local AI and returns the text. Offline, no window.",
+  "Beantwortet eine Frage mit der lokalen KI und gibt den Text zurück. Offline, ohne Fenster."
+ ],
+ "读 PDF、Word、Excel、PPT、文本等文件，返回要点总结。": [
+  "Reads PDF, Word, Excel, PowerPoint, text and more, and returns a summary.",
+  "Liest PDF, Word, Excel, PowerPoint, Text u. a. und gibt eine Zusammenfassung zurück."
+ ],
+ "用绘图页现在的模型和设置生成图片（加入队列，生成好会发通知）。": [
+  "Generates an image with the current image model and settings (queued, notifies when done).",
+  "Erzeugt ein Bild mit dem aktuellen Bildmodell und den Einstellungen (Warteschlange, Mitteilung bei Fertigstellung)."
+ ],
+ "用视频页现在的模型和设置生成视频（加入队列，生成好会发通知）。": [
+  "Generates a video with the current video model and settings (queued, notifies when done).",
+  "Erzeugt ein Video mit dem aktuellen Videomodell und den Einstellungen (Warteschlange, Mitteilung bei Fertigstellung)."
+ ],
+ "把照片加到 Toolula 的修图页。": [
+  "Adds photos to Toolula's photo editor.",
+  "Fügt Fotos zur Fotobearbeitung von Toolula hinzu."
+ ],
+ "Toolula 对话": [
+  "Toolula Chat",
+  "Toolula-Chat"
  ]
 }

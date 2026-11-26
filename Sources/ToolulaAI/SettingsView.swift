@@ -91,6 +91,12 @@ struct ShortcutSettings: View {
                 Text("点按钮后按下新的组合（至少带 ⌘、⌥ 或 ⌃）。被其他程序占用时会提示。")
                     .font(.caption).foregroundStyle(.secondary)
             }
+            Section("处理选中的文字（全局）") {
+                Toggle("在任何程序里选中文字后用快捷键翻译、解释、改写", isOn: $hk.textEnabled)
+                LabeledContent("快捷键") { HotKeyRecorder(text: true) }
+                Text("需要「辅助功能」权限。改写和翻译的结果可以一键替换原文。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("程序内") {
                 row("命令面板", "⌘K")
                 row("新对话", "⌘N")
@@ -118,6 +124,13 @@ struct PrivacySettings: View {
     var body: some View {
         Form {
             StorageSection()
+            Section("聚焦搜索") {
+                Toggle("在聚焦搜索（⌘Space）里能搜到对话", isOn: Binding(get: { SpotlightIndex.enabled }, set: { v in
+                    SpotlightIndex.enabled = v
+                    if v { SpotlightIndex.rebuild(chat.conversations) }
+                }))
+                Text("每个对话在 Toolula 文件夹的 Chats/Search 里有一份纯文本索引，只存在这台 Mac 上。关掉后会立即删除。").font(.caption).foregroundStyle(.secondary)
+            }
             Section("对话") {
                 Text("对话每个一个文件（Chats 文件夹），写入是原子的，不会写坏。")
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)

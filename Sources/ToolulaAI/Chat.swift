@@ -254,7 +254,10 @@ final class ChatStore: ObservableObject {
     }
 
     /// 只写改动过的对话 (每个对话一个文件, 原子写入)
-    func save() { storage.save(conversations) }
+    func save() {
+        storage.save(conversations)
+        SpotlightIndex.schedule(conversations)
+    }
 
     var current: Conversation? { conversations.first { $0.id == selected } }
 

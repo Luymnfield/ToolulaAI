@@ -60,9 +60,78 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>LSItemContentTypes</key><array>
       <string>public.image</string><string>public.camera-raw-image</string><string>public.folder</string>
     </array>
+  </dict>
+  <dict>
+    <key>CFBundleTypeName</key><string>Toolula 对话</string>
+    <key>CFBundleTypeRole</key><string>Viewer</string>
+    <key>LSHandlerRank</key><string>Owner</string>
+    <key>LSItemContentTypes</key><array><string>com.toolula.chat</string></array>
   </dict></array>
+  <key>UTExportedTypeDeclarations</key><array><dict>
+    <key>UTTypeIdentifier</key><string>com.toolula.chat</string>
+    <key>UTTypeDescription</key><string>Toolula 对话</string>
+    <key>UTTypeConformsTo</key><array><string>public.plain-text</string><string>public.utf8-plain-text</string></array>
+    <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>toolulachat</string></array></dict>
+  </dict></array>
+  <key>NSServices</key><array>
+    <dict>
+      <key>NSMenuItem</key><dict><key>default</key><string>用 Toolula 总结</string></dict>
+      <key>NSMessage</key><string>summarizeFiles</string>
+      <key>NSPortName</key><string>Toolula AI</string>
+      <key>NSSendFileTypes</key><array><string>public.item</string></array>
+      <key>NSRequiredContext</key><dict/>
+      <key>NSIconName</key><string>NSActionTemplate</string>
+    </dict>
+    <dict>
+      <key>NSMenuItem</key><dict><key>default</key><string>用 Toolula 修图</string></dict>
+      <key>NSMessage</key><string>editPhotos</string>
+      <key>NSPortName</key><string>Toolula AI</string>
+      <key>NSSendFileTypes</key><array><string>public.image</string></array>
+      <key>NSRequiredContext</key><dict/>
+    </dict>
+    <dict>
+      <key>NSMenuItem</key><dict><key>default</key><string>用 Toolula 做成视频</string></dict>
+      <key>NSMessage</key><string>videoFromImage</string>
+      <key>NSPortName</key><string>Toolula AI</string>
+      <key>NSSendFileTypes</key><array><string>public.image</string></array>
+      <key>NSRequiredContext</key><dict/>
+    </dict>
+    <dict>
+      <key>NSMenuItem</key><dict><key>default</key><string>问 Toolula</string></dict>
+      <key>NSMessage</key><string>askAboutText</string>
+      <key>NSPortName</key><string>Toolula AI</string>
+      <key>NSSendTypes</key><array><string>public.utf8-plain-text</string><string>NSStringPboardType</string></array>
+      <key>NSRequiredContext</key><dict/>
+    </dict>
+  </array>
 </dict></plist>
 PLIST
+# 服务菜单的英文 / 德文名字
+for L in en de; do
+  case $L in
+    en) S1="Summarize with Toolula"; S2="Edit with Toolula"; S3="Make a Video with Toolula"; S4="Ask Toolula" ;;
+    de) S1="Mit Toolula zusammenfassen"; S2="Mit Toolula bearbeiten"; S3="Mit Toolula als Video"; S4="Toolula fragen" ;;
+  esac
+  mkdir -p "$APP/Contents/Resources/$L.lproj"
+  printf '"用 Toolula 总结" = "%s";\n"用 Toolula 修图" = "%s";\n"用 Toolula 做成视频" = "%s";\n"问 Toolula" = "%s";\n' "$S1" "$S2" "$S3" "$S4" > "$APP/Contents/Resources/$L.lproj/ServicesMenu.strings"
+done
+# 快捷指令动作的元数据 (AppIntents): swift build 已经导出了编译器的常量信息 (.swiftconstvalues), 用它生成 Metadata.appintents
+INT=.build/intents; mkdir -p $INT
+SCRATCH=.build; (( SELFTEST )) && SCRATCH=.build-selftest
+CV=$(find $SCRATCH -name 'ToolulaAI*.swiftconstvalues' -newer Sources/ToolulaAI/Intents.swift 2>/dev/null | head -1)
+[[ -z "$CV" ]] && CV=$(find $SCRATCH -name 'ToolulaAI*.swiftconstvalues' 2>/dev/null | head -1)
+if [[ -n "$CV" ]]; then
+  ls "$PWD"/Sources/ToolulaAI/*.swift > $INT/src.txt
+  echo "$PWD/$CV" > $INT/cv.txt
+  xcrun appintentsmetadataprocessor --output "$APP/Contents/Resources" --toolchain-dir "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain" \
+    --module-name ToolulaAI --sdk-root "$(xcrun --show-sdk-path)" --xcode-version "$(xcodebuild -version | tail -1 | awk '{print $3}')" --platform-family macOS \
+    --deployment-target 14.0 --target-triple arm64-apple-macos14.0 --source-file-list $INT/src.txt --swift-const-vals-list $INT/cv.txt \
+    --binary-file "$APP/Contents/MacOS/ToolulaAI" --no-app-shortcuts-localization --force > $INT/processor.log 2>&1 \
+    && echo "快捷指令动作: $(ls "$APP/Contents/Resources/Metadata.appintents" | tr '\n' ' ')" \
+    || { echo "⚠️  快捷指令元数据生成失败，见 $INT/processor.log"; tail -3 $INT/processor.log; }
+else
+  echo "⚠️  没找到编译器导出的常量信息，快捷指令动作不可用"
+fi
 SIGN_ID="-"
 if security find-certificate -c "Toolula Local Signing" >/dev/null 2>&1; then SIGN_ID="Toolula Local Signing"; fi
 if (( SELFTEST )); then
