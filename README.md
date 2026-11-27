@@ -4,6 +4,14 @@ A local-first AI assistant for the Mac. You can run it entirely on your own mach
 
 Toolula AI is a native SwiftUI app for **macOS 14 or later on Apple Silicon** (M1 and newer). Its interface is available in English, Simplified and Traditional Chinese, Japanese, Korean, German, French, Spanish, Portuguese and Russian.
 
+![Toolula AI home](docs/screenshots/home.png)
+
+| Photo editing | Video |
+|---|---|
+| ![Photo editing](docs/screenshots/photo.png) | ![Video generation](docs/screenshots/video.png) |
+
+![Models](docs/screenshots/models.png)
+
 ## Features
 
 - **Assistant**: chat with local or cloud models.
