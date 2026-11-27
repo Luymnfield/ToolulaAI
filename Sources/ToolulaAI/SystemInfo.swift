@@ -18,6 +18,20 @@ struct DiskInfo: Identifiable, Hashable {
 @MainActor
 final class SystemInfo: ObservableObject {
     static let shared = SystemInfo()
+    /// 自测截图用 (--demo-mac): 显示成 MacBook Pro 16 英寸 M4 Max 128 GB / 2 TB, 做产品介绍图
+    nonisolated(unsafe) static var demoMac = false
+    private func applyDemoMac() {
+        machine = String(localized: "\("MacBook Pro") \("16") 英寸")
+        modelId = "Mac16,5"
+        chip = "Apple M4 Max"
+        memory = "128 GB"
+        cores = String(localized: "\(16) 核 CPU") + String(localized: "（\(12) 性能 + \(4) 能效）")
+        gpuCores = String(localized: "\("40") 核 GPU")
+        totalGB = 128
+        usedGB = 26
+        disks = [DiskInfo(id: "/", name: "Macintosh HD", total: 2_000_000_000_000, free: 1_480_000_000_000, isSystem: true, isInternal: true)]
+        SystemInfoSnapshot.text = promptText
+    }
 
     @Published var machine = "Mac"
     @Published var chip = ""
@@ -112,6 +126,7 @@ final class SystemInfo: ObservableObject {
                 self.cores = coreText
                 self.gpuCores = gpuText
                 SystemInfoSnapshot.text = self.promptText
+                if SystemInfo.demoMac { self.applyDemoMac() }
             }
         }
         updateMemory()
@@ -132,13 +147,14 @@ final class SystemInfo: ObservableObject {
         let r = withUnsafeMutablePointer(to: &stats) {
             $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count) }
         }
-        guard r == KERN_SUCCESS else { return }
+        guard r == KERN_SUCCESS, !SystemInfo.demoMac else { return }
         let page = Double(vm_kernel_page_size)
         let used = (Double(stats.active_count) + Double(stats.wire_count) + Double(stats.compressor_page_count)) * page
         usedGB = used / 1_073_741_824
     }
 
     func updateDisks() {
+        if SystemInfo.demoMac { applyDemoMac(); return }
         let keys: [URLResourceKey] = [.volumeNameKey, .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey,
                                       .volumeAvailableCapacityKey, .volumeIsInternalKey, .volumeIsRootFileSystemKey, .volumeIsBrowsableKey]
         let urls = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) ?? []

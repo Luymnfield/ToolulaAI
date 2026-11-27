@@ -138,6 +138,7 @@ extension AppDelegate {
         let out = URL(fileURLWithPath: args[i + 1])
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
+        if args.contains("--demo-mac") { SystemInfo.demoMac = true; Recommender.simulatedRAM = 128 }
         let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--export-side", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
