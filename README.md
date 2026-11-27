@@ -1,28 +1,81 @@
 # Toolula AI
 
-本地 AI 助手 (SwiftUI, macOS 14+, Apple 芯片)。
+A local-first AI assistant for the Mac. You can run it entirely on your own machine with local models, or connect cloud models when you want them.
 
-## 编译和安装
-```
-./build_app.sh             # 正式版 -> build/Toolula AI.app (会检查翻译，缺了给警告)
-./build_app.sh --selftest  # 自测版 -> build/selftest/Toolula AI.app (带 --snapshot 等开关，见 Sources/ToolulaAI/SelfTest.swift)
-scripts/install.sh         # 把正式版装到 /Applications 并重新注册
-```
-签名用钥匙串里的本地证书「Toolula Local Signing」（不在仓库里），重新编译后权限不会丢。
+Toolula AI is a native SwiftUI app for **macOS 14 or later on Apple Silicon** (M1 and newer). Its interface is available in English, Simplified and Traditional Chinese, Japanese, Korean, German, French, Spanish, Portuguese and Russian.
 
-## 测试
-```
-swift test                   # 单元测试 (Tests/ToolulaAITests)
-scripts/regress.sh --quick   # 回归测试：各页面截图 + 不需要大模型的功能，和上一次截图做像素对比
-scripts/regress.sh           # 完整回归 (另含对话+工具、压缩、预热、修图识别、快速提问)
-scripts/check_translations.py   # 找没翻译的界面文字 (白名单: Localization/untranslated_whitelist.txt)
-scripts/check_a11y.py           # 找只有图标、没有 accessibilityLabel 的按钮
-```
-回归结果在 `regress-results/<时间>/summary.md`（不提交）。
+## Features
 
-## 相关目录
-- Lightroom 修图插件在相邻的 `../AIPhotoEdit.lrplugin`（单独的 git 仓库）。
-  `build_app.sh` 会把其中的 `ai_edit.py`、`*.lua`、`desktop_process.py` 复制进 App。
-- 用户数据: `~/Library/Application Support/ToolulaAI/`（不在仓库里）。
-  对话在 `conversations/<uuid>.json`，备份在 `backups/`，Toolula 启动的后台进程记录在 `pids/`。
-- 翻译: `Localization/translations.json`（key 是中文原文，值是 [英文, 德文]），由 `Localization/make_strings.py` 生成 lproj。
+- **Assistant**: chat with local or cloud models.
+  - Tools for files, the browser, documents and MCP servers.
+  - Long-term memory.
+  - Voice input.
+  - Quick Ask from anywhere.
+- **Photo editing**: AI culling and grading for RAW and JPEG.
+  - Global adjustments plus local adjustments for face, subject, sky and background.
+  - Before/after comparison.
+  - Batch editing by scene.
+- **Lightroom Classic integration**: send edits to Lightroom as RAW plus XMP, with editable AI masks. The preview is calibrated to match Lightroom's rendering. A companion Lightroom plugin is bundled.
+- **Image generation**: through a local ComfyUI.
+- **Video**: create short videos from images.
+- **Automation**: scheduled and repeatable tasks.
+- **Skills**: reusable skills, including skills imported from GitHub.
+- **Models**: manage local MLX models and connect providers:
+  - Local servers: LM Studio and Ollama.
+  - Cloud APIs: OpenAI, Anthropic Claude, Google Gemini, DeepSeek, OpenRouter, Groq and Mistral.
+- **System integration**: Finder Services menu ("Summarize / Edit / Make a Video with Toolula", "Ask Toolula"), Shortcuts actions, a desktop widget and a command palette (⌘K).
+
+## Download and install
+
+1. Download `ToolulaAI-<version>.dmg` from the [latest release](../../releases/latest).
+2. Open the DMG and drag **Toolula AI** into **Applications**.
+3. Open the app for the first time. It is not notarized by Apple, so macOS will block it:
+   - Open **System Settings → Privacy & Security**.
+   - Scroll down and click **Open Anyway** next to "Toolula AI".
+   - On macOS 14 you can also right-click the app and choose **Open**.
+
+   If macOS says the app is "damaged", run this once in Terminal:
+   ```
+   xattr -dr com.apple.quarantine "/Applications/Toolula AI.app"
+   ```
+4. The setup wizard guides you through choosing models. Local models need a lot of memory: 16 GB of RAM is the minimum, and 32 GB or more is recommended. Cloud providers need an API key.
+
+Optional:
+- [LM Studio](https://lmstudio.ai) or [Ollama](https://ollama.com) for local models.
+- ComfyUI for image generation.
+- Adobe Lightroom Classic for the Lightroom features.
+
+## Build from source
+
+```
+./build_app.sh             # release build -> build/Toolula AI.app (warns about missing translations)
+./build_app.sh --selftest  # self-test build -> build/selftest/Toolula AI.app (adds --snapshot and other switches, see Sources/ToolulaAI/SelfTest.swift)
+scripts/install.sh         # install the release build to /Applications and re-register it
+scripts/make_dmg.sh        # package build/Toolula AI.app as build/ToolulaAI-<version>.dmg
+```
+
+The build is signed with a local certificate called "Toolula Local Signing", which is kept in the Keychain and is not part of this repository. A stable signature means that macOS permissions such as Accessibility survive rebuilds. If the certificate is missing, the app is signed ad hoc.
+
+## Tests
+
+```
+swift test                       # unit tests (Tests/ToolulaAITests)
+scripts/regress.sh --quick       # regression: screenshot every page and run the features that need no large model, pixel-compared with the previous run
+scripts/regress.sh               # full regression (adds chat with tools, compaction, warm-up, photo analysis, Quick Ask)
+scripts/check_translations.py    # find untranslated UI strings (whitelist: Localization/untranslated_whitelist.txt)
+scripts/check_a11y.py            # find icon-only buttons without an accessibilityLabel
+```
+
+Regression results go to `regress-results/<timestamp>/summary.md`, which is not committed.
+
+## Project layout
+
+- `Sources/ToolulaAI/`: the app.
+- `Widget/`: the WidgetKit extension.
+- `Tests/`: the unit tests.
+- The Lightroom plugin lives next to this repository in `../AIPhotoEdit.lrplugin`, which is a separate git repository. `build_app.sh` copies its `ai_edit.py`, `*.lua` and `desktop_process.py` into the app.
+- User data is stored in `~/Library/Application Support/ToolulaAI/`, outside the repository:
+  - conversations in `conversations/<uuid>.json`;
+  - backups in `backups/`;
+  - records of the background processes Toolula starts in `pids/`.
+- Translations live in `Localization/translations.json`. Each key is the original Chinese UI string. `Localization/make_strings.py` generates the `.lproj` folders from it.
