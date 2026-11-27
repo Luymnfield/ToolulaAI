@@ -11,6 +11,8 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
     case subject, person, face, sky, background
     // 人像部位 (人脸关键点 + 肤色)
     case skin, eyes, lips, teeth
+    // 风光: 亮度蒙版 (亮部 / 暗部) 和植被
+    case brights, darks, greenery
     var id: String { rawValue }
     var label: String {
         switch self {
@@ -23,6 +25,9 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
         case .eyes: return String(localized: "眼睛")
         case .lips: return String(localized: "嘴唇")
         case .teeth: return String(localized: "牙齿")
+        case .brights: return String(localized: "亮部")
+        case .darks: return String(localized: "暗部")
+        case .greenery: return String(localized: "植被")
         }
     }
     var icon: String {
@@ -36,6 +41,9 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
         case .eyes: return "eye"
         case .lips: return "mouth"
         case .teeth: return "mouth.fill"
+        case .brights: return "sun.max"
+        case .darks: return "moon"
+        case .greenery: return "leaf"
         }
     }
 }
@@ -115,6 +123,7 @@ enum Masks {
         case .face: mask = faces(cg)
         case .sky: mask = sky(cg)
         case .skin, .eyes, .lips, .teeth: mask = nil
+        case .brights, .darks, .greenery: mask = tonal(kind, cg)
         }
         guard var m = mask else { return nil }
         // 放大到原图大小 + 轻微羽化
@@ -224,6 +233,51 @@ enum Masks {
         return m.transformed(by: CGAffineTransform(scaleX: CGFloat(cg.width) / CGFloat(w), y: CGFloat(cg.height) / CGFloat(h)))
     }
 
+    /// 亮度蒙版和植被: 逐个像素按亮度 / 颜色算 (风光修图最常用的「亮度蒙版」, 不需要模型).
+    /// 亮部: 亮度 55% 以上渐渐选中; 暗部: 45% 以下渐渐选中; 植被: 黄绿到青绿、有一定饱和度
+    static func tonal(_ kind: MaskKind, _ cg: CGImage) -> CIImage? {
+        let w = cg.width, h = cg.height
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        let ok = px.withUnsafeMutableBytes { buf -> Bool in
+            guard let ctx = CGContext(data: buf.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                      space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+            return true
+        }
+        guard ok else { return nil }
+        func smooth(_ x: Double, _ a: Double, _ b: Double) -> Double { let t = max(0, min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t) }
+        var m = [UInt8](repeating: 0, count: w * h)
+        var total = 0.0
+        for i in 0..<(w * h) {
+            let r = Double(px[i * 4]) / 255, g = Double(px[i * 4 + 1]) / 255, b = Double(px[i * 4 + 2]) / 255
+            let L = 0.2126 * r + 0.7152 * g + 0.0722 * b
+            var v: Double
+            switch kind {
+            case .brights: v = smooth(L, 0.5, 0.85)
+            case .darks: v = 1 - smooth(L, 0.12, 0.45)
+            default:
+                let mx = max(r, g, b), mn = min(r, g, b)
+                let sat = mx > 0 ? (mx - mn) / mx : 0
+                var hue = 0.0
+                if mx > mn {
+                    if mx == r { hue = 60 * ((g - b) / (mx - mn)) } else if mx == g { hue = 60 * ((b - r) / (mx - mn) + 2) } else { hue = 60 * ((r - g) / (mx - mn) + 4) }
+                    if hue < 0 { hue += 360 }
+                }
+                let hueOK = smooth(hue, 50, 75) * (1 - smooth(hue, 160, 185))
+                v = hueOK * smooth(sat, 0.12, 0.3) * smooth(L, 0.03, 0.1)
+            }
+            total += v
+            m[i] = UInt8(v * 255)
+        }
+        guard total / Double(w * h) > 0.01 else { return nil }   // 几乎没有: 算没找到
+        guard let provider = CGDataProvider(data: Data(m) as CFData),
+              let mcg = CGImage(width: w, height: h, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: w, space: CGColorSpaceCreateDeviceGray(),
+                                bitmapInfo: CGBitmapInfo(rawValue: 0), provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) else { return nil }
+        // 植被稍微羽化 (叶子之间的缝隙连起来); 亮度蒙版保持精确, 不会在边缘出光晕
+        let img = CIImage(cgImage: mcg)
+        return kind == .greenery ? img.clampedToExtent().applyingGaussianBlur(sigma: 1.5).cropped(to: img.extent) : img
+    }
+
     /// 主体蒙版缩到 w×h 的数组 (第 0 行在最上面)
     private static func subjectGrid(_ cg: CGImage, w: Int, h: Int) -> [Float]? {
         guard let m = subject(cg) else { return nil }
@@ -296,8 +350,42 @@ extension Renderer {
         if !portrait.isEmpty, let a = cache?.portraitAnalysis(for: patched) ?? PortraitAnalysis.compute(for: patched) {
             global = applyPortrait(portrait, to: global, analysis: a)
         }
-        if locals.isEmpty && showMask == nil { return global }
-        return applyLocals(locals, to: global, source: patched, cache: cache, showMask: showMask)
+        let done = locals.isEmpty && showMask == nil ? global : applyLocals(locals, to: global, source: patched, cache: cache, showMask: showMask)
+        // 最后一步: 拉正 (和 Lightroom 的「角度」一样, 正数 = 顺时针转)
+        let angle = settings["CropAngle"] ?? 0
+        return abs(angle) > 0.01 ? straighten(done, degrees: angle) : done
+    }
+
+    /// 转 degrees 度后还能放下的、同样比例的最大矩形, 占原来宽高的比例
+    static func straightenScale(w: Double, h: Double, degrees: Double) -> Double {
+        let t = abs(degrees) * .pi / 180
+        return min(w / (w * cos(t) + h * sin(t)), h / (w * sin(t) + h * cos(t)))
+    }
+
+    /// 绕中心顺时针转 degrees 度, 裁出不带空角的最大部分 (原点移回 0)
+    func straighten(_ img: CIImage, degrees: Double) -> CIImage {
+        let E = img.extent
+        let c = CGPoint(x: E.midX, y: E.midY)
+        let rot = img.transformed(by: CGAffineTransform(translationX: -c.x, y: -c.y)
+            .concatenating(CGAffineTransform(rotationAngle: -degrees * .pi / 180))
+            .concatenating(CGAffineTransform(translationX: c.x, y: c.y)))
+        let k = Self.straightenScale(w: E.width, h: E.height, degrees: degrees)
+        let w = (E.width * k).rounded(.down), h = (E.height * k).rounded(.down)
+        let crop = CGRect(x: c.x - w / 2, y: c.y - h / 2, width: w, height: h)
+        return rot.cropped(to: crop).transformed(by: CGAffineTransform(translationX: -crop.minX, y: -crop.minY))
+    }
+
+    /// 用 Vision 找地平线, 返回要转的角度 (Lightroom 的写法: 正数 = 顺时针). 找不到或者已经平了返回 nil
+    static func horizonAngle(_ img: CIImage) -> Double? {
+        let r = Renderer.shared
+        let small = r.scale(img, maxSide: 1024)
+        guard let cg = r.context.createCGImage(small, from: small.extent, format: .RGBA8, colorSpace: r.sRGB) else { return nil }
+        let req = VNDetectHorizonRequest()
+        guard (try? VNImageRequestHandler(cgImage: cg).perform([req])) != nil, let h = req.results?.first else { return nil }
+        // Vision 给的角度和 Lightroom「角度」的方向相反 (实测: 逆时针歪 4° 的照片, Vision 给 -3.6°, 要顺时针转 3.6° 才平)
+        let deg = -Double(h.angle) * 180 / .pi
+        guard abs(deg) >= 0.2, abs(deg) <= 15 else { return nil }
+        return (deg * 100).rounded() / 100
     }
 }
 

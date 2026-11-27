@@ -5658,5 +5658,157 @@
  "生成中的粗略预览": [
   "Rough preview while generating",
   "Grobe Vorschau während der Erstellung"
+ ],
+ "角度": [
+  "Angle",
+  "Winkel"
+ ],
+ "构图": [
+  "Composition",
+  "Bildaufbau"
+ ],
+ "自动拉正": [
+  "Auto straighten",
+  "Automatisch ausrichten"
+ ],
+ "用 Vision 找出地平线, 把照片转平, 再裁掉转出来的空角": [
+  "Finds the horizon with Vision, levels the photo and crops away the empty corners",
+  "Findet den Horizont mit Vision, richtet das Foto aus und schneidet leere Ecken weg"
+ ],
+ "已拉正 %@°": [
+  "Straightened %@°",
+  "Um %@° ausgerichtet"
+ ],
+ "没有找到明显倾斜的地平线": [
+  "No clearly tilted horizon found",
+  "Kein deutlich schiefer Horizont gefunden"
+ ],
+ "盲选比较（不看名字选更好的）": [
+  "Blind compare (pick the better one without names)",
+  "Blindvergleich (ohne Namen das Bessere wählen)"
+ ],
+ "两个方案并排、随机左右，选更好的。你的选择会记下来，以后修类似的照片时告诉 AI 你的偏好": [
+  "Two looks side by side in random order — pick the better one. Your choices are saved and tell the AI your taste on similar photos.",
+  "Zwei Looks nebeneinander in zufälliger Reihenfolge – wähle den besseren. Deine Wahl wird gespeichert und zeigt der KI bei ähnlichen Fotos deinen Geschmack."
+ ],
+ "正在量…": [
+  "Measuring…",
+  "Wird gemessen …"
+ ],
+ "哪一张更好？": [
+  "Which one is better?",
+  "Welches ist besser?"
+ ],
+ "两个方案随机放在左右，不告诉你是哪个。点更好的那张（也可以按 ← →）。": [
+  "Two looks in random order, without names. Click the better one (or press ← →).",
+  "Zwei Looks in zufälliger Reihenfolge, ohne Namen. Klicke auf den besseren (oder drücke ← →)."
+ ],
+ "第 %@ / %@ 组": [
+  "Round %1$@ of %2$@",
+  "Runde %1$@ von %2$@"
+ ],
+ "差不多，跳过": [
+  "About the same — skip",
+  "Etwa gleich – überspringen"
+ ],
+ "盲选结果：%@（已记下你的选择）": [
+  "Blind pick: %@ (your choice is saved)",
+  "Blindwahl: %@ (deine Wahl ist gespeichert)"
+ ],
+ "程序在当前效果上量出来的，比用眼睛看缩略图准。橙色的地方值得看一眼（舞台、夜景等本来就暗的照片，死黑多一些是正常的）。": [
+  "Measured on the current result — more accurate than judging a thumbnail by eye. Orange items are worth a look (stage and night shots naturally have more crushed blacks).",
+  "Am aktuellen Ergebnis gemessen – genauer als ein Blick auf das Vorschaubild. Orange Punkte sind einen Blick wert (Bühnen- und Nachtaufnahmen haben natürlich mehr abgesoffene Schatten)."
+ ],
+ "过曝 %@": [
+  "Blown %@",
+  "Ausgefressen %@"
+ ],
+ "死黑 %@": [
+  "Crushed %@",
+  "Abgesoffen %@"
+ ],
+ "亮度 %@ · 色相 %@° · 饱和度 %@": [
+  "Brightness %1$@ · hue %2$@° · saturation %3$@",
+  "Helligkeit %1$@ · Farbton %2$@° · Sättigung %3$@"
+ ],
+ "中位 %@（暗部 %@ ~ 亮部 %@）": [
+  "Median %1$@ (shadows %2$@ – highlights %3$@)",
+  "Median %1$@ (Schatten %2$@ – Lichter %3$@)"
+ ],
+ "偏暖": [
+  "Warm",
+  "Warm"
+ ],
+ "偏冷": [
+  "Cool",
+  "Kühl"
+ ],
+ "偏品红": [
+  "Magenta",
+  "Magenta"
+ ],
+ "偏绿": [
+  "Green",
+  "Grün"
+ ],
+ "基本中性": [
+  "Neutral",
+  "Neutral"
+ ],
+ "明显": [
+  "strong",
+  "stark"
+ ],
+ "中等": [
+  "medium",
+  "mittel"
+ ],
+ "轻微": [
+  "slight",
+  "leicht"
+ ],
+ "亮部": [
+  "Highlights",
+  "Lichter"
+ ],
+ "暗部": [
+  "Shadows",
+  "Schatten"
+ ],
+ "植被": [
+  "Vegetation",
+  "Vegetation"
+ ],
+ "质量检查": [
+  "Quality check",
+  "Qualitätsprüfung"
+ ],
+ "白平衡": [
+  "White balance",
+  "Weißabgleich"
+ ],
+ "肤色": [
+  "Skin tone",
+  "Hautton"
+ ],
+ "亮度": [
+  "Brightness",
+  "Helligkeit"
+ ],
+ "肤色校准": [
+  "Calibrate skin",
+  "Hautton kalibrieren"
+ ],
+ "把肤色的色相和饱和度拉回专业的「肤色线」：去掉偏绿、偏紫、发灰、太黄，亮度不变": [
+  "Pulls skin hue and saturation back to the professional skin-tone line: removes green, purple, gray or overly yellow casts, brightness unchanged",
+  "Bringt Farbton und Sättigung der Haut zurück auf die professionelle Hauttonlinie: entfernt Grün-, Lila-, Grau- oder zu gelbe Stiche, Helligkeit bleibt"
+ ],
+ "这张照片有 Lightroom 表达不了的修改": [
+  "This photo has edits Lightroom can't express",
+  "Dieses Foto hat Bearbeitungen, die Lightroom nicht abbilden kann"
+ ],
+ "去瑕疵、淡化眼袋、肤色均匀、肤色校准、光影塑形、亮部 / 暗部蒙版是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇、植被会做成蒙版），这几项需要在 Lightroom 里自己做。": [
+  "Blemish removal, under-eye softening, even skin, skin calibration, dodge & burn and highlight/shadow masks change pixels directly in Toolula, and Lightroom's settings can't express them.\n\nSend finished TIFF: looks exactly like in Toolula, but the RAW settings can no longer be changed.\nSend editable RAW: settings and masks stay editable (skin smoothing, eyes, teeth, lips and vegetation become masks); you'll need to do these steps in Lightroom yourself.",
+  "Makel entfernen, Augenringe mildern, Hautton angleichen, Hautton kalibrieren, Abwedeln & Nachbelichten und Lichter-/Schattenmasken verändern in Toolula direkt die Pixel – Lightroom-Einstellungen können das nicht abbilden.\n\nFertiges TIFF senden: sieht genau aus wie in Toolula, aber die RAW-Einstellungen lassen sich nicht mehr ändern.\nBearbeitbares RAW senden: Einstellungen und Masken bleiben bearbeitbar (Hautglättung, Augen, Zähne, Lippen und Vegetation werden Masken); diese Schritte musst du in Lightroom selbst machen."
  ]
 }

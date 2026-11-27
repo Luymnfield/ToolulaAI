@@ -139,7 +139,7 @@ extension AppDelegate {
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
         if args.contains("--demo-mac") { SystemInfo.demoMac = true; Recommender.simulatedRAM = 128 }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--export-side", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model", "--portrait", "--portrait-masks"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--export-side", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model", "--portrait", "--portrait-masks", "--angle"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -291,6 +291,14 @@ extension AppDelegate {
                     }
                     try? r.writeJPEG(marked.cropped(to: base.extent), to: dir.appendingPathComponent("spots.jpg"), quality: 0.85)
                 }
+            }
+            if args.contains("--straighten"), let item = store.current, let base = item.previewBase {
+                let ang = val("--angle").flatMap(Double.init) ?? Renderer.horizonAngle(base)
+                log += "straighten: \(ang.map { String(format: "%.2f°", $0) } ?? "none")\n"
+                let st0 = item.settings, mc = item.maskCache
+                let mm = await Task.detached { store.measureForAI(base: base, settings: st0, patches: [], portrait: PortraitRetouch(), cache: mc) }.value
+                log += "measure: \(mm ?? [:])\n"
+                if let ang { item.setValue("CropAngle", ang); try? await Task.sleep(for: .seconds(2)) }
             }
             if let dirPath = val("--export") {
                 let dir = URL(fileURLWithPath: dirPath)

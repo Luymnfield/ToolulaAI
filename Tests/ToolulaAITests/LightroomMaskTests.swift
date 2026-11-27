@@ -50,7 +50,7 @@ final class LightroomMaskTests: XCTestCase {
     /// 每个局部参数都要能对应到 Lightroom 的蒙版滑块, 每个区域都要有对应的 AI 蒙版
     func testMappingsComplete() {
         for p in LocalAdjustment.params { XCTAssertNotNil(Exporter.lightroomLocalParam[p.key], p.key) }
-        for k in MaskKind.allCases { XCTAssertNotNil(Exporter.lightroomMaskType[k], k.rawValue) }
+        for k in MaskKind.allCases where !Exporter.lightroomUnsupported.contains(k) { XCTAssertNotNil(Exporter.lightroomMaskType[k], k.rawValue) }
     }
 }
 
@@ -129,5 +129,34 @@ final class PhotoMeasureTests: XCTestCase {
         let (same, none) = PhotoMeasure.guardClipping(before: before, after: ["Contrast2012": 5]) { r.apply($0, to: base) }
         XCTAssertNil(none)
         XCTAssertEqual(same["Contrast2012"], 5)
+    }
+}
+
+/// 质量检查卡片的判断
+final class QualityCardTests: XCTestCase {
+    func testRows() {
+        var s = PhotoMeasure.Stats()
+        s.p1 = 0.02; s.p50 = 0.45; s.p99 = 0.95; s.clipHi = 3.2; s.clipLo = 0.5; s.neutralShare = 0.2; s.castB = 15
+        s.skin = (0.5, 20, 0.35)
+        let rows = QualityCard.rows(s)
+        XCTAssertEqual(rows.first { $0.0 == "高光" }?.2, false)     // 过曝 3.2% 要提醒
+        XCTAssertEqual(rows.first { $0.0 == "暗部" }?.2, true)
+        XCTAssertEqual(rows.first { $0.0 == "白平衡" }?.2, false)   // 中等偏暖
+        XCTAssertEqual(rows.first { $0.0 == "肤色" }?.2, true)
+        XCTAssertEqual(rows.first { $0.0 == "亮度" }?.2, true)
+    }
+
+    func testStraightenScale() {
+        XCTAssertEqual(Renderer.straightenScale(w: 3000, h: 2000, degrees: 0), 1, accuracy: 1e-9)
+        let k = Renderer.straightenScale(w: 3000, h: 2000, degrees: 3)
+        XCTAssertLessThan(k, 1); XCTAssertGreaterThan(k, 0.9)
+        XCTAssertEqual(Renderer.straightenScale(w: 3000, h: 2000, degrees: -3), k, accuracy: 1e-12)
+    }
+
+    func testSkinToneGainsLeaveGoodSkinAlone() {
+        // 已经在肤色线上的颜色 (线性): 不用动
+        XCTAssertNil(Renderer.skinToneGains([0.5, 0.3, 0.22], amount: 1))
+        // 偏绿的肤色: 红增益大于绿增益
+        if let g = Renderer.skinToneGains([0.35, 0.33, 0.2], amount: 1) { XCTAssertGreaterThan(g.0 / g.1, 1) } else { XCTFail("应该要校准") }
     }
 }

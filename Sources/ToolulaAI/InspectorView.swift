@@ -345,6 +345,8 @@ struct ItemPanels: View {
                 }
             }
 
+            QualityCard(item: item)
+
             if item.score != nil || !item.keywords.isEmpty {
                 StepCard(title: "选片 / 关键词", icon: "star") { EmptyView() } content: {
                     VStack(alignment: .leading, spacing: 6) {
@@ -376,6 +378,27 @@ struct ItemPanels: View {
                 Button("重置") { item.resetAll() }
             }
             .controlSize(.small)
+
+            StepCard(title: "构图", icon: "level") {
+                Button {
+                    guard let base = item.previewBase else { return }
+                    Task {
+                        let a = await Task.detached { Renderer.horizonAngle(base) }.value
+                        if let a { item.setValue("CropAngle", a); store.status = String(localized: "已拉正 \(String(format: "%.1f", a))°") }
+                        else { store.status = String(localized: "没有找到明显倾斜的地平线") }
+                    }
+                } label: { Label("自动拉正", systemImage: "level").font(.caption) }
+                .buttonStyle(.borderless).foregroundStyle(Color.toolula)
+                .help(Text("用 Vision 找出地平线, 把照片转平, 再裁掉转出来的空角"))
+            } content: {
+                HStack(spacing: 6) {
+                    Text("角度").font(.caption).frame(width: 40, alignment: .leading)
+                    Slider(value: Binding(get: { item.value("CropAngle") }, set: { item.setValue("CropAngle", ($0 * 10).rounded() / 10) }), in: -10...10)
+                        .controlSize(.mini)
+                    Text(verbatim: String(format: "%+.1f°", item.value("CropAngle"))).font(.caption.monospacedDigit()).frame(width: 44, alignment: .trailing)
+                        .onTapGesture(count: 2) { item.setValue("CropAngle", 0) }
+                }
+            }
 
             DisclosureGroup(isExpanded: $adjustOpen) {
                 VStack(alignment: .leading, spacing: 14) {
@@ -495,6 +518,7 @@ struct RecognizeButton: View {
 struct PlansPanel: View {
     @EnvironmentObject var store: Store
     @ObservedObject var item: PhotoItem
+    @State private var blind = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -510,9 +534,16 @@ struct PlansPanel: View {
                         }
                     }
                 }
+                let done = item.plans.filter(\.complete)
+                if done.count >= 2 && !item.recognizing {
+                    Button { blind = true } label: { Label("盲选比较（不看名字选更好的）", systemImage: "eye.slash").font(.caption) }
+                        .buttonStyle(.borderless).foregroundStyle(Color.toolula)
+                        .help(Text("两个方案并排、随机左右，选更好的。你的选择会记下来，以后修类似的照片时告诉 AI 你的偏好"))
+                }
                 ForEach(item.plans) { plan in PlanCard(item: item, plan: plan) }
             }
         }
+        .sheet(isPresented: $blind) { BlindCompareSheet(item: item, isPresented: $blind, plans: item.plans.filter(\.complete)) }
     }
 }
 

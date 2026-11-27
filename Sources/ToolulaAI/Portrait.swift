@@ -36,6 +36,7 @@ struct PortraitRetouch: Codable, Hashable, Sendable {
         Spec(key: "blemish", label: "去瑕疵", help: "去掉痘印和小斑点，明显的痣会保留", icon: "bandage", pixelOnly: true),
         Spec(key: "undereye", label: "淡化眼袋", help: "提亮并柔化眼睛下方的阴影", icon: "eye.trianglebadge.exclamationmark", pixelOnly: true),
         Spec(key: "even", label: "肤色均匀", help: "减少泛红和色斑，让肤色更统一", icon: "circle.lefthalf.filled", pixelOnly: true),
+        Spec(key: "tone", label: "肤色校准", help: "把肤色的色相和饱和度拉回专业的「肤色线」：去掉偏绿、偏紫、发灰、太黄，亮度不变", icon: "eyedropper", pixelOnly: true),
         Spec(key: "sculpt", label: "光影塑形", help: "提亮额头、鼻梁、颧骨，压暗脸颊下方和下颌，让脸更立体", icon: "light.max", pixelOnly: true),
         Spec(key: "eyes", label: "眼睛提亮", help: "提亮眼白、让眼神更清澈", icon: "eye", pixelOnly: false),
         Spec(key: "teeth", label: "牙齿美白", help: "去掉牙齿发黄", icon: "mouth", pixelOnly: false),
@@ -591,17 +592,41 @@ extension Renderer {
             }
         }
 
+        // 1b. 肤色校准: 平均肤色的色相拉向专业的「肤色线」(约 18~24°), 饱和度收进 0.22~0.5; 只动皮肤, 亮度不变
+        if k("tone") > 0, let gains = Self.skinToneGains(mean, amount: k("tone")) {
+            let fixed = out.applyingFilter("CIColorMatrix", parameters: ["inputRVector": CIVector(x: gains.0, y: 0, z: 0, w: 0),
+                                                                         "inputGVector": CIVector(x: 0, y: gains.1, z: 0, w: 0),
+                                                                         "inputBVector": CIVector(x: 0, y: 0, z: gains.2, w: 0)]).cropped(to: E)
+            out = blend(fixed, over: out, mask: skin)
+        }
+
         // 2. 磨皮 (分频): 细纹理 = 原图 - 小半径模糊; 斑驳 = 大半径模糊; 结果 = 大半径模糊 + 细纹理
         let sigF = max(0.7, faceW * 0.0035), sigM = max(2, faceW * 0.022)
         let fine = add(scaled(out, 1), scaled(blur(out, sigF), -1))   // 带正负号的细纹理, 不透明度 0
         let base = blur(blend(out, over: meanImg, mask: skin), sigM)
         let smoothed = add(base, fine)
-        if k("smooth") > 0 { out = blend(smoothed, over: out, mask: skin, amount: k("smooth") * 0.75) }
+        if k("smooth") > 0 {
+            // 避开五官的轮廓 (鼻翼、眼睑、唇线、下颌线): 先轻微模糊 (毛孔不算边缘) 再找边缘, 边缘处少磨或不磨
+            let edgeSig = max(1, faceW * 0.006)
+            let edges = blur(out, edgeSig).applyingFilter("CIEdges", parameters: [kCIInputIntensityKey: 6]).cropped(to: E)
+                .applyingFilter("CIColorMatrix", parameters: ["inputRVector": CIVector(x: 0.6, y: 0.6, z: 0.6, w: 0), "inputGVector": CIVector(x: 0.6, y: 0.6, z: 0.6, w: 0),
+                                                             "inputBVector": CIVector(x: 0.6, y: 0.6, z: 0.6, w: 0), "inputAVector": CIVector(x: 0, y: 0, z: 0, w: 0),
+                                                             "inputBiasVector": CIVector(x: 0, y: 0, z: 0, w: 1)])
+                .applyingFilter("CIColorClamp").cropped(to: E)
+            let keep = blur(edges, edgeSig).applyingFilter("CIColorInvert").cropped(to: E)
+            let smoothMask = skin.applyingFilter("CIMultiplyCompositing", parameters: [kCIInputBackgroundImageKey: keep]).cropped(to: E)
+            out = blend(smoothed, over: out, mask: smoothMask, amount: k("smooth") * 0.75)
+        }
 
         // 3. 去瑕疵: 每个斑点用周围的皮肤补上, 加回一点细纹理
         if k("blemish") > 0, !a.spots.isEmpty {
             let radii = a.spots.map { Double($0.1) * E.width }.sorted()
-            let heal = add(blur(blend(out, over: meanImg, mask: skin), max(1.5, radii[radii.count / 2] * 1.3)), scaled(fine, 0.5))
+            let r0 = max(1.5, radii[radii.count / 2])
+            // 纹理借用旁边健康的皮肤: 斑点左右各 3 个半径处的细纹理取平均 (斑点本身的纹理里还带着它的边, 不能用)
+            let d = r0 * 3
+            let left = fine.transformed(by: CGAffineTransform(translationX: d, y: 0)), right = fine.transformed(by: CGAffineTransform(translationX: -d, y: 0))
+            let borrowed = add(scaled(left.cropped(to: E), 0.7), scaled(right.cropped(to: E), 0.7))
+            let heal = add(blur(blend(out, over: meanImg, mask: skin), r0 * 1.3), borrowed)
             if let spotMask = spotMask(a.spots, extent: E) { out = blend(heal, over: out, mask: spotMask, amount: min(1, k("blemish") * 1.15)) }
         }
 
@@ -641,6 +666,42 @@ extension Renderer {
             local(["Saturation": 30 * l, "Contrast2012": 12 * l], a.lips)
         }
         return out.cropped(to: E)
+    }
+
+    /// 肤色校准: 平均肤色 (线性) -> 每个通道的增益. 已经在范围里就不用动 (返回 nil)
+    static func skinToneGains(_ mean: [Double], amount: Double) -> (Double, Double, Double)? {
+        func enc(_ v: Double) -> Double { pow(max(0, v), 1 / 2.2) }
+        func dec(_ v: Double) -> Double { pow(max(0, v), 2.2) }
+        let r = enc(mean[0]), g = enc(mean[1]), b = enc(mean[2])
+        let mx = max(r, g, b), mn = min(r, g, b)
+        guard mx > 0.05, mx > mn else { return nil }
+        var hue: Double
+        if mx == r { hue = 60 * ((g - b) / (mx - mn)) } else if mx == g { hue = 60 * ((b - r) / (mx - mn) + 2) } else { hue = 60 * ((r - g) / (mx - mn) + 4) }
+        if hue > 180 { hue -= 360 }
+        let sat = (mx - mn) / mx
+        let targetHue = min(24, max(16, hue)), targetSat = min(0.5, max(0.22, sat))
+        let h2 = hue + (targetHue - hue) * amount, s2 = sat + (targetSat - sat) * amount
+        guard abs(h2 - hue) > 0.3 || abs(s2 - sat) > 0.005 else { return nil }
+        // HSV -> RGB (亮度 = 原来的最大值)
+        let v = mx, c = v * s2
+        let hh = (h2 < 0 ? h2 + 360 : h2) / 60
+        let x = c * (1 - abs(hh.truncatingRemainder(dividingBy: 2) - 1))
+        var (r1, g1, b1): (Double, Double, Double)
+        switch Int(hh) {
+        case 0: (r1, g1, b1) = (c, x, 0)
+        case 1: (r1, g1, b1) = (x, c, 0)
+        case 2: (r1, g1, b1) = (0, c, x)
+        case 3: (r1, g1, b1) = (0, x, c)
+        case 4: (r1, g1, b1) = (x, 0, c)
+        default: (r1, g1, b1) = (c, 0, x)
+        }
+        let m = v - c
+        let t = (dec(r1 + m), dec(g1 + m), dec(b1 + m))
+        // 保持亮度
+        let l0 = 0.2126 * mean[0] + 0.7152 * mean[1] + 0.0722 * mean[2], l1 = 0.2126 * t.0 + 0.7152 * t.1 + 0.0722 * t.2
+        guard l1 > 0.0001 else { return nil }
+        let k = l0 / l1
+        return (t.0 * k / max(1e-4, mean[0]), t.1 * k / max(1e-4, mean[1]), t.2 * k / max(1e-4, mean[2]))
     }
 
     /// 蒙版范围内的平均颜色: 数值 (工作色彩空间, 用来算比例) 和铺满 extent 的纯色图.

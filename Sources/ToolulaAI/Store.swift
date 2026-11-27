@@ -362,11 +362,13 @@ final class Store: ObservableObject {
         let current = item.settings
         let name = item.name
         let patches = item.patches, cache = item.maskCache, portrait0 = item.portrait
+        let scene = StylePicks.scene(of: item)
         let result: (Settings, String, String?, PortraitRetouch?) = await Task.detached {
             guard let img = self.renderForAI(base: base, settings: current, name: name, patches: patches, portrait: portrait0) else { return ([:], "", String(localized: "无法生成预览"), nil) }
             var req: [String: Any] = ["style": style, "is_raw": false, "current": AIBridge.numeric(current), "use_taste": useTaste]
             if let a = cache.portraitAnalysis(for: base) { req["portrait"] = ["faces": a.faceCount, "face_size": Double(a.faceWidth)] }
             if let m = self.measureForAI(base: base, settings: current, patches: patches, portrait: portrait0, cache: cache) { req["measure"] = m }
+            if let h = StylePicks.hint(scene: scene) { req["picks_hint"] = h }
             let r = AIBridge.run("analyze", image: img, reference: ref, request: req)
             if let e = r.error { return ([:], "", e, nil) }
             var s = AIBridge.settings(from: r)
@@ -393,6 +395,7 @@ final class Store: ObservableObject {
             let (fixed, note) = self.guardSettings(base: base, before: current, after: merged, patches: patches, portrait: portrait ?? portrait0)
             // 只改自动检查动过的参数 (其他的照旧, 手动调过的不会被算两次)
             for (k, v) in fixed where merged[k] != v { s[k] = v }
+            // 地平线检测在没有清楚地平线的照片上会出错 (实测一张湖景: 歪 2.5°, Vision 说 5.6°), 所以不自动拉正, 由用户在「构图」里点
             if let note { text += "\n\n" + note }
             return (s, text, nil, portrait)
         }.value
@@ -412,8 +415,27 @@ final class Store: ObservableObject {
         let r = Renderer.shared
         let small = r.scale(base, maxSide: PhotoMeasure.side * 2)
         let img = r.renderEdited(small, settings: settings, patches: patches, locals: [], portrait: portrait, cache: MaskCache())
-        let skin = cache.portraitAnalysis(for: base)?.skin
-        return PhotoMeasure.stats(img, skin: skin).map(PhotoMeasure.forAI)
+        let portrait = cache.portraitAnalysis(for: base)
+        guard var m = PhotoMeasure.stats(img, skin: portrait?.skin).map(PhotoMeasure.forAI) else { return nil }
+        // 风光: 天空和植被占多少、地平线歪了多少 (没有人脸、天空或植被够多时算风光照)
+        if portrait == nil {
+            // 和「局部调整」用同一套蒙版 (同样的大小、同一份缓存), 两边判断一致
+            func share(_ k: MaskKind) -> Double {
+                let mask: CIImage? = cache.get(k) ?? Masks.compute(k, for: base, cache: cache).map { cache.set(k, $0); return $0 }
+                guard let mask else { return 0 }
+                let avg = mask.applyingFilter("CIAreaAverage", parameters: [kCIInputExtentKey: CIVector(cgRect: mask.extent)])
+                var v = [Float](repeating: 0, count: 4)
+                r.context.render(avg, toBitmap: &v, rowBytes: 16, bounds: CGRect(x: mask.extent.minX, y: mask.extent.minY, width: 1, height: 1), format: .RGBAf, colorSpace: nil)
+                return Double(v[0])
+            }
+            let sky = share(.sky), green = share(.greenery)
+            if sky > 0.08 || green > 0.15 {
+                m["landscape"] = true
+                m["sky"] = Int((sky * 100).rounded())
+                m["greenery"] = Int((green * 100).rounded())
+            }
+        }
+        return m
     }
 
     /// AI 修完后的自动检查: 高光修爆 / 暗部压死就往回收
@@ -502,6 +524,7 @@ final class Store: ObservableObject {
         guard let item = current, !item.recognizing, let base = item.previewBase else { return }
         let current = item.settings, name = item.name, useTaste = self.useTaste, isRaw = item.isRaw, patches = item.patches
         let portraitNow = item.portrait
+        let scene = StylePicks.scene(of: item)
         item.recognizing = true
         item.status = String(localized: "AI 正在识别照片…")
         status = String(localized: "AI 正在识别照片…")
@@ -516,6 +539,7 @@ final class Store: ObservableObject {
                 var req: [String: Any] = ["is_raw": isRaw, "current": AIBridge.numeric(current), "use_taste": useTaste]
                 if let a = cache.portraitAnalysis(for: base) { req["portrait"] = ["faces": a.faceCount, "face_size": Double(a.faceWidth)] }
                 if let m = self.measureForAI(base: base, settings: current, patches: patches, portrait: portraitNow, cache: cache) { req["measure"] = m }
+                if let h = StylePicks.hint(scene: scene) { req["picks_hint"] = h }
                 // 一边写一边显示: 场景、问题、每个方案读到就先出来
                 return AIBridge.run("suggest", image: img, request: req) { partial in
                     Task { @MainActor in if item.recognizing { self.showPlans(partial, on: item, final: false) } }

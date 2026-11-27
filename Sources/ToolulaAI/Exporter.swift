@@ -1,5 +1,6 @@
 import AppKit
 import CoreImage
+import ImageIO
 
 enum Exporter {
     /// exiftool 不是每台 Mac 都有 (要用 Homebrew 装); 没有时用系统自带的 ImageIO 写参数
@@ -35,6 +36,10 @@ enum Exporter {
         var locals: [LocalAdjustment] = []
         var portrait = PortraitRetouch()
         var retouched: Bool { !patches.isEmpty || !portrait.isEmpty || locals.contains { $0.settings.contains { $0.value != 0 } } }
+        /// 有 Lightroom 参数表达不了的像素级修改 (人像精修的一部分、亮度蒙版)
+        var hasPixelOnly: Bool {
+            portrait.hasPixelOnly || locals.contains { Exporter.lightroomUnsupported.contains($0.area) && $0.settings.contains { $0.value != 0 } }
+        }
     }
 
     @discardableResult
@@ -101,7 +106,7 @@ enum Exporter {
         for (k, v) in extra.sorted(by: { $0.key < $1.key }) { attrs.append("crs:\(k)=\"\(v)\"") }
         for (k, v) in settings.sorted(by: { $0.key < $1.key }) {
             let s: String
-            if k == "Exposure2012" { s = String(format: "%+.2f", v) } else { s = String(Int(v.rounded())) }
+            if k == "Exposure2012" { s = String(format: "%+.2f", v) } else if k == "CropAngle" { s = String(format: "%.2f", v) } else { s = String(Int(v.rounded())) }
             attrs.append("crs:\(k)=\"\(s)\"")
         }
         return """
@@ -136,7 +141,10 @@ enum Exporter {
     /// 插件写进修图参数再让 Lightroom 计算; 这个 Lightroom 版本做不出来时, 人脸 / 人物 / 皮肤退回「主体」蒙版, 其他的跳过
     static let lightroomMaskType: [MaskKind: String] = [.subject: "subject", .person: "people:13", .face: "people:2",
                                                          .sky: "sky", .background: "background",
-                                                         .skin: "people:2", .eyes: "people:8+3", .lips: "people:6", .teeth: "people:12"]
+                                                         .skin: "people:2", .eyes: "people:8+3", .lips: "people:6", .teeth: "people:12",
+                                                         .greenery: "landscape:50005"]
+    /// Lightroom 的蒙版做不出来的区域 (亮度蒙版): 发 RAW 时带不过去
+    static let lightroomUnsupported: Set<MaskKind> = [.brights, .darks]
     /// 人像精修里 Lightroom 能表达的项目 -> (蒙版, 区域名, 每 100 强度对应的局部参数)
     static let lightroomRetouch: [(key: String, mask: String, area: String, values: [String: Double])] = [
         ("smooth", "people:2", "skin", ["Texture": -45, "Clarity2012": -12]),
@@ -203,6 +211,18 @@ enum Exporter {
             }
         } else if s["IncrementalTemperature"] != nil || s["IncrementalTint"] != nil {
             extra["WhiteBalance"] = "Custom"
+        }
+        // 拉正: Lightroom 的角度 + 同样比例、转了以后不带空角的居中裁剪
+        if let ang = s["CropAngle"], abs(ang) > 0.01, let src = CGImageSourceCreateWithURL(job.url as CFURL, nil),
+           let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
+           var pw = props[kCGImagePropertyPixelWidth] as? Double, var ph = props[kCGImagePropertyPixelHeight] as? Double {
+            // 竖拍的照片 (方向 5~8) 宽高对调
+            if let o = props[kCGImagePropertyOrientation] as? Int, o >= 5 { swap(&pw, &ph) }
+            let k = Renderer.straightenScale(w: pw, h: ph, degrees: ang)
+            let m = (1 - k) / 2
+            extra["HasCrop"] = "True"
+            extra["CropTop"] = String(format: "%.6f", m); extra["CropBottom"] = String(format: "%.6f", 1 - m)
+            extra["CropLeft"] = String(format: "%.6f", m); extra["CropRight"] = String(format: "%.6f", 1 - m)
         }
         let xmpText = xmp(s, extra: extra)
         if rawNotDNG {
@@ -272,10 +292,10 @@ extension Store {
         let jobs = self.jobs(items)
         // 有像素级人像精修 (去瑕疵、眼袋、肤色均匀、光影塑形): Lightroom 的参数表达不了, 问用户要哪种
         var bakeRetouch = false
-        if jobs.contains(where: { $0.portrait.hasPixelOnly && $0.patches.isEmpty }) {
+        if jobs.contains(where: { $0.hasPixelOnly && $0.patches.isEmpty }) {
             let a = NSAlert()
-            a.messageText = String(localized: "这张照片有像素级的人像精修")
-            a.informativeText = String(localized: "去瑕疵、淡化眼袋、肤色均匀、光影塑形是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇会做成蒙版），这几项需要在 Lightroom 里自己做。")
+            a.messageText = String(localized: "这张照片有 Lightroom 表达不了的修改")
+            a.informativeText = String(localized: "去瑕疵、淡化眼袋、肤色均匀、肤色校准、光影塑形、亮部 / 暗部蒙版是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇、植被会做成蒙版），这几项需要在 Lightroom 里自己做。")
             a.addButton(withTitle: String(localized: "发修好的 TIFF"))
             a.addButton(withTitle: String(localized: "发可编辑的 RAW"))
             a.addButton(withTitle: String(localized: "取消"))
@@ -295,7 +315,7 @@ extension Store {
             var outs: [URL] = [], errors: [String] = []
             for (i, job) in jobs.enumerated() {
                 status = String(localized: "准备发送到 Lightroom \(i + 1)/\(jobs.count)")
-                let masks = !(bakeRetouch && job.portrait.hasPixelOnly)
+                let masks = !(bakeRetouch && job.hasPixelOnly)
                 let (u, e) = await Task.detached(operation: { Exporter.prepareForLightroom(job, folder: folder, masks: masks) }).value
                 if let u { outs.append(u) }
                 if let e { errors.append(e) }
