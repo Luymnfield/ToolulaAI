@@ -87,3 +87,9 @@ Regression results go to `regress-results/<timestamp>/summary.md`, which is not 
   - backups in `backups/`;
   - records of the background processes Toolula starts in `pids/`.
 - Translations live in `Localization/translations.json`. Each key is the original Chinese UI string. `Localization/make_strings.py` generates the `.lproj` folders from it.
+
+## License
+
+Toolula AI is licensed under the [Apache License 2.0](LICENSE). The Toolula name, logos and app icons are not covered by the license, and neither is the Lightroom plugin, which lives in a separate repository.
+
+The engines and models Toolula AI downloads at run time (llama.cpp, ComfyUI, the chat, image and video models …) keep their own licenses. Some models limit commercial use: Qwen-Image 2.1 is for non-commercial use only, and MiniMax-H3 has its own community license. [NOTICE](NOTICE) lists them all.

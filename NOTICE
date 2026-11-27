@@ -1,0 +1,54 @@
+Toolula AI
+Copyright 2026 Luymnfield
+
+This product is licensed under the Apache License, Version 2.0
+(see the LICENSE file).
+
+Trademarks
+----------
+The name "Toolula", the Toolula AI name, and the Toolula logos and app
+icons are not licensed under the Apache License. As section 6 of the
+License says, it grants no permission to use them, except as needed to
+describe where the work comes from. If you distribute a modified version,
+please give it a different name and icon.
+
+Not covered by this repository
+------------------------------
+The Lightroom plugin (AIPhotoEdit.lrplugin), which build_app.sh copies
+into the app bundle, is kept in a separate repository and is not part of
+this source release or of its license.
+
+Software and models downloaded at run time
+------------------------------------------
+Toolula AI contains no third-party code. When a feature first needs them,
+it downloads the following to ~/Toolula/Engines and ~/Toolula/Models on the
+user's Mac. They are not distributed with Toolula AI, and each stays under
+its own license:
+
+  llama.cpp (llama-server)    MIT                https://github.com/ggml-org/llama.cpp
+  uv                          Apache-2.0 or MIT  https://github.com/astral-sh/uv
+  Python                      PSF License        https://www.python.org
+  mlx-vlm                     MIT                https://github.com/Blaizzy/mlx-vlm
+  ComfyUI                     GPL-3.0            https://github.com/Comfy-Org/ComfyUI
+  PyTorch and other ComfyUI   their own licenses (ComfyUI's requirements.txt)
+    dependencies
+
+Models (license as stated on each model's Hugging Face page; check it there
+before use, especially for commercial use):
+
+  Qwen3.5, Qwen3.8, Qwen3-VL, Qwen3-Coder (GGUF / MLX)  Apache-2.0
+  Gemma 4 (GGUF / MLX)                                   Apache-2.0
+  FLUX.2 Klein 4B                                        Apache-2.0
+  Z-Image Turbo                                          Apache-2.0
+  Wan 2.1 / Wan 2.2                                      Apache-2.0
+  LaMa (Core ML)                                         Apache-2.0
+  taeh3                                                  MIT
+  lightx2v autoencoders                                  Apache-2.0
+  Qwen-Image 2.1                                         Qwen Research License: non-commercial
+                                                         (research or evaluation) use only
+  MiniMax-H3                                             MiniMax-H3 Community License Agreement:
+                                                         commercial use must show "MiniMax H3" in
+                                                         the UI; over USD 20M yearly revenue needs
+                                                         MiniMax's written authorization
+  Kijai/WanVideo_comfy files                             no license stated by that repository;
+                                                         see the license of each original model
