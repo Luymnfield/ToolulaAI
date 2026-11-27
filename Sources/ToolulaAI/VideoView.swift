@@ -73,6 +73,12 @@ struct VideoView: View {
         DarkCanvas {
             if store.running {
                 VStack(spacing: 14) {
+                    if store.previewPath == nil, let live = store.livePreview {
+                        Image(nsImage: live).resizable().interpolation(.high).aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 640, maxHeight: 360)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                        Text("生成中的粗略预览").font(.caption).foregroundStyle(.white.opacity(0.55))
+                    }
                     if let p = store.previewPath {
                         PlayerView(url: URL(fileURLWithPath: p))
                             .aspectRatio(16 / 9, contentMode: .fit)

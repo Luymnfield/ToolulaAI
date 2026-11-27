@@ -63,12 +63,21 @@ struct ImageModelSpec: Identifiable, Hashable {
 
     /// 预计秒数
     func estimate(w: Int, h: Int, count: Int, loaded: Bool) -> Double {
+        if refinesHD && Double(w * h) > 1.6e6 {
+            // 两步: 100 万像素 8 步 + 放大后 3 步
+            let base = secPerStepMP * pow(1.05, 1.15) * Double(steps), hd = secPerStepMP * pow(Double(w * h) / 1e6, 1.15) * 3
+            return (base + hd) * Double(count) + 5 * Double(count) + (loaded ? 2 : loadSec)
+        }
         let mp = Double(w * h) / 1_000_000
         return secPerStepMP * pow(mp, 1.15) * Double(steps) * Double(count) + 3 * Double(count) + (loaded ? 2 : loadSec)
     }
 
     /// ComfyUI API 格式的工作流. 保存节点固定是 "9"
-    func graph(prompt: String, width w: Int, height h: Int, count: Int, seed: Int, files: [String: String]) -> [String: Any]? {
+    /// 高清用两步: 先在约 100 万像素画好构图 (模型最熟悉的大小), 放大后只用 3 步精修细节.
+    /// Z-Image 实测 (M3 Max, 1440×1440): 直接画 132~138 秒, 两步 117 秒, 画质相当
+    var refinesHD: Bool { id == "z-image-turbo" }
+
+    func graph(prompt: String, width w: Int, height h: Int, count: Int, seed: Int, files: [String: String], baseSize: (Int, Int)? = nil) -> [String: Any]? {
         func name(_ i: Int) -> String? { files[self.files[i].id] }
         guard let unet = name(0), let clip = name(1), let vae = name(2) else { return nil }
         var g: [String: Any] = [
@@ -83,9 +92,19 @@ struct ImageModelSpec: Identifiable, Hashable {
             g["4"] = ["class_type": "ModelSamplingAuraFlow", "inputs": ["model": ["1", 0], "shift": 3]]
             g["5"] = ["class_type": "CLIPTextEncode", "inputs": ["clip": ["2", 0], "text": prompt]]
             g["6"] = ["class_type": "ConditioningZeroOut", "inputs": ["conditioning": ["5", 0]]]
-            g["7"] = ["class_type": "EmptySD3LatentImage", "inputs": ["width": w, "height": h, "batch_size": count]]
+            let (bw, bh) = baseSize ?? (w, h)
+            g["7"] = ["class_type": "EmptySD3LatentImage", "inputs": ["width": bw, "height": bh, "batch_size": count]]
             g["8"] = ["class_type": "KSampler", "inputs": ["model": ["4", 0], "seed": seed, "steps": steps, "cfg": 1, "sampler_name": "res_multistep",
                                                            "scheduler": "simple", "positive": ["5", 0], "negative": ["6", 0], "latent_image": ["7", 0], "denoise": 1]]
+            if baseSize != nil {
+                // 放大 (lanczos) → 重新编码 → 3 步低强度精修, 补出真实的细节
+                g["20"] = ["class_type": "VAEDecode", "inputs": ["samples": ["8", 0], "vae": ["3", 0]]]
+                g["21"] = ["class_type": "ImageScale", "inputs": ["image": ["20", 0], "upscale_method": "lanczos", "width": w, "height": h, "crop": "disabled"]]
+                g["22"] = ["class_type": "VAEEncode", "inputs": ["pixels": ["21", 0], "vae": ["3", 0]]]
+                g["23"] = ["class_type": "KSampler", "inputs": ["model": ["4", 0], "seed": seed, "steps": 3, "cfg": 1, "sampler_name": "res_multistep",
+                                                                "scheduler": "simple", "positive": ["5", 0], "negative": ["6", 0], "latent_image": ["22", 0], "denoise": 0.35]]
+                g["10"] = ["class_type": "VAEDecode", "inputs": ["samples": ["23", 0], "vae": ["3", 0]]]
+            }
         case "flux2-klein-4b":
             g["2"] = ["class_type": "CLIPLoader", "inputs": ["clip_name": clip, "type": "flux2", "device": "default"]]
             g["5"] = ["class_type": "CLIPTextEncode", "inputs": ["clip": ["2", 0], "text": prompt]]
@@ -274,6 +293,8 @@ final class ImageStore: ObservableObject {
     @Published var stage = ""
     @Published var step = 0
     @Published var steps = 0
+    /// 生成中每一步的粗略预览 (ComfyUI latent2rgb)
+    @Published var livePreview: NSImage?
     @Published var startedAt: Date?
     @Published var estimateSeconds: Double = 0
     @Published var error: String?
@@ -320,8 +341,8 @@ final class ImageStore: ObservableObject {
         let (w, h) = (q ?? quality).size(a ?? aspect)
         let num = max(1, min(4, n ?? count))
         let s = fixedSeed ?? (randomSeed ? Int.random(in: 1...999_999_999) : seed)
-        running = true; error = nil; step = 0; steps = 0; startedAt = Date()
-        defer { running = false; startedAt = nil; stage = "" }
+        running = true; error = nil; step = 0; steps = 0; startedAt = Date(); livePreview = nil
+        defer { running = false; startedAt = nil; stage = ""; livePreview = nil }
         estimateSeconds = spec.estimate(w: w, h: h, count: num, loaded: loadedSpec == spec.id)
 
         stage = String(localized: "启动图片引擎…")
@@ -336,7 +357,8 @@ final class ImageStore: ObservableObject {
             await broker.makeRoom(need, for: .comfy)
         }
         MemoryBroker.shared.touch(.comfy)
-        guard let g = spec.graph(prompt: text, width: w, height: h, count: num, seed: s, files: models.installed[spec.id] ?? [:]) else {
+        let hdBase = spec.refinesHD && (q ?? quality) == .high ? ImageQuality.standard.size(a ?? aspect) : nil
+        guard let g = spec.graph(prompt: text, width: w, height: h, count: num, seed: s, files: models.installed[spec.id] ?? [:], baseSize: hdBase) else {
             error = String(localized: "模型文件不完整"); return []
         }
 
@@ -428,6 +450,9 @@ final class ImageStore: ObservableObject {
                     let data = obj["data"] as? [String: Any] ?? [:]
                     Task { @MainActor in self?.handle(type, data) }
                 }
+                if case .data(let d) = msg, let img = ComfyPreview.image(from: d) {
+                    Task { @MainActor in if self?.running == true { self?.livePreview = img } }
+                }
                 receive()
             }
         }
@@ -440,6 +465,7 @@ final class ImageStore: ObservableObject {
             switch data["node"] as? String {
             case "5": stage = String(localized: "理解提示词…")
             case "8": stage = String(localized: "画图中…")
+            case "23": stage = String(localized: "高清精修细节…")
             case "10", "9": stage = String(localized: "保存图片…")
             default: break
             }
@@ -547,7 +573,16 @@ struct ImageView: View {
 
     @ViewBuilder var preview: some View {
         DarkCanvas {
-            if store.running {
+            if store.running, let live = store.livePreview {
+                // 生成中: 每一步的粗略预览 (画面慢慢出来), 下面是进度
+                VStack(spacing: 14) {
+                    Image(nsImage: live).resizable().interpolation(.high).aspectRatio(contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 4)).shadow(color: .black.opacity(0.35), radius: 10)
+                        .frame(maxHeight: 640)
+                    CanvasProgress(value: store.steps > 0 ? Double(store.step) / Double(store.steps) : nil, stage: store.stage, detail: nil) { store.cancel() }
+                }
+                .padding(24)
+            } else if store.running {
                 CanvasProgress(value: store.steps > 0 ? Double(store.step) / Double(store.steps) : nil, stage: store.stage,
                                detail: store.startedAt.map { t in Text(timerInterval: t...Date.distantFuture, countsDown: false) + Text(" · ") + Text("预计约 \(Int(store.estimateSeconds.rounded())) 秒") }) {
                     store.cancel()

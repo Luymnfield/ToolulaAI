@@ -501,8 +501,15 @@ extension AppDelegate {
                 if let mid = val("--image-model") { im.selectedId = mid }
                 let st = ImageStore.shared
                 let t0 = Date()
-                let made = await st.generate(prompt: ip, aspect: .wide, quality: .standard, count: 1)
-                log += "image: \(im.selected.name) \(made.map { "\($0.path) \($0.width)x\($0.height)" }.joined(separator: ", ")) \(Int(Date().timeIntervalSince(t0)))s est=\(Int(st.estimateSeconds))s err=\(st.error ?? "-")\n"
+                var firstPreview: Double?
+                let watch = Task { @MainActor in
+                    while !Task.isCancelled { if firstPreview == nil, st.livePreview != nil { firstPreview = Date().timeIntervalSince(t0) }; try? await Task.sleep(for: .milliseconds(300)) }
+                }
+                let made = await st.generate(prompt: ip, aspect: .wide, quality: args.contains("--image-hd") ? .high : .standard, count: 1)
+                watch.cancel()
+                log += "image: \(im.selected.name) \(made.map { "\($0.path) \($0.width)x\($0.height)" }.joined(separator: ", ")) \(Int(Date().timeIntervalSince(t0)))s est=\(Int(st.estimateSeconds))s first-preview=\(firstPreview.map { String(format: "%.1fs", $0) } ?? "none") err=\(st.error ?? "-")\n"
+                // 测试画的图不留在用户的作品里
+                if args.contains("--cleanup") { for it in made { st.delete(it) } }
                 if args.contains("--image-twice") {
                     let t1 = Date()
                     let m2 = await st.generate(prompt: ip, aspect: .wide, quality: .standard, count: 1)

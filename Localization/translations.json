@@ -5650,5 +5650,13 @@
  "【自动检查】": [
   "[Auto check] ",
   "[Automatische Prüfung] "
+ ],
+ "高清精修细节…": [
+  "Refining HD details…",
+  "HD-Details werden verfeinert …"
+ ],
+ "生成中的粗略预览": [
+  "Rough preview while generating",
+  "Grobe Vorschau während der Erstellung"
  ]
 }

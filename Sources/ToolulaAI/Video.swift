@@ -108,7 +108,8 @@ final class ComfyEngine: ObservableObject {
             // 用 Toolula 自带的启动包装: 在 Apple GPU 上把很慢的 conv3d 换成等价的 conv2d (视频解码快约 4 倍)
             let launcher = Bundle.main.url(forResource: "toolula_comfy_launch", withExtension: "py")
             let script = launcher?.path ?? "ComfyUI/main.py"
-            var args = ["-s", script, "--listen", "127.0.0.1", "--port", "8188"]
+            // latent2rgb: 每一步都发一张粗略的预览 (不需要额外的模型, 几乎不耗时), 生成时能看到画面慢慢出来
+            var args = ["-s", script, "--listen", "127.0.0.1", "--port", "8188", "--preview-method", "latent2rgb"]
             if !inst.managed { args.append("--enable-manager") }
             if let c = inst.config { args += ["--extra-model-paths-config", c.path] }
             if let i = inst.input { args += ["--input-directory", i.path] }
@@ -316,6 +317,8 @@ final class VideoStore: ObservableObject {
     @Published var stage = ""
     @Published var step = 0
     @Published var steps = 0
+    /// 生成中每一步的粗略预览 (ComfyUI latent2rgb)
+    @Published var livePreview: NSImage?
     @Published var startedAt: Date?
     @Published var estimateMinutes: Double = 0
     @Published var error: String?
@@ -372,8 +375,8 @@ final class VideoStore: ObservableObject {
         let secs = min(sec ?? seconds, spec.maxSeconds)
         let qual = spec.qualities.contains(q ?? quality) ? (q ?? quality) : spec.qualities.last!
         let asp = a ?? aspect
-        running = true; error = nil; step = 0; steps = 0; startedAt = Date(); runningSpec = spec.id
-        defer { running = false; startedAt = nil; stage = "" }
+        running = true; error = nil; step = 0; steps = 0; startedAt = Date(); livePreview = nil; runningSpec = spec.id
+        defer { running = false; startedAt = nil; stage = ""; livePreview = nil }
 
         stage = String(localized: "启动视频引擎…")
         await engine.start()
@@ -552,6 +555,9 @@ final class VideoStore: ObservableObject {
                     let data = obj["data"] as? [String: Any] ?? [:]
                     Task { @MainActor in self?.handle(type, data) }
                 }
+                if case .data(let d) = msg, let img = ComfyPreview.image(from: d) {
+                    Task { @MainActor in if self?.running == true { self?.livePreview = img } }
+                }
                 receive()
             }
         }
@@ -615,5 +621,25 @@ final class VideoStore: ObservableObject {
                 error = String(localized: "优化提示词失败（对话模型没有响应）")
             }
         }
+    }
+}
+
+
+/// ComfyUI 通过 WebSocket 发来的二进制预览图 (每一步一张). 两种格式:
+/// 1 = 预览图: [4 字节事件][4 字节图片类型][图片]; 4 = 带说明的预览图: [4 字节事件][4 字节说明长度][JSON][图片]
+enum ComfyPreview {
+    static func image(from data: Data) -> NSImage? {
+        guard data.count > 8 else { return nil }
+        func u32(_ o: Int) -> Int { data.subdata(in: o..<(o + 4)).reduce(0) { $0 << 8 | Int($1) } }
+        let event = u32(0)
+        var start = 8
+        if event == 4 {
+            let n = u32(4)
+            start = 8 + n
+        } else if event != 1 {
+            return nil
+        }
+        guard start < data.count else { return nil }
+        return NSImage(data: data.subdata(in: start..<data.count))
     }
 }
