@@ -5398,5 +5398,81 @@
  "雾气氛围：保留雾的柔和感，低对比，淡雅": [
   "Misty mood: keep the softness of the fog, low contrast, subtle and elegant",
   "Nebelstimmung: die Weichheit des Nebels behalten, wenig Kontrast, dezent und elegant"
+ ],
+ "曝光修正：偏暗的提亮，过曝的找回高光，层次自然": [
+  "Fix exposure: brighten dark photos, recover blown highlights, natural tonality",
+  "Belichtung korrigieren: dunkle Fotos aufhellen, ausgefressene Lichter zurückholen, natürliche Tonwerte"
+ ],
+ "逆光补救：提亮逆光的主体和阴影，压暗过亮的背景": [
+  "Backlight rescue: brighten the backlit subject and shadows, darken the too-bright background",
+  "Gegenlicht retten: Motiv im Gegenlicht und Schatten aufhellen, zu hellen Hintergrund abdunkeln"
+ ],
+ "室内暖光修正：去掉灯光的偏黄偏橙，还原白墙和肤色": [
+  "Fix warm indoor light: remove the yellow-orange cast of lamps, restore white walls and skin tones",
+  "Warmes Innenlicht korrigieren: gelb-orangen Lampenstich entfernen, weiße Wände und Hauttöne wiederherstellen"
+ ],
+ "阴天提亮：让灰暗的阴天更明亮，加一点对比和色彩": [
+  "Brighten overcast: make dull cloudy days brighter, add a little contrast and color",
+  "Bewölkt aufhellen: trübe Tage heller machen, etwas Kontrast und Farbe hinzufügen"
+ ],
+ "高光阴影平衡：压暗高光，提亮阴影，接近人眼看到的效果": [
+  "Balance highlights & shadows: tame highlights, lift shadows, closer to what the eye sees",
+  "Lichter & Schatten ausgleichen: Lichter dämpfen, Schatten aufhellen, näher am Augeneindruck"
+ ],
+ "清晰锐利：增加清晰度和纹理，细节更清楚但不过度": [
+  "Crisp and sharp: more clarity and texture, clearer detail without overdoing it",
+  "Klar und scharf: mehr Klarheit und Struktur, deutlichere Details ohne Übertreibung"
+ ],
+ "干净柔和：降低对比和纹理，画面干净柔和，适合高感光照片": [
+  "Clean and soft: lower contrast and texture for a clean soft look, good for high-ISO photos",
+  "Sauber und weich: weniger Kontrast und Struktur für einen sauberen weichen Look, gut für High-ISO-Fotos"
+ ],
+ "色彩鲜艳：提高自然饱和度，颜色更饱满但不失真": [
+  "Vivid colors: more vibrance, richer colors without looking unreal",
+  "Lebendige Farben: mehr Dynamik, sattere Farben ohne unnatürlich zu wirken"
+ ],
+ "低饱和淡雅：降低饱和度，柔和的中性色调": [
+  "Muted and subtle: lower saturation, soft neutral tones",
+  "Gedämpft und dezent: weniger Sättigung, sanfte neutrale Töne"
+ ],
+ "美食诱人：暖调，提亮，食物颜色饱满有食欲": [
+  "Delicious food: warm, brighter, rich appetizing food colors",
+  "Appetitliches Essen: warm, heller, satte appetitliche Farben"
+ ],
+ "产品电商：背景干净，颜色准确，明亮通透": [
+  "Product & e-commerce: clean background, accurate colors, bright and clear",
+  "Produkt & E-Commerce: sauberer Hintergrund, genaue Farben, hell und klar"
+ ],
+ "莫兰迪：低饱和的灰调，柔和的中间色，安静高级": [
+  "Morandi: low-saturation greyish tones, soft muted midtones, calm and refined",
+  "Morandi: wenig gesättigte Grautöne, sanfte Mitteltöne, ruhig und edel"
+ ],
+ "赛博朋克：洋红和青色的霓虹感，暗部深，高对比": [
+  "Cyberpunk: magenta and cyan neon, deep shadows, high contrast",
+  "Cyberpunk: Magenta- und Cyan-Neon, tiefe Schatten, hoher Kontrast"
+ ],
+ "复古暖棕：暖棕色调，褪色感，柔和的老照片质感": [
+  "Vintage brown: warm brown tones, faded look, soft old-photo feel",
+  "Vintage-Braun: warme Brauntöne, verblasster Look, sanfte Altfoto-Anmutung"
+ ],
+ "清新薄荷：偏青绿，明亮，低对比，夏日感": [
+  "Fresh mint: cyan-green tint, bright, low contrast, summery",
+  "Frische Minze: cyan-grüner Stich, hell, wenig Kontrast, sommerlich"
+ ],
+ "黑金：只保留暖黄和金色，其他颜色去饱和，暗部深沉": [
+  "Black & gold: keep only warm yellows and golds, desaturate other colors, deep shadows",
+  "Schwarz-Gold: nur warmes Gelb und Gold behalten, andere Farben entsättigen, tiefe Schatten"
+ ],
+ "高调明亮：大面积亮调，阴影很浅，干净轻盈": [
+  "High-key bright: mostly light tones, very light shadows, clean and airy",
+  "High-Key hell: überwiegend helle Töne, sehr helle Schatten, sauber und luftig"
+ ],
+ "拿铁咖啡：奶咖色调，暖棕和米白，柔和": [
+  "Latte: milky coffee tones, warm browns and off-whites, soft",
+  "Latte: Milchkaffee-Töne, warme Brauntöne und Cremeweiß, weich"
+ ],
+ "宝丽来：偏暖偏黄，高光略褪色，暗部偏青，复古即时成像感": [
+  "Polaroid: warm yellowish tint, slightly faded highlights, cyan shadows, retro instant-film feel",
+  "Polaroid: warmer Gelbstich, leicht verblasste Lichter, cyanfarbene Schatten, Retro-Sofortbild-Look"
  ]
 }
