@@ -222,6 +222,7 @@ extension AppDelegate {
                 if item.plans.count > 1 { store.applyPlan(item.plans[1], to: item); try? await Task.sleep(for: .seconds(2)) }
             }
             if let style = val("--ai") {
+                if args.contains("--batch-each") { store.batchMode = .each }   // 不相关的照片一张张单独分析 (评测用)
                 store.style = style
                 store.aiEdit()
                 while store.working { try? await Task.sleep(for: .seconds(1)) }

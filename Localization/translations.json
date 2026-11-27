@@ -5878,5 +5878,37 @@
  "整组对齐到当前照片（风格相同，曝光和白平衡逐张对齐）": [
   "Match group to current photo (same look, exposure and white balance per photo)",
   "Gruppe an aktuelles Foto angleichen (gleicher Look, Belichtung und Weißabgleich je Foto)"
+ ],
+ "下载语义分割模型（85 MB），Toolula 里也能用": [
+  "Download the segmentation model (85 MB) to use it in Toolula too",
+  "Segmentierungsmodell laden (85 MB), um es auch in Toolula zu nutzen"
+ ],
+ "水面": [
+  "Water",
+  "Wasser"
+ ],
+ "山": [
+  "Mountains",
+  "Berge"
+ ],
+ "建筑": [
+  "Buildings",
+  "Gebäude"
+ ],
+ "下载语义分割模型…": [
+  "Downloading the segmentation model…",
+  "Segmentierungsmodell wird geladen …"
+ ],
+ "下载语义分割模型：%@ / 85 MB": [
+  "Downloading the segmentation model: %@ / 85 MB",
+  "Segmentierungsmodell: %@ / 85 MB"
+ ],
+ "语义分割模型已装好：水面、山、建筑现在在 Toolula 里也能调": [
+  "Segmentation model installed: water, mountains and buildings can now be adjusted in Toolula too",
+  "Segmentierungsmodell installiert: Wasser, Berge und Gebäude lassen sich jetzt auch in Toolula anpassen"
+ ],
+ "下载失败：%@": [
+  "Download failed: %@",
+  "Download fehlgeschlagen: %@"
  ]
 }

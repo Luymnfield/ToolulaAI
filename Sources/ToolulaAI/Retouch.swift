@@ -13,12 +13,13 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
     case skin, eyes, lips, teeth
     // 风光: 亮度蒙版 (亮部 / 暗部) 和植被
     case brights, darks, greenery
-    // 水面、山、建筑: 只在 Lightroom 里用它的 AI 风景蒙版做.
-    // (试过不用模型、按颜色和位置估计水面: 一张湖景把山坡当成了水, 收紧条件后连湖都找不到, 所以不在 Toolula 里做)
+    // 水面、山、建筑: 用语义分割模型找 (下载后); 没有模型时只在 Lightroom 里用它的 AI 风景蒙版做.
+    // (试过不用模型、按颜色和位置估计水面: 一张湖景把山坡当成了水, 收紧条件后连湖都找不到)
     case water, mountains, buildings
 
-    /// 只在 Lightroom 里生效的区域 (Toolula 的预览里没有效果)
-    static let lightroomOnly: Set<MaskKind> = [.water, .mountains, .buildings]
+    /// 只在 Lightroom 里生效的区域 (没有语义分割模型时, Toolula 的预览里没有效果)
+    static var lightroomOnly: Set<MaskKind> { SceneSegmenter.installed ? [] : [.water, .mountains, .buildings] }
+    static let needsSegmenter: Set<MaskKind> = [.water, .mountains, .buildings]
     var id: String { rawValue }
     var label: String {
         switch self {
@@ -34,9 +35,9 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
         case .brights: return String(localized: "亮部")
         case .darks: return String(localized: "暗部")
         case .greenery: return String(localized: "植被")
-        case .water: return String(localized: "水面（仅 Lightroom）")
-        case .mountains: return String(localized: "山（仅 Lightroom）")
-        case .buildings: return String(localized: "建筑（仅 Lightroom）")
+        case .water: return SceneSegmenter.installed ? String(localized: "水面") : String(localized: "水面（仅 Lightroom）")
+        case .mountains: return SceneSegmenter.installed ? String(localized: "山") : String(localized: "山（仅 Lightroom）")
+        case .buildings: return SceneSegmenter.installed ? String(localized: "建筑") : String(localized: "建筑（仅 Lightroom）")
         }
     }
     var icon: String {
@@ -94,6 +95,15 @@ final class MaskCache: @unchecked Sendable {
     func get(_ k: MaskKind) -> CIImage? { lock.lock(); defer { lock.unlock() }; return dict[k] }
     func set(_ k: MaskKind, _ v: CIImage) { lock.lock(); dict[k] = v; lock.unlock() }
 
+    /// 语义分割结果 (每个像素的类别), 算一次就留着
+    private var seg: [Int32]?
+    func segmentation(_ cg: CGImage) -> [Int32]? {
+        if let s = lock.withLock({ seg }) { return s }
+        let s = SceneSegmenter.shared.classes(cg)
+        lock.withLock { seg = s }
+        return s
+    }
+
     /// 人像分析 (人脸关键点、各部位蒙版、瑕疵位置), 算一次就留着
     private var portrait: PortraitAnalysis?
     private var portraitDone = false
@@ -133,10 +143,10 @@ enum Masks {
         case .background: mask = subject(cg).map { invert($0) }
         case .person: mask = person(cg)
         case .face: mask = faces(cg)
-        case .sky: mask = sky(cg)
+        case .sky: mask = semantic(.sky, cg, cache: cache) ?? sky(cg)   // 有语义分割模型时更准 (不会把白墙当天空)
         case .skin, .eyes, .lips, .teeth: mask = nil
         case .brights, .darks, .greenery: mask = tonal(kind, cg)
-        case .water, .mountains, .buildings: mask = nil
+        case .water, .mountains, .buildings: mask = semantic(kind, cg, cache: cache)
         }
         guard var m = mask else { return nil }
         // 放大到原图大小 + 轻微羽化
@@ -244,6 +254,12 @@ enum Masks {
                                 bitmapInfo: CGBitmapInfo(rawValue: 0), provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) else { return nil }
         let m = CIImage(cgImage: mcg).applyingGaussianBlur(sigma: 1.2).cropped(to: CGRect(x: 0, y: 0, width: w, height: h))
         return m.transformed(by: CGAffineTransform(scaleX: CGFloat(cg.width) / CGFloat(w), y: CGFloat(cg.height) / CGFloat(h)))
+    }
+
+    /// 语义分割模型给的区域 (没装模型返回 nil)
+    static func semantic(_ kind: MaskKind, _ cg: CGImage, cache: MaskCache?) -> CIImage? {
+        guard SceneSegmenter.installed, let c = cache?.segmentation(cg) ?? SceneSegmenter.shared.classes(cg) else { return nil }
+        return SceneSegmenter.shared.mask(kind, classes: c, size: CGSize(width: cg.width, height: cg.height))
     }
 
     /// 亮度蒙版和植被: 逐个像素按亮度 / 颜色算 (风光修图最常用的「亮度蒙版」, 不需要模型).

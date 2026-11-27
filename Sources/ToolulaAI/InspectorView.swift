@@ -740,6 +740,8 @@ struct LocalPanel: View {
                     Text(summary(l)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                     if MaskKind.lightroomOnly.contains(l.area) {
                         Text("只在发送到 Lightroom 后生效（由 Lightroom 的 AI 风景蒙版做），Toolula 的预览里看不到").font(.caption2).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                        Button("下载语义分割模型（85 MB），Toolula 里也能用") { store.downloadSegmenter() }
+                            .controlSize(.small).disabled(store.working)
                     }
                 }
                 Spacer()
