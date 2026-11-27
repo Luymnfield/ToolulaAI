@@ -96,3 +96,38 @@ final class LightroomMatchTests: XCTestCase {
         XCTAssertEqual(l.noiseReduction, 0, accuracy: 1e-9)
     }
 }
+
+/// 给 AI 的测量数据和修完后的自动检查
+final class PhotoMeasureTests: XCTestCase {
+    /// 从黑到白的渐变: 亮度中位约 50%, 几乎没有过曝和死黑
+    func gradient() -> CIImage {
+        let g = CIFilter(name: "CILinearGradient", parameters: ["inputPoint0": CIVector(x: 0, y: 0), "inputPoint1": CIVector(x: 400, y: 0),
+                                                               "inputColor0": CIColor(red: 0, green: 0, blue: 0), "inputColor1": CIColor(red: 1, green: 1, blue: 1)])!
+        return g.outputImage!.cropped(to: CGRect(x: 0, y: 0, width: 400, height: 200))
+    }
+
+    func testStats() throws {
+        let s = try XCTUnwrap(PhotoMeasure.stats(gradient()))
+        XCTAssertEqual(s.p50, 0.5, accuracy: 0.25)
+        XCTAssertLessThan(s.clipHi, 6)
+        let m = PhotoMeasure.forAI(s)
+        XCTAssertNotNil(m["p50"]); XCTAssertNotNil(m["clip_hi"])
+    }
+
+    /// 曝光 +2 会把一大片修爆: 自动检查要把它收回来, 并写一句说明
+    func testGuardPullsBackBlownHighlights() throws {
+        let base = gradient()
+        let r = Renderer.shared
+        let before: Settings = [:]
+        let after: Settings = ["Exposure2012": 2]
+        let (fixed, note) = PhotoMeasure.guardClipping(before: before, after: after) { r.apply($0, to: base) }
+        XCTAssertNotNil(note)
+        let a = try XCTUnwrap(PhotoMeasure.stats(r.apply(after, to: base)))
+        let f = try XCTUnwrap(PhotoMeasure.stats(r.apply(fixed, to: base)))
+        XCTAssertLessThan(f.clipHi, a.clipHi)
+        // 没问题的参数不动
+        let (same, none) = PhotoMeasure.guardClipping(before: before, after: ["Contrast2012": 5]) { r.apply($0, to: base) }
+        XCTAssertNil(none)
+        XCTAssertEqual(same["Contrast2012"], 5)
+    }
+}

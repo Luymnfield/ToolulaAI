@@ -5638,5 +5638,17 @@
  "极简产品海报：白色背景上的一瓶香水，柔和的影子": [
   "Minimal product poster: a perfume bottle on a white background, soft shadow",
   "Minimalistisches Produktposter: ein Parfümflakon auf weißem Hintergrund, weicher Schatten"
+ ],
+ "高光过曝 %@ → %@": [
+  "Blown highlights %1$@ → %2$@",
+  "Ausgefressene Lichter %1$@ → %2$@"
+ ],
+ "暗部死黑 %@ → %@": [
+  "Crushed shadows %1$@ → %2$@",
+  "Abgesoffene Schatten %1$@ → %2$@"
+ ],
+ "【自动检查】": [
+  "[Auto check] ",
+  "[Automatische Prüfung] "
  ]
 }

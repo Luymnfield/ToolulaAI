@@ -366,6 +366,7 @@ final class Store: ObservableObject {
             guard let img = self.renderForAI(base: base, settings: current, name: name, patches: patches, portrait: portrait0) else { return ([:], "", String(localized: "无法生成预览"), nil) }
             var req: [String: Any] = ["style": style, "is_raw": false, "current": AIBridge.numeric(current), "use_taste": useTaste]
             if let a = cache.portraitAnalysis(for: base) { req["portrait"] = ["faces": a.faceCount, "face_size": Double(a.faceWidth)] }
+            if let m = self.measureForAI(base: base, settings: current, patches: patches, portrait: portrait0, cache: cache) { req["measure"] = m }
             let r = AIBridge.run("analyze", image: img, reference: ref, request: req)
             if let e = r.error { return ([:], "", e, nil) }
             var s = AIBridge.settings(from: r)
@@ -377,6 +378,7 @@ final class Store: ObservableObject {
                 if let img2 = self.renderForAI(base: base, settings: merged, name: name + "_check", patches: patches, portrait: portrait ?? portrait0) {
                     var req2: [String: Any] = ["style": style, "is_raw": false, "current": AIBridge.numeric(merged), "use_taste": false]
                     req2["portrait"] = req["portrait"]
+                    if let m = self.measureForAI(base: base, settings: merged, patches: patches, portrait: portrait ?? portrait0, cache: cache) { req2["measure"] = m }
                     let r2 = AIBridge.run("refine", image: img2, reference: ref, request: req2)
                     if r2.error == nil {
                         for (k, v) in AIBridge.settings(from: r2) { s[k] = v }
@@ -385,6 +387,13 @@ final class Store: ObservableObject {
                     }
                 }
             }
+            // 自动检查: AI 的参数有没有把高光修爆、暗部压死
+            var merged = current
+            for (k, v) in s { merged[k] = v }
+            let (fixed, note) = self.guardSettings(base: base, before: current, after: merged, patches: patches, portrait: portrait ?? portrait0)
+            // 只改自动检查动过的参数 (其他的照旧, 手动调过的不会被算两次)
+            for (k, v) in fixed where merged[k] != v { s[k] = v }
+            if let note { text += "\n\n" + note }
             return (s, text, nil, portrait)
         }.value
         if let e = result.2 {
@@ -396,6 +405,24 @@ final class Store: ObservableObject {
         if let p = result.3 { item.portrait = p }
         item.status = String(localized: "AI 已修")
         return true
+    }
+
+    /// 在当前效果上量曝光、过曝、偏色、肤色, 交给 AI (Toolula 量得比模型看缩略图准)
+    nonisolated func measureForAI(base: CIImage, settings: Settings, patches: [RetouchPatch], portrait: PortraitRetouch, cache: MaskCache) -> [String: Any]? {
+        let r = Renderer.shared
+        let small = r.scale(base, maxSide: PhotoMeasure.side * 2)
+        let img = r.renderEdited(small, settings: settings, patches: patches, locals: [], portrait: portrait, cache: MaskCache())
+        let skin = cache.portraitAnalysis(for: base)?.skin
+        return PhotoMeasure.stats(img, skin: skin).map(PhotoMeasure.forAI)
+    }
+
+    /// AI 修完后的自动检查: 高光修爆 / 暗部压死就往回收
+    nonisolated func guardSettings(base: CIImage, before: Settings, after: Settings, patches: [RetouchPatch], portrait: PortraitRetouch) -> (Settings, String?) {
+        let r = Renderer.shared
+        let small = r.scale(base, maxSide: PhotoMeasure.side)
+        return PhotoMeasure.guardClipping(before: before, after: after) { s in
+            r.renderEdited(small, settings: s, patches: patches, locals: [], portrait: portrait, cache: MaskCache())
+        }
     }
 
     /// AI 给出的人像精修 (__retouch=key|value), 没有就是 nil
@@ -474,6 +501,7 @@ final class Store: ObservableObject {
     func recognize() {
         guard let item = current, !item.recognizing, let base = item.previewBase else { return }
         let current = item.settings, name = item.name, useTaste = self.useTaste, isRaw = item.isRaw, patches = item.patches
+        let portraitNow = item.portrait
         item.recognizing = true
         item.status = String(localized: "AI 正在识别照片…")
         status = String(localized: "AI 正在识别照片…")
@@ -487,6 +515,7 @@ final class Store: ObservableObject {
                 }
                 var req: [String: Any] = ["is_raw": isRaw, "current": AIBridge.numeric(current), "use_taste": useTaste]
                 if let a = cache.portraitAnalysis(for: base) { req["portrait"] = ["faces": a.faceCount, "face_size": Double(a.faceWidth)] }
+                if let m = self.measureForAI(base: base, settings: current, patches: patches, portrait: portraitNow, cache: cache) { req["measure"] = m }
                 // 一边写一边显示: 场景、问题、每个方案读到就先出来
                 return AIBridge.run("suggest", image: img, request: req) { partial in
                     Task { @MainActor in if item.recognizing { self.showPlans(partial, on: item, final: false) } }
@@ -550,11 +579,22 @@ final class Store: ObservableObject {
 
     /// 在 Toolula 里预览某个方案 (之后可以继续微调, 或发送到别的软件)
     func applyPlan(_ plan: PhotoPlan, to item: PhotoItem) {
+        let before = item.settings
         item.applyAI(plan.settings, analysis: "【\(plan.name)】\(plan.why)")
         item.locals = plan.locals
         item.portrait = plan.portrait
         item.chosenPlan = plan.id
         item.status = String(localized: "已应用方案：\(plan.name)")
+        // 自动检查: 这个方案会不会把高光修爆、暗部压死
+        guard let base = item.previewBase else { return }
+        let after = item.settings, patches = item.patches, portrait = item.portrait, manual = item.manual, planId = plan.id
+        Task {
+            let (fixed, note) = await Task.detached { self.guardSettings(base: base, before: before, after: after, patches: patches, portrait: portrait) }.value
+            guard let note, item.chosenPlan == planId, item.ai != nil else { return }
+            for (k, v) in fixed where after[k] != v { item.ai?[k] = v - (manual[k] ?? 0) }
+            item.analysis += "\n\n" + note
+            item.changed()
+        }
     }
 
     /// 按这个方案让 AI 再完整精修一遍

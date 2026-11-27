@@ -153,6 +153,35 @@ extension AppDelegate {
                 store.selection = Set(store.photos.map { $0.id })
                 store.viewMode = args.contains("--split") ? .split : .after
             }
+            if args.contains("--render-bench"), let item = store.current, let base = item.previewBase {
+                // 预览渲染速度: 拖滑块时每一帧要多久 (2000 像素预览, 和界面一样做成 NSImage)
+                let r = Renderer.shared
+                let settings: Settings = ["Exposure2012": 0.4, "Contrast2012": 20, "Shadows2012": 30, "Vibrance": 15, "LuminanceAdjustmentOrange": 10, "PostCropVignetteAmount": -15]
+                var pr = PortraitRetouch()
+                for (k, v) in [("smooth", 30.0), ("blemish", 60), ("undereye", 30), ("even", 20), ("sculpt", 20), ("eyes", 25)] { pr[k] = v }
+                let cache = item.maskCache
+                for (label, p) in [("global", PortraitRetouch()), ("portrait", pr)] {
+                    _ = await Task.detached { r.makeNSImage(r.renderEdited(base, settings: settings, patches: [], locals: [], portrait: p, cache: cache)) }.value
+                    let t0 = Date()
+                    for i in 0..<8 {
+                        var s2 = settings; s2["Exposure2012"] = 0.3 + Double(i) * 0.02
+                        _ = await Task.detached { r.makeNSImage(r.renderEdited(base, settings: s2, patches: [], locals: [], portrait: p, cache: cache)) }.value
+                    }
+                    log += "render \(label): \(Int(Date().timeIntervalSince(t0) / 8 * 1000)) ms/frame (\(Int(base.extent.width))×\(Int(base.extent.height)))\n"
+                }
+            }
+            if args.contains("--recognize-all") {
+                // 一张接一张识别, 记下每张的时间 (第二张起系统提示能复用缓存)
+                for item in store.photos {
+                    store.selection = [item.id]
+                    try? await Task.sleep(for: .seconds(1))
+                    let t0 = Date()
+                    store.recognize()
+                    try? await Task.sleep(for: .seconds(1))
+                    while item.recognizing { try? await Task.sleep(for: .seconds(0.5)) }
+                    log += "recognize \(item.name): \(String(format: "%.1f", Date().timeIntervalSince(t0)))s plans=\(item.plans.count) retouch=\(item.plans.first?.portrait.values.count ?? 0)\n"
+                }
+            }
             if args.contains("--recognize"), let item = store.current {
                 let t0 = Date()
                 store.recognize()
