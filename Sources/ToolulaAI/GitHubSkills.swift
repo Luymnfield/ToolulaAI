@@ -292,6 +292,8 @@ final class GitHubBrowser: ObservableObject {
         GHRepo(fullName: "addyosmani/agent-skills", description: "工程开发类技能", stars: 0, updated: ""),
         GHRepo(fullName: "coreyhaines31/marketingskills", description: "营销、文案、SEO 类技能", stars: 0, updated: ""),
         GHRepo(fullName: "obra/superpowers", description: "软件开发方法类技能", stars: 0, updated: ""),
+        GHRepo(fullName: "mattpocock/skills", description: "工程实践技能（排查 bug、TDD、代码审查、写需求）", stars: 0, updated: ""),
+        GHRepo(fullName: "multica-ai/andrej-karpathy-skills", description: "简短的编码行为准则：少改动、先想清楚、不过度设计", stars: 0, updated: ""),
     ]
 
     func showRecommended() { repos = Self.recommended; error = nil }

@@ -457,6 +457,10 @@ final class Store: ObservableObject {
             let natural = parts.contains { ["山", "水面", "树木", "草地", "雪"].contains($0.0) && $0.1 >= 10 }
             if sky > 0.08 || green > 0.15 || natural {
                 m["landscape"] = true
+                // 天空有多亮、有多少已经过曝 (风光修图最怕把天空修白)
+                if sky > 0.05, let skyMask = cache.get(.sky), let st = PhotoMeasure.stats(img, skin: skyMask), let k = st.skin {
+                    m["sky_luma"] = Int((k.luma * 100).rounded())
+                }
                 m["sky"] = Int((sky * 100).rounded())
                 m["greenery"] = Int((green * 100).rounded())
                 if !parts.isEmpty { m["parts"] = parts.map { "\($0.0) \($0.1)%" }.joined(separator: "、") }

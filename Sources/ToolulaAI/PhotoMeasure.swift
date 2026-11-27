@@ -8,6 +8,7 @@ enum PhotoMeasure {
         var clipHi = 0.0, clipLo = 0.0           // 过曝 / 死黑像素占比 (%)
         var castA = 0.0, castB = 0.0             // 中性色区域的偏色: A 正 = 偏品红 / 负 = 偏绿; B 正 = 偏黄 / 负 = 偏蓝 (0~255 单位)
         var neutralShare = 0.0
+        var meanSat = 0.0                          // 平均饱和度 (0~1)
         var globalA = 0.0, globalB = 0.0           // 所有中间调的平均偏色 (强烈偏色时中性色本身也会被染色, 这个更能看出来)
         var skin: (luma: Double, hue: Double, sat: Double)?
     }
@@ -42,7 +43,7 @@ enum PhotoMeasure {
 
         var hist = [Int](repeating: 0, count: 256)
         var hi = 0, lo = 0, nN = 0, nG = 0
-        var gA = 0.0, gB = 0.0
+        var gA = 0.0, gB = 0.0, satSum = 0.0
         var sumA = 0.0, sumB = 0.0
         var sk = (r: 0.0, g: 0.0, b: 0.0, n: 0.0)
         let n = w * h
@@ -54,6 +55,7 @@ enum PhotoMeasure {
             if Y <= 4 { lo += 1 }
             let mx = max(R, G, B), mn = min(R, G, B)
             let sat = mx > 0 ? (mx - mn) / mx : 0
+            satSum += sat
             if Y > 40 && Y < 215 { nG += 1; gA += R - G; gB += (R + G) / 2 - B }
             if sat < 0.25 && Y > 40 && Y < 235 {
                 nN += 1
@@ -77,6 +79,7 @@ enum PhotoMeasure {
         s.neutralShare = Double(nN) / Double(n)
         if nN > 0 { s.castA = sumA / Double(nN); s.castB = sumB / Double(nN) }
         if nG > 0 { s.globalA = gA / Double(nG); s.globalB = gB / Double(nG) }
+        s.meanSat = satSum / Double(n)
         if sk.n > 30 {
             let R = sk.r / sk.n, G = sk.g / sk.n, B = sk.b / sk.n
             let mx = max(R, G, B), mn = min(R, G, B)
@@ -93,7 +96,8 @@ enum PhotoMeasure {
     /// 交给 ai_edit.py 的测量数据 (文字已经写好, 中文, 给模型看)
     static func forAI(_ s: Stats) -> [String: Any] {
         var m: [String: Any] = ["p1": Int((s.p1 * 100).rounded()), "p50": Int((s.p50 * 100).rounded()), "p99": Int((s.p99 * 100).rounded()),
-                                "clip_hi": (s.clipHi * 10).rounded() / 10, "clip_lo": (s.clipLo * 10).rounded() / 10]
+                                "clip_hi": (s.clipHi * 10).rounded() / 10, "clip_lo": (s.clipLo * 10).rounded() / 10,
+                                "sat": Int((s.meanSat * 100).rounded()), "contrast": Int(((s.p99 - s.p1) * 100).rounded())]
         if s.neutralShare > 0.03 {
             var parts: [String] = []
             func level(_ v: Double) -> String { abs(v) > 20 ? "明显" : abs(v) > 10 ? "中等" : "轻微" }

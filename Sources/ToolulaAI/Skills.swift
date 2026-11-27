@@ -55,6 +55,62 @@ final class SkillStore: ObservableObject {
                   2. 用 photo_edit 处理，paths 填文件夹路径。
                   3. 汇报修了几张、导出到哪里，并提醒用户可以在「修图」页继续微调。
                   """)),
+        ] + codingStarters
+    }
+
+    /// 让助手按 "先读懂 → 计划 → 小步修改 → 验证" 的方式干活的技能 (第 2 版默认技能)
+    static var codingStarters: [Skill] {
+        [
+            Skill(name: String(localized: "写代码"),
+                  description: String(localized: "修改或新增代码功能：先读懂相关代码，小步修改，改完编译或跑测试验证"),
+                  instructions: String(localized: """
+                  1. 先用 list_directory、search_files 弄清项目结构，找到相关文件，用 read_file 读完整再动手。
+                  2. 用 plan 列出要改的文件和步骤。
+                  3. 用 edit_file 做最小改动，保持原有代码风格，不顺手重构无关代码。
+                  4. 改完用 run_shell 编译或运行测试（如 swift build / npm test / pytest）。失败就读错误、修复、再跑，直到通过。
+                  5. 汇报：改了哪些文件、为什么改、验证结果。没验证的地方明确说出来。
+                  """)),
+            Skill(name: String(localized: "调试排错"),
+                  description: String(localized: "程序报错或行为不对时：先复现，找到根本原因，再做最小修复并验证"),
+                  instructions: String(localized: """
+                  1. 先复现：用 run_shell 跑出错误，记下完整报错。
+                  2. 根据报错用 search_files 定位代码，用 read_file 读上下文。
+                  3. 列出 1~3 个可能原因，逐个用日志或小实验验证，不要靠猜直接改。
+                  4. 找到根因后做最小修复，再次运行，确认问题消失且没有引入新错误。
+                  5. 说明根因是什么、怎么修的、怎么验证的。
+                  """)),
+            Skill(name: String(localized: "读懂项目"),
+                  description: String(localized: "快速了解一个陌生的代码库或文件夹：做什么、怎么组织、怎么运行"),
+                  instructions: String(localized: """
+                  1. 用 list_directory 看顶层，用 read_file 读 README 和 package.json / Package.swift / requirements.txt 等配置。
+                  2. 找到入口文件和核心模块，各读关键部分。
+                  3. 输出：项目做什么 → 技术栈 → 目录结构说明 → 怎么运行 → 关键文件清单。
+                  4. 只写读到的内容，没看到的不要猜。
+                  """)),
+            Skill(name: String(localized: "大任务拆分"),
+                  description: String(localized: "步骤多、涉及很多文件或需要长时间的任务：拆成小步，逐步完成并核对"),
+                  instructions: String(localized: """
+                  1. 用 plan 拆成 3~8 个可以单独验证的步骤。
+                  2. 彼此独立的调研类子任务用 delegate 交给子助手，并说清要它返回什么。
+                  3. 每完成一步就更新 plan，做完一步验证一步。
+                  4. 全部做完后，对照用户的原始要求逐条核对，再汇报。
+                  """)),
+            Skill(name: String(localized: "Git 操作"),
+                  description: String(localized: "提交、分支、查看改动等 git 操作，按安全规则执行"),
+                  instructions: String(localized: """
+                  1. 先用 git status、git diff 看清当前改动。
+                  2. 用户没要求就不 commit、不 push。除非用户明确要求，永远不用 --force、reset --hard、clean -fd。
+                  3. 提交信息写清楚做了什么、为什么。
+                  4. 不提交 .env、密钥、凭证之类的文件；发现了要提醒用户。
+                  """)),
+            Skill(name: String(localized: "代码审查"),
+                  description: String(localized: "检查代码或改动里的 bug 和问题，按严重程度列出"),
+                  instructions: String(localized: """
+                  1. 用 git diff 或 read_file 读要审查的代码，必要时读调用它的地方。
+                  2. 重点找真实 bug：边界条件、空值、并发、错误处理、安全问题，每条都写出具体的触发场景。
+                  3. 按严重程度排序，不确定的标明「可能」。不要列一堆风格意见凑数。
+                  4. 没发现问题就直说没发现。
+                  """)),
         ]
     }
 
@@ -63,6 +119,14 @@ final class SkillStore: ObservableObject {
             skills = list
         } else {
             skills = Self.starters
+        }
+        // 老用户: 只补一次新加的默认技能 (之后用户删掉的不会再加回来)
+        let seedKey = "skillsSeedVersion"
+        if UserDefaults.standard.integer(forKey: seedKey) < 2 {
+            let have = Set(skills.map { $0.name })
+            let missing = Self.codingStarters.filter { !have.contains($0.name) }
+            if !missing.isEmpty { skills += missing }
+            UserDefaults.standard.set(2, forKey: seedKey)
         }
         selected = skills.first?.id
     }
