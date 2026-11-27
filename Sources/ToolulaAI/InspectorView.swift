@@ -186,6 +186,7 @@ struct ItemPanels: View {
                 } label: { Label("选片 / 关键词", systemImage: "star") }
             }
 
+            PortraitPanel(item: item)
             LocalPanel(item: item)
 
             HStack {
@@ -346,6 +347,9 @@ struct PlanCard: View {
                     .buttonStyle(.borderless).controlSize(.small)
             }
             Text(plan.why).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            if !plan.complete {
+                HStack(spacing: 6) { ProgressView().controlSize(.mini); Text("AI 正在写这个方案的参数…").font(.caption2).foregroundStyle(.secondary) }
+            }
             if open || chosen {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(plan.changes) { c in
@@ -380,7 +384,7 @@ struct PlanCard: View {
                 .controlSize(.small)
                 Text("也可以直接在下面的滑块里继续微调。").font(.caption2).foregroundStyle(.tertiary)
             } else {
-                Button("用这个方案预览") { store.applyPlan(plan, to: item) }.controlSize(.small)
+                Button("用这个方案预览") { store.applyPlan(plan, to: item) }.controlSize(.small).disabled(!plan.complete)
             }
         }
         .padding(10)
@@ -390,6 +394,69 @@ struct PlanCard: View {
     }
 }
 
+
+// MARK: - 人像精修
+
+struct PortraitPanel: View {
+    @ObservedObject var item: PhotoItem
+    /// nil = 还在找人脸
+    @State private var faces: Int?
+    @State private var faceWidth: CGFloat = 0
+
+    var body: some View {
+        GroupBox {
+            VStack(alignment: .leading, spacing: 8) {
+                if faces == nil {
+                    HStack(spacing: 6) { ProgressView().controlSize(.small); Text("正在找人脸…").font(.caption).foregroundStyle(.secondary) }
+                } else if faces == 0 {
+                    Text("这张照片里没有找到人脸。").font(.caption).foregroundStyle(.secondary)
+                } else {
+                    HStack {
+                        Button { item.portrait = Self.recommended(faceWidth: faceWidth) } label: { Label("一键人像精修", systemImage: "wand.and.stars") }
+                        Spacer()
+                        if !item.portrait.isEmpty {
+                            Button("全部归零") { item.portrait = PortraitRetouch() }.controlSize(.small)
+                        }
+                    }
+                    ForEach(PortraitRetouch.specs) { spec in
+                        HStack(spacing: 6) {
+                            Image(systemName: spec.icon).foregroundStyle(Color.toolula).frame(width: 18)
+                            Text(spec.label.locKey).font(.caption).frame(width: 74, alignment: .leading).lineLimit(1).minimumScaleFactor(0.8)
+                            Slider(value: Binding(get: { item.portrait[spec.key] }, set: { item.portrait[spec.key] = $0.rounded() }), in: 0...100)
+                                .controlSize(.small)
+                            Text("\(Int(item.portrait[spec.key]))").font(.caption.monospacedDigit()).frame(width: 28, alignment: .trailing)
+                        }
+                        .help(Text(spec.help.locKey))
+                    }
+                    if item.portrait.hasPixelOnly {
+                        Text("去瑕疵、淡化眼袋、肤色均匀、光影塑形是像素级修改，Lightroom 的参数表达不了；发送到 Lightroom 时可以选择发修好的 TIFF，或者发可编辑的 RAW（这几项不带过去）。")
+                            .font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            .padding(4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } label: { Label("人像精修", systemImage: "person.crop.circle") }
+        .task(id: item.id) {
+            faces = nil
+            guard let base = item.previewBase else { faces = 0; return }
+            let cache = item.maskCache
+            let a = await Task.detached(priority: .userInitiated) { cache.portraitAnalysis(for: base) }.value
+            faces = a?.faceCount ?? 0
+            faceWidth = a?.faceWidth ?? 0
+        }
+    }
+
+    /// 没有 AI 时的默认精修: 人脸越小越轻 (合影、舞台远景只需要轻微处理)
+    static func recommended(faceWidth: CGFloat) -> PortraitRetouch {
+        let k = Double(max(0.35, min(1, faceWidth / 0.12)))
+        var p = PortraitRetouch()
+        for (key, v) in [("smooth", 30.0), ("blemish", 60), ("undereye", 30), ("even", 20), ("sculpt", 20), ("eyes", 25), ("teeth", 25), ("lips", 10)] {
+            p[key] = (v * (key == "eyes" || key == "teeth" ? 1 : k)).rounded()
+        }
+        return p
+    }
+}
 
 // MARK: - 局部调整
 

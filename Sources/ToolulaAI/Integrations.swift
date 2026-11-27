@@ -75,7 +75,7 @@ enum Integrations {
         let r = Renderer.shared
         guard var img = r.loadFull(job.url) else { return (nil, String(localized: "无法读取 \(job.url.lastPathComponent)")) }
         img = img.transformed(by: CGAffineTransform(translationX: -img.extent.minX, y: -img.extent.minY))
-        let out = r.renderEdited(img, settings: job.settings, patches: job.patches, locals: job.locals)
+        let out = r.renderEdited(img, settings: job.settings, patches: job.patches, locals: job.locals, portrait: job.portrait, cache: MaskCache())
         let dest = Exporter.uniqueURL(folder, job.url.deletingPathExtension().lastPathComponent + ".tif")
         do {
             try r.context.writeTIFFRepresentation(of: out, to: dest, format: .RGBA16, colorSpace: r.sRGB, options: [:])

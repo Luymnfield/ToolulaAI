@@ -37,8 +37,10 @@ final class PhotoItem: ObservableObject, Identifiable {
     @Published var locals: [LocalAdjustment] = [] { didSet { changed() } }
     @Published var patches: [RetouchPatch] = [] { didSet { changed() } }
     @Published var showMask: MaskKind? { didSet { if showMask != oldValue { changed() } } }
+    /// 人像精修 (磨皮、去瑕疵、眼袋、肤色均匀、光影塑形、眼睛、牙齿、嘴唇)
+    @Published var portrait = PortraitRetouch() { didSet { if portrait != oldValue { changed() } } }
     let maskCache = MaskCache()
-    var retouched: Bool { !patches.isEmpty || locals.contains { $0.settings.contains { $0.value != 0 } } }
+    var retouched: Bool { !patches.isEmpty || !portrait.isEmpty || locals.contains { $0.settings.contains { $0.value != 0 } } }
 
     // 选片 / 关键词
     @Published var score: Int?
@@ -248,13 +250,13 @@ final class Store: ObservableObject {
         guard let base = item.previewBase else { return }
         let rev = item.revision
         let settings = item.settings
-        let locals = item.locals, patches = item.patches, showMask = item.showMask, cache = item.maskCache
+        let locals = item.locals, patches = item.patches, showMask = item.showMask, cache = item.maskCache, portrait = item.portrait
         renderQueue.async {
             // 只渲染最新的一次 (拖动滑块时跳过中间状态)
             var stale = false
             DispatchQueue.main.sync { stale = rev != item.revision }
             if stale { return }
-            let out = Renderer.shared.renderEdited(base, settings: settings, patches: patches, locals: locals, cache: cache, showMask: showMask)
+            let out = Renderer.shared.renderEdited(base, settings: settings, patches: patches, locals: locals, portrait: portrait, cache: cache, showMask: showMask)
             let img = Renderer.shared.makeNSImage(out)
             let thumb = Renderer.shared.makeNSImage(Renderer.shared.scale(out, maxSide: 160))
             DispatchQueue.main.async {
@@ -267,9 +269,9 @@ final class Store: ObservableObject {
 
     /// 把当前效果渲染成 1024 像素 JPEG 给 AI 看
     nonisolated func renderForAI(base: CIImage, settings: Settings, name: String, patches: [RetouchPatch] = [],
-                                 locals: [LocalAdjustment] = [], cache: MaskCache? = nil, maxSide: CGFloat = 1024) -> URL? {
+                                 locals: [LocalAdjustment] = [], portrait: PortraitRetouch = PortraitRetouch(), maxSide: CGFloat = 1024) -> URL? {
         let r = Renderer.shared
-        let img = r.renderEdited(r.scale(base, maxSide: maxSide), settings: settings, patches: patches, locals: locals)
+        let img = r.renderEdited(r.scale(base, maxSide: maxSide), settings: settings, patches: patches, locals: locals, portrait: portrait, cache: MaskCache())
         let url = AIBridge.workDir.appendingPathComponent("ai_\(name)_\(UUID().uuidString.prefix(6)).jpg")
         do { try r.writeJPEG(img, to: url, quality: 0.85) } catch { return nil }
         return url
@@ -320,6 +322,8 @@ final class Store: ObservableObject {
                 if ok, let s = rep.ai {
                     for other in group where other !== rep {
                         other.applyAI(s, analysis: String(localized: "（与 \(rep.name) 同一场景，使用相同参数）"))
+                        // 同一场景的人像精修也一起用 (蒙版和瑕疵是每张照片自己找的)
+                        if !rep.portrait.isEmpty { other.portrait = rep.portrait }
                     }
                 } else {
                     failed += group.count
@@ -357,27 +361,31 @@ final class Store: ObservableObject {
         guard let base = item.previewBase else { return false }
         let current = item.settings
         let name = item.name
-        let patches = item.patches
-        let result: (Settings, String, String?) = await Task.detached {
-            guard let img = self.renderForAI(base: base, settings: current, name: name, patches: patches) else { return ([:], "", String(localized: "无法生成预览")) }
-            let req: [String: Any] = ["style": style, "is_raw": false, "current": AIBridge.numeric(current), "use_taste": useTaste]
+        let patches = item.patches, cache = item.maskCache, portrait0 = item.portrait
+        let result: (Settings, String, String?, PortraitRetouch?) = await Task.detached {
+            guard let img = self.renderForAI(base: base, settings: current, name: name, patches: patches, portrait: portrait0) else { return ([:], "", String(localized: "无法生成预览"), nil) }
+            var req: [String: Any] = ["style": style, "is_raw": false, "current": AIBridge.numeric(current), "use_taste": useTaste]
+            if let a = cache.portraitAnalysis(for: base) { req["portrait"] = ["faces": a.faceCount, "face_size": Double(a.faceWidth)] }
             let r = AIBridge.run("analyze", image: img, reference: ref, request: req)
-            if let e = r.error { return ([:], "", e) }
+            if let e = r.error { return ([:], "", e, nil) }
             var s = AIBridge.settings(from: r)
             var text = r.kv["__analysis"] ?? ""
+            var portrait = Self.retouch(from: r)
             if selfCheck {
                 var merged = current
                 for (k, v) in s { merged[k] = v }
-                if let img2 = self.renderForAI(base: base, settings: merged, name: name + "_check", patches: patches) {
-                    let req2: [String: Any] = ["style": style, "is_raw": false, "current": AIBridge.numeric(merged), "use_taste": false]
+                if let img2 = self.renderForAI(base: base, settings: merged, name: name + "_check", patches: patches, portrait: portrait ?? portrait0) {
+                    var req2: [String: Any] = ["style": style, "is_raw": false, "current": AIBridge.numeric(merged), "use_taste": false]
+                    req2["portrait"] = req["portrait"]
                     let r2 = AIBridge.run("refine", image: img2, reference: ref, request: req2)
                     if r2.error == nil {
                         for (k, v) in AIBridge.settings(from: r2) { s[k] = v }
+                        if let p2 = Self.retouch(from: r2) { portrait = p2 }
                         if let t = r2.kv["__analysis"], !t.isEmpty { text += "\n\n" + String(localized: "【二次检查】") + t }
                     }
                 }
             }
-            return (s, text, nil)
+            return (s, text, nil, portrait)
         }.value
         if let e = result.2 {
             item.status = e
@@ -385,8 +393,21 @@ final class Store: ObservableObject {
             return false
         }
         item.applyAI(result.0, analysis: result.1)
+        if let p = result.3 { item.portrait = p }
         item.status = String(localized: "AI 已修")
         return true
+    }
+
+    /// AI 给出的人像精修 (__retouch=key|value), 没有就是 nil
+    nonisolated static func retouch(from r: AIBridge.Result) -> PortraitRetouch? {
+        let lines = r.lists["__retouch"] ?? []
+        guard !lines.isEmpty else { return nil }
+        var p = PortraitRetouch()
+        for line in lines {
+            let parts = line.split(separator: "|").map(String.init)
+            if parts.count == 2, PortraitRetouch.keys.contains(parts[0]), let v = Double(parts[1]) { p[parts[0]] = v }
+        }
+        return p
     }
 
     // MARK: AI 消除
@@ -434,7 +455,7 @@ final class Store: ObservableObject {
             Task {
                 let found = await Task.detached { () -> Bool in
                     if cache.get(area) != nil { return true }
-                    guard let m = Masks.compute(area, for: base) else { return false }
+                    guard let m = Masks.compute(area, for: base, cache: cache) else { return false }
                     cache.set(area, m)
                     return true
                 }.value
@@ -456,18 +477,35 @@ final class Store: ObservableObject {
         item.recognizing = true
         item.status = String(localized: "AI 正在识别照片…")
         status = String(localized: "AI 正在识别照片…")
+        let cache = item.maskCache
+        item.scene = ""; item.issues = []; item.plans = []; item.chosenPlan = nil
         Task {
             let r: AIBridge.Result = await Task.detached {
                 // 识别只需要看清内容和光线: 768 像素足够, 图片 token 少一半, 读得更快
                 guard let img = self.renderForAI(base: base, settings: current, name: name + "_suggest", patches: patches, maxSide: 768) else {
                     return AIBridge.Result(error: String(localized: "无法生成预览"))
                 }
-                return AIBridge.run("suggest", image: img, request: ["is_raw": isRaw, "current": AIBridge.numeric(current), "use_taste": useTaste])
+                var req: [String: Any] = ["is_raw": isRaw, "current": AIBridge.numeric(current), "use_taste": useTaste]
+                if let a = cache.portraitAnalysis(for: base) { req["portrait"] = ["faces": a.faceCount, "face_size": Double(a.faceWidth)] }
+                // 一边写一边显示: 场景、问题、每个方案读到就先出来
+                return AIBridge.run("suggest", image: img, request: req) { partial in
+                    Task { @MainActor in if item.recognizing { self.showPlans(partial, on: item, final: false) } }
+                }
             }.value
             item.recognizing = false
             if let e = r.error { item.status = e; alert = e; status = e; return }
+            showPlans(r, on: item, final: true)
+            item.chosenPlan = nil
+            item.status = String(localized: "已识别")
+            status = String(localized: "识别完成：选一个方案预览")
+        }
+    }
+
+    /// 把识别结果 (可能还没写完) 显示出来
+    private func showPlans(_ r: AIBridge.Result, on item: PhotoItem, final: Bool) {
             item.scene = r.kv["scene"] ?? ""
             item.issues = r.lists["issue"] ?? []
+            let old = item.plans
             item.plans = (0..<3).compactMap { i in
                 let p = "p\(i)."
                 guard let n = r.kv[p + "name"], !n.isEmpty else { return nil }
@@ -492,19 +530,29 @@ final class Store: ObservableObject {
                     locals[area] = l
                     localChanges.append(PhotoPlan.Change(key: parts[1], value: parts[2], reason: parts[3], area: area))
                 }
-                return PhotoPlan(name: n, why: r.kv[p + "why"] ?? "", style: r.kv[p + "style"] ?? "", changes: changes + localChanges,
-                                 settings: s, locals: Array(locals.values))
+                // 人像精修: key|value|reason (写在方案前面的是 3 个方案共用的)
+                var portrait = PortraitRetouch()
+                var retouchChanges: [PhotoPlan.Change] = []
+                let own = r.lists[p + "retouch"] ?? []
+                for line in own.isEmpty ? (r.lists["retouch"] ?? []) : own {
+                    let parts = line.split(separator: "|", maxSplits: 2, omittingEmptySubsequences: false).map(String.init)
+                    guard parts.count >= 2, let v = Double(parts[1]), PortraitRetouch.keys.contains(parts[0]) else { continue }
+                    portrait[parts[0]] = v
+                    retouchChanges.append(PhotoPlan.Change(key: parts[0], value: parts[1], reason: parts.count > 2 ? parts[2] : "", retouch: true))
+                }
+                var plan = PhotoPlan(name: n, why: r.kv[p + "why"] ?? "", style: r.kv[p + "style"] ?? "", changes: changes + localChanges + retouchChanges,
+                                     settings: s, locals: Array(locals.values), portrait: portrait,
+                                     complete: final || r.kv[p + "done"] != nil)
+                if i < old.count { plan.id = old[i].id }   // 同一个方案保持同一个 id (界面不会跳)
+                return plan
             }
-            item.chosenPlan = nil
-            item.status = String(localized: "已识别")
-            status = String(localized: "识别完成：选一个方案预览")
-        }
     }
 
     /// 在 Toolula 里预览某个方案 (之后可以继续微调, 或发送到别的软件)
     func applyPlan(_ plan: PhotoPlan, to item: PhotoItem) {
         item.applyAI(plan.settings, analysis: "【\(plan.name)】\(plan.why)")
         item.locals = plan.locals
+        item.portrait = plan.portrait
         item.chosenPlan = plan.id
         item.status = String(localized: "已应用方案：\(plan.name)")
     }
@@ -643,9 +691,12 @@ struct PhotoPlan: Identifiable {
         let value: String
         let reason: String
         var area: MaskKind? = nil
+        /// 人像精修项目 (key 是 smooth / blemish ...)
+        var retouch = false
 
         /// 参数的显示名字
         var label: String {
+            if retouch { return String(localized: "人像") + " · " + (PortraitRetouch.specs.first { $0.key == key }?.label.loc ?? key) }
             if let area { return area.label + " · " + (LocalAdjustment.params.first { $0.key == key }?.label.loc ?? key) }
             switch key {
             case "TempShift": return String(localized: "色温")
@@ -667,11 +718,14 @@ struct PhotoPlan: Identifiable {
             return value
         }
     }
-    let id = UUID()
+    var id = UUID()
     let name: String
     let why: String
     let style: String
     let changes: [Change]
     let settings: Settings
     var locals: [LocalAdjustment] = []
+    var portrait = PortraitRetouch()
+    /// AI 还在写这个方案的参数 (识别结果是一边写一边显示的)
+    var complete = true
 }

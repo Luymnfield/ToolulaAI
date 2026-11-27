@@ -139,7 +139,7 @@ extension AppDelegate {
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
         if args.contains("--demo-mac") { SystemInfo.demoMac = true; Recommender.simulatedRAM = 128 }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--export-side", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--export-side", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model", "--portrait", "--portrait-masks"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -219,6 +219,49 @@ extension AppDelegate {
                 while store.erasing { try? await Task.sleep(for: .seconds(0.5)) }
                 log += "erase: patches=\(item.patches.count) \(String(format: "%.1f", Date().timeIntervalSince(t0)))s status=\(store.status) alert=\(store.alert ?? "-")\n"
                 try? await Task.sleep(for: .seconds(2))
+            }
+            if let spec = val("--portrait"), let item = store.current {
+                // 例: "smooth=50,blemish=60,undereye=40" (人像精修)
+                var pr = PortraitRetouch()
+                for p in spec.split(separator: ",") {
+                    let x = p.split(separator: "=")
+                    if x.count == 2, let v = Double(x[1]) { pr[String(x[0])] = v }
+                }
+                item.portrait = pr
+                try? await Task.sleep(for: .seconds(3))
+            }
+            if let dirPath = val("--portrait-masks"), let item = store.current, let base = item.previewBase {
+                // 把人像分析的各个蒙版画成红色覆盖, 方便检查
+                let dir = URL(fileURLWithPath: dirPath)
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                let t0 = Date()
+                let a = await Task.detached { PortraitAnalysis.compute(for: base) }.value
+                log += "portrait: \(a == nil ? "no face" : "faces=\(a!.faceCount) faceW=\(String(format: "%.3f", a!.faceWidth)) spots=\(a!.spots.count)") \(String(format: "%.2f", Date().timeIntervalSince(t0)))s\n"
+                if let a {
+                    let r = Renderer.shared
+                    let all: [(String, CIImage)] = [("skin", a.skin), ("sclera", a.sclera), ("iris", a.iris), ("lips", a.lips), ("teeth", a.teeth),
+                                                    ("undereye", a.underEye), ("light", a.light), ("dark", a.dark)]
+                    for (name, m) in all {
+                        let fitted = PortraitAnalysis.fit(m, from: a.size, to: base.extent)
+                        let red = CIImage(color: CIColor(red: 1, green: 0.1, blue: 0.2, alpha: 0.6)).cropped(to: base.extent).composited(over: base)
+                        let out = red.applyingFilter("CIBlendWithMask", parameters: [kCIInputBackgroundImageKey: base, kCIInputMaskImageKey: fitted]).cropped(to: base.extent)
+                        try? r.writeJPEG(out, to: dir.appendingPathComponent(name + ".jpg"), quality: 0.85)
+                    }
+                    // 瑕疵位置画成小圆圈
+                    var marked = base
+                    for (c, rad) in a.spots {
+                        let p = CGPoint(x: base.extent.minX + c.x * base.extent.width, y: base.extent.minY + c.y * base.extent.height)
+                        let ring = CIFilter.radialGradient()
+                        ring.center = p; ring.radius0 = Float(rad * base.extent.width); ring.radius1 = Float(rad * base.extent.width) + 1.5
+                        ring.color0 = CIColor(red: 0, green: 1, blue: 0, alpha: 0); ring.color1 = CIColor(red: 0, green: 1, blue: 0, alpha: 1)
+                        let ring2 = CIFilter.radialGradient()
+                        ring2.center = p; ring2.radius0 = Float(rad * base.extent.width) + 1.5; ring2.radius1 = Float(rad * base.extent.width) + 2.5
+                        ring2.color0 = CIColor(red: 0, green: 1, blue: 0, alpha: 1); ring2.color1 = CIColor(red: 0, green: 1, blue: 0, alpha: 0)
+                        let r1 = ring.outputImage!.applyingFilter("CIMinimumCompositing", parameters: [kCIInputBackgroundImageKey: ring2.outputImage!])
+                        marked = r1.composited(over: marked)
+                    }
+                    try? r.writeJPEG(marked.cropped(to: base.extent), to: dir.appendingPathComponent("spots.jpg"), quality: 0.85)
+                }
             }
             if let dirPath = val("--export") {
                 let dir = URL(fileURLWithPath: dirPath)

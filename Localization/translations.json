@@ -5174,5 +5174,133 @@
  "发送到 Lightroom 时，局部调整会在导入后由 Toolula 插件自动做成 Lightroom 的 AI 蒙版，可以继续调；发送到 Photoshop 时是修好的 16 位 TIFF。": [
   "When sent to Lightroom, the Toolula plug-in turns local adjustments into Lightroom AI masks after import, so you can keep adjusting them; Photoshop receives a finished 16-bit TIFF.",
   "Beim Senden an Lightroom wandelt das Toolula-Plug-in lokale Anpassungen nach dem Import in KI-Masken von Lightroom um, die du weiter anpassen kannst; Photoshop erhält ein fertiges 16-Bit-TIFF."
+ ],
+ "这张照片有像素级的人像精修": [
+  "This photo has pixel-level portrait retouching",
+  "Dieses Foto hat Porträtretusche auf Pixelebene"
+ ],
+ "去瑕疵、淡化眼袋、肤色均匀、光影塑形是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇会做成蒙版），这几项需要在 Lightroom 里自己做。": [
+  "Blemish removal, under-eye softening, even skin tone and dodge & burn change the pixels directly in Toolula, and Lightroom's settings can't express them.\n\nSend finished TIFF: looks exactly like in Toolula, but the RAW settings can no longer be changed.\nSend editable RAW: settings and masks stay editable (skin smoothing, eyes, teeth and lips become masks); you'll need to do these steps in Lightroom yourself.",
+  "Makel entfernen, Augenringe mildern, Hautton angleichen und Abwedeln & Nachbelichten verändern in Toolula direkt die Pixel – Lightroom-Einstellungen können das nicht abbilden.\n\nFertiges TIFF senden: sieht genau aus wie in Toolula, aber die RAW-Einstellungen lassen sich nicht mehr ändern.\nBearbeitbares RAW senden: Einstellungen und Masken bleiben bearbeitbar (Hautglättung, Augen, Zähne und Lippen werden Masken); diese Schritte musst du in Lightroom selbst machen."
+ ],
+ "发修好的 TIFF": [
+  "Send finished TIFF",
+  "Fertiges TIFF senden"
+ ],
+ "发可编辑的 RAW": [
+  "Send editable RAW",
+  "Bearbeitbares RAW senden"
+ ],
+ "AI 正在写这个方案的参数…": [
+  "AI is writing this plan's settings…",
+  "KI schreibt die Einstellungen für diesen Vorschlag …"
+ ],
+ "正在找人脸…": [
+  "Looking for faces…",
+  "Gesichter werden gesucht …"
+ ],
+ "这张照片里没有找到人脸。": [
+  "No faces found in this photo.",
+  "In diesem Foto wurden keine Gesichter gefunden."
+ ],
+ "一键人像精修": [
+  "One-click portrait retouch",
+  "Porträt mit einem Klick retuschieren"
+ ],
+ "全部归零": [
+  "Reset all",
+  "Alles zurücksetzen"
+ ],
+ "去瑕疵、淡化眼袋、肤色均匀、光影塑形是像素级修改，Lightroom 的参数表达不了；发送到 Lightroom 时可以选择发修好的 TIFF，或者发可编辑的 RAW（这几项不带过去）。": [
+  "Blemish removal, under-eye softening, even skin tone and dodge & burn are pixel-level edits that Lightroom's settings can't express. When sending to Lightroom you can choose a finished TIFF or an editable RAW (without these).",
+  "Makel entfernen, Augenringe mildern, Hautton angleichen und Abwedeln & Nachbelichten sind Bearbeitungen auf Pixelebene, die Lightroom-Einstellungen nicht abbilden können. Beim Senden an Lightroom kannst du ein fertiges TIFF oder ein bearbeitbares RAW (ohne diese Schritte) wählen."
+ ],
+ "人像精修": [
+  "Portrait retouch",
+  "Porträtretusche"
+ ],
+ "皮肤": [
+  "Skin",
+  "Haut"
+ ],
+ "眼睛": [
+  "Eyes",
+  "Augen"
+ ],
+ "嘴唇": [
+  "Lips",
+  "Lippen"
+ ],
+ "牙齿": [
+  "Teeth",
+  "Zähne"
+ ],
+ "人像": [
+  "Portrait",
+  "Porträt"
+ ],
+ "磨皮": [
+  "Smooth skin",
+  "Haut glätten"
+ ],
+ "去瑕疵": [
+  "Remove blemishes",
+  "Makel entfernen"
+ ],
+ "淡化眼袋": [
+  "Under-eyes",
+  "Augenringe mildern"
+ ],
+ "肤色均匀": [
+  "Even skin tone",
+  "Hautton angleichen"
+ ],
+ "光影塑形": [
+  "Dodge & burn",
+  "Abwedeln & Nachbelichten"
+ ],
+ "眼睛提亮": [
+  "Brighten eyes",
+  "Augen aufhellen"
+ ],
+ "牙齿美白": [
+  "Whiten teeth",
+  "Zähne aufhellen"
+ ],
+ "嘴唇气色": [
+  "Lip color",
+  "Lippenfarbe"
+ ],
+ "柔化皮肤的斑驳和细纹，保留毛孔质感": [
+  "Softens blotches and fine lines while keeping pore texture",
+  "Mildert Flecken und feine Linien, die Porenstruktur bleibt erhalten"
+ ],
+ "去掉痘印和小斑点，明显的痣会保留": [
+  "Removes acne marks and small spots; distinct moles are kept",
+  "Entfernt Pickelmale und kleine Flecken, deutliche Muttermale bleiben"
+ ],
+ "提亮并柔化眼睛下方的阴影": [
+  "Brightens and softens shadows under the eyes",
+  "Hellt Schatten unter den Augen auf und mildert sie"
+ ],
+ "减少泛红和色斑，让肤色更统一": [
+  "Reduces redness and discoloration for a more even skin tone",
+  "Reduziert Rötungen und Verfärbungen für einen gleichmäßigeren Hautton"
+ ],
+ "提亮额头、鼻梁、颧骨，压暗脸颊下方和下颌，让脸更立体": [
+  "Lightens forehead, nose bridge and cheekbones, darkens under the cheeks and the jawline for more shape",
+  "Hellt Stirn, Nasenrücken und Wangenknochen auf, dunkelt unter den Wangen und am Kiefer ab – mehr Form"
+ ],
+ "提亮眼白、让眼神更清澈": [
+  "Brightens the whites of the eyes for a clearer look",
+  "Hellt das Augenweiß auf für einen klareren Blick"
+ ],
+ "去掉牙齿发黄": [
+  "Removes yellow from teeth",
+  "Entfernt Gelbstich von den Zähnen"
+ ],
+ "让嘴唇颜色更饱满": [
+  "Gives lips richer color",
+  "Gibt den Lippen sattere Farbe"
  ]
 }

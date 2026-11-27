@@ -9,6 +9,8 @@ import Vision
 
 enum MaskKind: String, Codable, CaseIterable, Identifiable {
     case subject, person, face, sky, background
+    // 人像部位 (人脸关键点 + 肤色)
+    case skin, eyes, lips, teeth
     var id: String { rawValue }
     var label: String {
         switch self {
@@ -17,6 +19,10 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
         case .face: return String(localized: "人脸")
         case .sky: return String(localized: "天空")
         case .background: return String(localized: "背景")
+        case .skin: return String(localized: "皮肤")
+        case .eyes: return String(localized: "眼睛")
+        case .lips: return String(localized: "嘴唇")
+        case .teeth: return String(localized: "牙齿")
         }
     }
     var icon: String {
@@ -26,6 +32,10 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
         case .face: return "face.smiling"
         case .sky: return "cloud.sun"
         case .background: return "square.dashed"
+        case .skin: return "hand.raised"
+        case .eyes: return "eye"
+        case .lips: return "mouth"
+        case .teeth: return "mouth.fill"
         }
     }
 }
@@ -63,13 +73,37 @@ final class MaskCache: @unchecked Sendable {
     private let lock = NSLock()
     func get(_ k: MaskKind) -> CIImage? { lock.lock(); defer { lock.unlock() }; return dict[k] }
     func set(_ k: MaskKind, _ v: CIImage) { lock.lock(); dict[k] = v; lock.unlock() }
+
+    /// 人像分析 (人脸关键点、各部位蒙版、瑕疵位置), 算一次就留着
+    private var portrait: PortraitAnalysis?
+    private var portraitDone = false
+    func portraitAnalysis(for image: CIImage) -> PortraitAnalysis? {
+        lock.lock()
+        if portraitDone { let p = portrait; lock.unlock(); return p }
+        lock.unlock()
+        let p = PortraitAnalysis.compute(for: image)
+        lock.lock(); portrait = p; portraitDone = true; lock.unlock()
+        return p
+    }
 }
 
 enum Masks {
     /// 生成灰度蒙版 (白 = 选中), 大小和 image 一样. 找不到 (例如没有人脸) 返回 nil
-    static func compute(_ kind: MaskKind, for image: CIImage) -> CIImage? {
+    static func compute(_ kind: MaskKind, for image: CIImage, cache: MaskCache? = nil) -> CIImage? {
         let r = Renderer.shared
         let extent = image.extent
+        // 人像部位: 从人像分析里取
+        if [.skin, .eyes, .lips, .teeth].contains(kind) {
+            guard let a = cache?.portraitAnalysis(for: image) ?? PortraitAnalysis.compute(for: image) else { return nil }
+            let m: CIImage
+            switch kind {
+            case .skin: m = a.skin
+            case .eyes: m = a.eyes
+            case .lips: m = a.lips
+            default: m = a.teeth
+            }
+            return PortraitAnalysis.fit(m, from: a.size, to: extent)
+        }
         // Vision 在 1536 像素左右就足够准, 再放大回去 (边缘会羽化)
         let small = r.scale(image, maxSide: 1536)
         guard let cg = r.context.createCGImage(small, from: small.extent, format: .RGBA8, colorSpace: r.sRGB) else { return nil }
@@ -80,6 +114,7 @@ enum Masks {
         case .person: mask = person(cg)
         case .face: mask = faces(cg)
         case .sky: mask = sky(cg)
+        case .skin, .eyes, .lips, .teeth: mask = nil
         }
         guard var m = mask else { return nil }
         // 放大到原图大小 + 轻微羽化
@@ -232,7 +267,7 @@ extension Renderer {
         func mask(_ k: MaskKind) -> CIImage? {
             if let m = used[k] { return m }
             if let c = cache?.get(k) { used[k] = c; return c }
-            guard let m = Masks.compute(k, for: source) else { return nil }
+            guard let m = Masks.compute(k, for: source, cache: cache) else { return nil }
             cache?.set(k, m)
             used[k] = m
             return m
@@ -255,9 +290,12 @@ extension Renderer {
 
     /// 完整渲染 (预览 / 导出 / 给 AI 看都用这一个)
     func renderEdited(_ base: CIImage, settings: Settings, patches: [RetouchPatch], locals: [LocalAdjustment],
-                      cache: MaskCache? = nil, showMask: MaskKind? = nil) -> CIImage {
+                      portrait: PortraitRetouch = PortraitRetouch(), cache: MaskCache? = nil, showMask: MaskKind? = nil) -> CIImage {
         let patched = applyPatches(patches, to: base)
-        let global = apply(settings, to: patched)
+        var global = apply(settings, to: patched)
+        if !portrait.isEmpty, let a = cache?.portraitAnalysis(for: patched) ?? PortraitAnalysis.compute(for: patched) {
+            global = applyPortrait(portrait, to: global, analysis: a)
+        }
         if locals.isEmpty && showMask == nil { return global }
         return applyLocals(locals, to: global, source: patched, cache: cache, showMask: showMask)
     }

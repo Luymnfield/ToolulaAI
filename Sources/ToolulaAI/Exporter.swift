@@ -33,7 +33,8 @@ enum Exporter {
         let stars: Int
         var patches: [RetouchPatch] = []
         var locals: [LocalAdjustment] = []
-        var retouched: Bool { !patches.isEmpty || locals.contains { $0.settings.contains { $0.value != 0 } } }
+        var portrait = PortraitRetouch()
+        var retouched: Bool { !patches.isEmpty || !portrait.isEmpty || locals.contains { $0.settings.contains { $0.value != 0 } } }
     }
 
     @discardableResult
@@ -78,7 +79,7 @@ enum Exporter {
         if let maxSide { img = r.scale(img, maxSide: maxSide) } else {
             img = img.transformed(by: CGAffineTransform(translationX: -img.extent.minX, y: -img.extent.minY))
         }
-        let out = r.renderEdited(img, settings: job.settings, patches: job.patches, locals: job.locals)
+        let out = r.renderEdited(img, settings: job.settings, patches: job.patches, locals: job.locals, portrait: job.portrait, cache: MaskCache())
         let name = (job.url.deletingPathExtension().lastPathComponent) + ".jpg"
         let dest = uniqueURL(folder, name)
         do { try r.writeJPEG(out, to: dest) } catch { return String(localized: "写入失败：\(error.localizedDescription)") }
@@ -130,9 +131,20 @@ enum Exporter {
         return (dest, err)
     }
 
-    /// Toolula 的区域 -> Lightroom 的 AI 蒙版. 人脸、人物用「主体」: Lightroom 的「人物」蒙版要手动点选人, 插件建不出来
-    static let lightroomMaskType: [MaskKind: String] = [.subject: "subject", .person: "subject", .face: "subject",
-                                                         .sky: "sky", .background: "background"]
+    /// Toolula 的区域 -> Lightroom 的 AI 蒙版.
+    /// people:<编号> 是 Lightroom「人物」蒙版的部位 (2 面部皮肤, 3 虹膜和瞳孔, 6 嘴唇, 8 眼白, 12 牙齿, 13 整个人),
+    /// 插件写进修图参数再让 Lightroom 计算; 这个 Lightroom 版本做不出来时, 人脸 / 人物 / 皮肤退回「主体」蒙版, 其他的跳过
+    static let lightroomMaskType: [MaskKind: String] = [.subject: "subject", .person: "people:13", .face: "people:2",
+                                                         .sky: "sky", .background: "background",
+                                                         .skin: "people:2", .eyes: "people:8+3", .lips: "people:6", .teeth: "people:12"]
+    /// 人像精修里 Lightroom 能表达的项目 -> (蒙版, 区域名, 每 100 强度对应的局部参数)
+    static let lightroomRetouch: [(key: String, mask: String, area: String, values: [String: Double])] = [
+        ("smooth", "people:2", "skin", ["Texture": -45, "Clarity2012": -12]),
+        ("eyes", "people:8", "eyes", ["Exposure2012": 0.3, "Saturation": -30]),
+        ("eyes", "people:3", "eyes", ["Exposure2012": 0.15, "Clarity2012": 35]),
+        ("teeth", "people:12", "teeth", ["Exposure2012": 0.2, "Saturation": -50]),
+        ("lips", "people:6", "lips", ["Saturation": 25, "Contrast2012": 10]),
+    ]
     /// Toolula 的局部参数 -> Lightroom 蒙版里的滑块 (LrDevelopController 的名字)
     static let lightroomLocalParam: [String: String] = [
         "Exposure2012": "local_Exposure", "Contrast2012": "local_Contrast", "Highlights2012": "local_Highlights",
@@ -151,6 +163,16 @@ enum Exporter {
             }
             if vals.isEmpty { continue }
             masks.append((["mask=" + type, l.area.rawValue] + vals).joined(separator: "\t"))
+        }
+        // 人像精修 (能用 Lightroom 蒙版表达的部分)
+        for item in lightroomRetouch {
+            let k = job.portrait[item.key] / 100
+            guard k > 0 else { continue }
+            let vals = item.values.sorted { $0.key < $1.key }.compactMap { key, v -> String? in
+                guard let name = lightroomLocalParam[key] else { return nil }
+                return name + "=" + (key == "Exposure2012" ? String(format: "%.2f", v * k) : String(Int((v * k).rounded())))
+            }
+            masks.append((["mask=" + item.mask, item.area] + vals).joined(separator: "\t"))
         }
         if masks.isEmpty { return nil }
         let size = (try? FileManager.default.attributesOfItem(atPath: sent.path)[.size] as? Int) ?? 0
@@ -210,7 +232,7 @@ enum Exporter {
 extension Store {
     func jobs(_ items: [PhotoItem]) -> [Exporter.Job] {
         items.map { Exporter.Job(url: $0.url, settings: $0.settings, isRaw: $0.isRaw, title: $0.title,
-                                 caption: $0.caption, keywords: $0.keywords, stars: $0.stars, patches: $0.patches, locals: $0.locals) }
+                                 caption: $0.caption, keywords: $0.keywords, stars: $0.stars, patches: $0.patches, locals: $0.locals, portrait: $0.portrait) }
     }
 
     func exportJPEG(maxSide: CGFloat?) {
@@ -248,6 +270,21 @@ extension Store {
         let items = selectedItems
         guard !items.isEmpty, !working else { return }
         let jobs = self.jobs(items)
+        // 有像素级人像精修 (去瑕疵、眼袋、肤色均匀、光影塑形): Lightroom 的参数表达不了, 问用户要哪种
+        var bakeRetouch = false
+        if jobs.contains(where: { $0.portrait.hasPixelOnly && $0.patches.isEmpty }) {
+            let a = NSAlert()
+            a.messageText = String(localized: "这张照片有像素级的人像精修")
+            a.informativeText = String(localized: "去瑕疵、淡化眼袋、肤色均匀、光影塑形是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇会做成蒙版），这几项需要在 Lightroom 里自己做。")
+            a.addButton(withTitle: String(localized: "发修好的 TIFF"))
+            a.addButton(withTitle: String(localized: "发可编辑的 RAW"))
+            a.addButton(withTitle: String(localized: "取消"))
+            switch a.runModal() {
+            case .alertFirstButtonReturn: bakeRetouch = true
+            case .alertSecondButtonReturn: bakeRetouch = false
+            default: return
+            }
+        }
         recordForLearning(items)
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd_HHmmss"
@@ -258,7 +295,8 @@ extension Store {
             var outs: [URL] = [], errors: [String] = []
             for (i, job) in jobs.enumerated() {
                 status = String(localized: "准备发送到 Lightroom \(i + 1)/\(jobs.count)")
-                let (u, e) = await Task.detached(operation: { Exporter.prepareForLightroom(job, folder: folder, masks: true) }).value
+                let masks = !(bakeRetouch && job.portrait.hasPixelOnly)
+                let (u, e) = await Task.detached(operation: { Exporter.prepareForLightroom(job, folder: folder, masks: masks) }).value
                 if let u { outs.append(u) }
                 if let e { errors.append(e) }
             }

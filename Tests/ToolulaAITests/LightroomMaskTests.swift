@@ -21,8 +21,24 @@ final class LightroomMaskTests: XCTestCase {
         XCTAssertEqual(lines[2], "size=1234")
         XCTAssertTrue(lines[3].hasPrefix("created="))
         XCTAssertEqual(Array(lines.dropFirst(4)), [
-            "mask=subject\tface\tlocal_Exposure=0.40\tlocal_Texture=-15",
+            "mask=people:2\tface\tlocal_Exposure=0.40\tlocal_Texture=-15",
             "mask=background\tbackground\tlocal_Exposure=-0.50",
+        ])
+    }
+
+    /// 人像精修里 Lightroom 能表达的部分 (磨皮、眼睛、牙齿、嘴唇) 也变成人物蒙版的部位
+    func testPortraitRetouchJob() throws {
+        var job = Exporter.Job(url: URL(fileURLWithPath: "/tmp/x.ARW"), settings: [:], isRaw: true, title: "", caption: "", keywords: [], stars: 0)
+        job.portrait["smooth"] = 40
+        job.portrait["eyes"] = 50
+        job.portrait["blemish"] = 70        // 像素级: 不进任务文件
+        XCTAssertTrue(job.portrait.hasPixelOnly)
+        let text = try XCTUnwrap(Exporter.lightroomMaskJob(job, sent: job.url))
+        let masks = text.split(separator: "\n").filter { $0.hasPrefix("mask=") }.map(String.init)
+        XCTAssertEqual(masks, [
+            "mask=people:2\tskin\tlocal_Clarity=-5\tlocal_Texture=-18",
+            "mask=people:8\teyes\tlocal_Exposure=0.15\tlocal_Saturation=-15",
+            "mask=people:3\teyes\tlocal_Clarity=18\tlocal_Exposure=0.07",
         ])
     }
 
@@ -58,6 +74,20 @@ final class LightroomMatchTests: XCTestCase {
         XCTAssertEqual(m["Exposure2012"]!, -1.2, accuracy: 1e-9)
         XCTAssertEqual(m["Saturation"]!, -20, accuracy: 1e-9)          // 没校准的不变
         XCTAssertEqual(m["SplitToningHighlightHue"]!, 45, accuracy: 1e-9) // 色相不缩放
+    }
+
+    func testPortraitRetouchValues() {
+        var p = PortraitRetouch()
+        XCTAssertTrue(p.isEmpty)
+        p["smooth"] = 150          // 限制在 0~100
+        XCTAssertEqual(p["smooth"], 100)
+        p["smooth"] = 0            // 0 = 不做 (不留在字典里)
+        XCTAssertTrue(p.isEmpty)
+        XCTAssertNil(p.values["smooth"])
+        p["eyes"] = 20
+        XCTAssertFalse(p.hasPixelOnly)
+        p["sculpt"] = 10
+        XCTAssertTrue(p.hasPixelOnly)
     }
 
     func testRawLookDefaults() {

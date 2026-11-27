@@ -21,7 +21,7 @@ enum AIBridge {
 
     /// 同步执行, 请在后台线程调用
     static func run(_ mode: String, image: URL? = nil, reference: URL? = nil, request: [String: Any]? = nil,
-                    extra: [String] = []) -> Result {
+                    extra: [String] = [], progress: (@Sendable (Result) -> Void)? = nil) -> Result {
         guard let script = scriptURL else { return Result(error: String(localized: "找不到 AI 脚本 ai_edit.py")) }
         guard PythonRuntime.ready else { return Result(error: String(localized: "修图功能需要 Python。请打开设置向导一键安装。")) }
         // 只读本地记录的命令 (修图习惯 taste / record / learn) 用不到模型, 不要为它们启动引擎
@@ -77,12 +77,30 @@ enum AIBridge {
         p.standardOutput = FileHandle.nullDevice
         p.standardError = FileHandle.nullDevice
         do { try p.run() } catch { return Result(error: String(localized: "无法启动 Python：\(error.localizedDescription)")) }
+        // 流式的命令 (识别照片) 一边写一边存进 <out>.part: 读到新内容就先交给界面
+        let part = URL(fileURLWithPath: out.path + ".part")
+        if let progress {
+            var seen = 0
+            while p.isRunning {
+                Thread.sleep(forTimeInterval: 0.4)
+                if let t = try? String(contentsOf: part, encoding: .utf8), t.count > seen {
+                    seen = t.count
+                    progress(parse(t))
+                }
+            }
+        }
         p.waitUntilExit()
+        try? FileManager.default.removeItem(at: part)
 
         guard let text = try? String(contentsOf: out, encoding: .utf8) else {
             return Result(error: String(localized: "AI 没有返回结果（退出码 \(p.terminationStatus)）"))
         }
         try? FileManager.default.removeItem(at: out)
+        return parse(text)
+    }
+
+    /// 一行一个 key=value (同一个 key 可以出现多次)
+    static func parse(_ text: String) -> Result {
         var r = Result()
         for line in text.split(separator: "\n", omittingEmptySubsequences: true) {
             guard let eq = line.firstIndex(of: "=") else { continue }
