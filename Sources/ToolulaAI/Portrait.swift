@@ -572,21 +572,20 @@ extension Renderer {
         var out = img
 
         // 皮肤平均颜色 (调色之后的), 用来填充皮肤以外的地方, 磨皮时不会把头发眼睛的颜色糊进皮肤
-        let mean = averageColor(out, mask: skin)
-        let meanImg = CIImage(color: mean).cropped(to: E)
+        let (mean, meanImg) = averageColor(out, mask: skin)
 
         // 1. 肤色均匀: 皮肤往平均肤色靠 (亮度不变)
         if k("even") > 0 {
-            let lm = 0.2126 * Double(mean.red) + 0.7152 * Double(mean.green) + 0.0722 * Double(mean.blue)
+            let lm = 0.2126 * mean[0] + 0.7152 * mean[1] + 0.0722 * mean[2]
             if lm > 0.001 {
-                let cr = Double(mean.red) / lm, cg = Double(mean.green) / lm, cb = Double(mean.blue) / lm
+                let cr = mean[0] / lm, cg = mean[1] / lm, cb = mean[2] / lm
                 let tinted = out.applyingFilter("CIColorMatrix", parameters: [
                     "inputRVector": CIVector(x: 0.2126 * cr, y: 0.7152 * cr, z: 0.0722 * cr, w: 0),
                     "inputGVector": CIVector(x: 0.2126 * cg, y: 0.7152 * cg, z: 0.0722 * cg, w: 0),
                     "inputBVector": CIVector(x: 0.2126 * cb, y: 0.7152 * cb, z: 0.0722 * cb, w: 0)]).cropped(to: E)
                 // 只换低频的颜色: 细节 (毛孔) 的颜色保留
                 let fineSig = max(0.8, faceW * 0.006)
-                let detail = add(out, scaled(blur(out, fineSig), -1))
+                let detail = add(scaled(out, 1), scaled(blur(out, fineSig), -1))   // 不透明度 0: 只加颜色, 不叠加 alpha
                 let lowTinted = add(blur(tinted, fineSig), detail)
                 out = blend(lowTinted, over: out, mask: skin, amount: k("even") * 0.4)
             }
@@ -594,7 +593,7 @@ extension Renderer {
 
         // 2. 磨皮 (分频): 细纹理 = 原图 - 小半径模糊; 斑驳 = 大半径模糊; 结果 = 大半径模糊 + 细纹理
         let sigF = max(0.7, faceW * 0.0035), sigM = max(2, faceW * 0.022)
-        let fine = add(out, scaled(blur(out, sigF), -1))
+        let fine = add(scaled(out, 1), scaled(blur(out, sigF), -1))   // 带正负号的细纹理, 不透明度 0
         let base = blur(blend(out, over: meanImg, mask: skin), sigM)
         let smoothed = add(base, fine)
         if k("smooth") > 0 { out = blend(smoothed, over: out, mask: skin, amount: k("smooth") * 0.75) }
@@ -644,20 +643,26 @@ extension Renderer {
         return out.cropped(to: E)
     }
 
-    /// 蒙版范围内的平均颜色 (工作色彩空间)
-    func averageColor(_ img: CIImage, mask: CIImage) -> CIColor {
+    /// 蒙版范围内的平均颜色: 数值 (工作色彩空间, 用来算比例) 和铺满 extent 的纯色图.
+    /// 纯色图直接用 Core Image 自己的平均结果做 (不经过 CIColor), 不会多做一次色彩空间转换
+    func averageColor(_ img: CIImage, mask: CIImage) -> ([Double], CIImage) {
         let E = img.extent
         let masked = img.applyingFilter("CIMultiplyCompositing", parameters: [kCIInputBackgroundImageKey: mask]).cropped(to: E)
-        func avg(_ i: CIImage) -> [Float] {
+        let avgImg = masked.applyingFilter("CIAreaAverage", parameters: [kCIInputExtentKey: CIVector(cgRect: E)])
+        let avgMask = mask.applyingFilter("CIAreaAverage", parameters: [kCIInputExtentKey: CIVector(cgRect: E)])
+        func read(_ i: CIImage) -> [Float] {
             var v = [Float](repeating: 0, count: 4)
-            let a = i.applyingFilter("CIAreaAverage", parameters: [kCIInputExtentKey: CIVector(cgRect: E)])
-            context.render(a, toBitmap: &v, rowBytes: 16, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBAf, colorSpace: nil)
+            context.render(i, toBitmap: &v, rowBytes: 16, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBAf, colorSpace: nil)
             return v
         }
-        let c = avg(masked), m = avg(mask)
-        let d = max(0.0001, m[0])
-        return CIColor(red: CGFloat(c[0] / d), green: CGFloat(c[1] / d), blue: CGFloat(c[2] / d), alpha: 1,
-                       colorSpace: context.workingColorSpace ?? CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!) ?? CIColor(red: 0.5, green: 0.4, blue: 0.35)
+        let c = read(avgImg), m = read(avgMask)
+        let k = 1 / Double(max(0.0001, m[0]))
+        let mean = [Double(c[0]) * k, Double(c[1]) * k, Double(c[2]) * k]
+        let fill = avgImg.applyingFilter("CIColorMatrix", parameters: [
+            "inputRVector": CIVector(x: k, y: 0, z: 0, w: 0), "inputGVector": CIVector(x: 0, y: k, z: 0, w: 0),
+            "inputBVector": CIVector(x: 0, y: 0, z: k, w: 0), "inputAVector": CIVector(x: 0, y: 0, z: 0, w: 0),
+            "inputBiasVector": CIVector(x: 0, y: 0, z: 0, w: 1)]).clampedToExtent().cropped(to: E)
+        return (mean, fill)
     }
 
     /// 瑕疵位置画成蒙版 (最长边不超过 3000 像素, 再放大)
