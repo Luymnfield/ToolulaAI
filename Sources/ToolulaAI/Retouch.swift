@@ -13,6 +13,12 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
     case skin, eyes, lips, teeth
     // 风光: 亮度蒙版 (亮部 / 暗部) 和植被
     case brights, darks, greenery
+    // 水面、山、建筑: 只在 Lightroom 里用它的 AI 风景蒙版做.
+    // (试过不用模型、按颜色和位置估计水面: 一张湖景把山坡当成了水, 收紧条件后连湖都找不到, 所以不在 Toolula 里做)
+    case water, mountains, buildings
+
+    /// 只在 Lightroom 里生效的区域 (Toolula 的预览里没有效果)
+    static let lightroomOnly: Set<MaskKind> = [.water, .mountains, .buildings]
     var id: String { rawValue }
     var label: String {
         switch self {
@@ -28,6 +34,9 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
         case .brights: return String(localized: "亮部")
         case .darks: return String(localized: "暗部")
         case .greenery: return String(localized: "植被")
+        case .water: return String(localized: "水面（仅 Lightroom）")
+        case .mountains: return String(localized: "山（仅 Lightroom）")
+        case .buildings: return String(localized: "建筑（仅 Lightroom）")
         }
     }
     var icon: String {
@@ -44,6 +53,9 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
         case .brights: return "sun.max"
         case .darks: return "moon"
         case .greenery: return "leaf"
+        case .water: return "water.waves"
+        case .mountains: return "mountain.2"
+        case .buildings: return "building.2"
         }
     }
 }
@@ -124,6 +136,7 @@ enum Masks {
         case .sky: mask = sky(cg)
         case .skin, .eyes, .lips, .teeth: mask = nil
         case .brights, .darks, .greenery: mask = tonal(kind, cg)
+        case .water, .mountains, .buildings: mask = nil
         }
         guard var m = mask else { return nil }
         // 放大到原图大小 + 轻微羽化

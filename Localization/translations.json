@@ -5810,5 +5810,73 @@
  "去瑕疵、淡化眼袋、肤色均匀、肤色校准、光影塑形、亮部 / 暗部蒙版是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇、植被会做成蒙版），这几项需要在 Lightroom 里自己做。": [
   "Blemish removal, under-eye softening, even skin, skin calibration, dodge & burn and highlight/shadow masks change pixels directly in Toolula, and Lightroom's settings can't express them.\n\nSend finished TIFF: looks exactly like in Toolula, but the RAW settings can no longer be changed.\nSend editable RAW: settings and masks stay editable (skin smoothing, eyes, teeth, lips and vegetation become masks); you'll need to do these steps in Lightroom yourself.",
   "Makel entfernen, Augenringe mildern, Hautton angleichen, Hautton kalibrieren, Abwedeln & Nachbelichten und Lichter-/Schattenmasken verändern in Toolula direkt die Pixel – Lightroom-Einstellungen können das nicht abbilden.\n\nFertiges TIFF senden: sieht genau aus wie in Toolula, aber die RAW-Einstellungen lassen sich nicht mehr ändern.\nBearbeitbares RAW senden: Einstellungen und Masken bleiben bearbeitbar (Hautglättung, Augen, Zähne, Lippen und Vegetation werden Masken); diese Schritte musst du in Lightroom selbst machen."
+ ],
+ "把选中的包围曝光合成 HDR": [
+  "Merge selected brackets to HDR",
+  "Ausgewählte Belichtungsreihe zu HDR zusammenfügen"
+ ],
+ "整组对齐：量代表照片…": [
+  "Group match: measuring the reference photo…",
+  "Gruppenabgleich: Referenzfoto wird gemessen …"
+ ],
+ "整组对齐失败：量不出代表照片": [
+  "Group match failed: couldn't measure the reference photo",
+  "Gruppenabgleich fehlgeschlagen: Referenzfoto konnte nicht gemessen werden"
+ ],
+ "整组对齐：%lld/%lld · %@": [
+  "Group match: %1$lld/%2$lld · %3$@",
+  "Gruppenabgleich: %1$lld/%2$lld · %3$@"
+ ],
+ "（已对齐到 %@：风格相同，曝光和白平衡按这张照片单独调整）": [
+  "(Matched to %@: same look, exposure and white balance adjusted for this photo)",
+  "(An %@ angeglichen: gleicher Look, Belichtung und Weißabgleich für dieses Foto angepasst)"
+ ],
+ "整组对齐完成：%lld 张已对齐到 %@": [
+  "Group match done: %1$lld photos matched to %2$@",
+  "Gruppenabgleich fertig: %1$lld Fotos an %2$@ angeglichen"
+ ],
+ "HDR 合成中（%lld 张）…": [
+  "Merging HDR (%lld photos)…",
+  "HDR wird zusammengefügt (%lld Fotos) …"
+ ],
+ "HDR 合成完成：%@（已加进列表，可以继续修）": [
+  "HDR merged: %@ (added to the list, ready to edit)",
+  "HDR fertig: %@ (zur Liste hinzugefügt, bereit zur Bearbeitung)"
+ ],
+ "HDR 合成至少要 2 张包围曝光的照片": [
+  "HDR merge needs at least 2 bracketed photos",
+  "Für HDR sind mindestens 2 Fotos einer Belichtungsreihe nötig"
+ ],
+ "这几张照片的曝光差不多，不是包围曝光（相差至少要 2/3 档）": [
+  "These photos have about the same exposure — not a bracket (they need to differ by at least 2/3 stop)",
+  "Diese Fotos sind ähnlich belichtet – keine Belichtungsreihe (mindestens 2/3 Blende Unterschied nötig)"
+ ],
+ "整组对齐": [
+  "Match group",
+  "Gruppe angleichen"
+ ],
+ "其他选中的照片照搬这张的风格，曝光和白平衡按每张照片单独对齐到这张（同一场拍摄用）": [
+  "The other selected photos take this photo's look; exposure and white balance are matched to it photo by photo (for one shoot)",
+  "Die anderen ausgewählten Fotos übernehmen den Look dieses Fotos; Belichtung und Weißabgleich werden Foto für Foto daran angeglichen (für ein Shooting)"
+ ],
+ "只在发送到 Lightroom 后生效（由 Lightroom 的 AI 风景蒙版做），Toolula 的预览里看不到": [
+  "Only takes effect after sending to Lightroom (done with Lightroom's AI landscape masks); not visible in Toolula's preview",
+  "Wirkt erst nach dem Senden an Lightroom (mit den KI-Landschaftsmasken von Lightroom); in der Toolula-Vorschau nicht sichtbar"
+ ],
+ "水面（仅 Lightroom）": [
+  "Water (Lightroom only)",
+  "Wasser (nur Lightroom)"
+ ],
+ "山（仅 Lightroom）": [
+  "Mountains (Lightroom only)",
+  "Berge (nur Lightroom)"
+ ],
+ "建筑（仅 Lightroom）": [
+  "Buildings (Lightroom only)",
+  "Gebäude (nur Lightroom)"
+ ],
+ "整组对齐到当前照片（风格相同，曝光和白平衡逐张对齐）": [
+  "Match group to current photo (same look, exposure and white balance per photo)",
+  "Gruppe an aktuelles Foto angleichen (gleicher Look, Belichtung und Weißabgleich je Foto)"
  ]
 }

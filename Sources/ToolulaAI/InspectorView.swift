@@ -373,7 +373,11 @@ struct ItemPanels: View {
             HStack {
                 Button("复制设置") { store.copySettings() }
                 Button("粘贴") { store.pasteSettings() }.disabled(store.clipboard == nil)
-                if store.selection.count > 1 { Button("同步到所选") { store.syncFromCurrent() } }
+                if store.selection.count > 1 {
+                    Button("同步到所选") { store.syncFromCurrent() }
+                    Button("整组对齐") { store.matchGroupToCurrent() }
+                        .help(Text("其他选中的照片照搬这张的风格，曝光和白平衡按每张照片单独对齐到这张（同一场拍摄用）"))
+                }
                 Spacer()
                 Button("重置") { item.resetAll() }
             }
@@ -734,6 +738,9 @@ struct LocalPanel: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(l.area.label).bold()
                     Text(summary(l)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                    if MaskKind.lightroomOnly.contains(l.area) {
+                        Text("只在发送到 Lightroom 后生效（由 Lightroom 的 AI 风景蒙版做），Toolula 的预览里看不到").font(.caption2).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 Spacer()
                 Button { item.showMask = item.showMask == l.area ? nil : l.area } label: {

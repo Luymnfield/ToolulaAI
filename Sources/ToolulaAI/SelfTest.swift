@@ -139,7 +139,7 @@ extension AppDelegate {
         if let r = val("--sim-ram").flatMap(Double.init) { Recommender.simulatedRAM = r }
         if args.contains("--sim-intel") { Recommender.simulateIntel = true }
         if args.contains("--demo-mac") { SystemInfo.demoMac = true; Recommender.simulatedRAM = 128 }
-        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--export-side", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model", "--portrait", "--portrait-masks", "--angle"].compactMap(val))
+        let values = Set(["--snapshot", "--section", "--chat", "--ai", "--export", "--download", "--gh-import", "--sim-ram", "--settings", "--export-side", "--video", "--video-model", "--video-seconds", "--comfy-warmup", "--dump-prompt", "--bench", "--setup-install", "--setup-model", "--chat-model", "--image", "--image-model", "--local", "--show-mask", "--erase", "--brush", "--link", "--diagnostics", "--quick", "--hotkey-test", "--keys", "--palette-query", "--doc-test", "--doc-ask", "--queue-test", "--assist-test", "--use-chat-model", "--doc-model", "--broker-model", "--portrait", "--portrait-masks", "--angle", "--hdr"].compactMap(val))
         let files = args.dropFirst().filter { !values.contains($0) && !$0.hasPrefix("--")
             && Renderer.imageExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
         Task { @MainActor in
@@ -169,6 +169,34 @@ extension AppDelegate {
                     }
                     log += "render \(label): \(Int(Date().timeIntervalSince(t0) / 8 * 1000)) ms/frame (\(Int(base.extent.width))×\(Int(base.extent.height)))\n"
                 }
+            }
+            if args.contains("--group-match"), let ref = store.current {
+                // 整组对齐: 以第一张为代表, 量一下前后每张的亮度和偏色
+                @MainActor func stats(_ it: PhotoItem) async -> String {
+                    guard let b = it.previewBase else { return "-" }
+                    let st = it.settings, pa = it.patches, po = it.portrait, lo = it.locals
+                    let s = await Task.detached { Store.groupStats(base: b, settings: st, patches: pa, portrait: po, locals: lo) }.value
+                    return s.map { String(format: "p50=%.2f castA=%.1f castB=%.1f", $0.p50, $0.castA, $0.castB) } ?? "-"
+                }
+                if let v = val("--settings") { _ = v }   // 代表照片可以先用 --settings 调过
+                try? await Task.sleep(for: .seconds(3))
+                for it in store.photos { log += "before \(it.name): \(await stats(it))\n" }
+                store.selection = Set(store.photos.map(\.id))
+                try? await Task.sleep(for: .seconds(1))
+                _ = ref
+                store.matchGroupToCurrent()
+                try? await Task.sleep(for: .seconds(1))
+                while store.working { try? await Task.sleep(for: .seconds(0.5)) }
+                for it in store.photos { log += "after \(it.name): \(await stats(it)) exp=\(String(format: "%.2f", it.value("Exposure2012"))) temp=\(Int(it.value("IncrementalTemperature")))\n" }
+            }
+            if let dir = val("--hdr") {
+                // HDR 合成: 列表里的照片当作一组包围曝光
+                let t0 = Date()
+                do {
+                    let urls = store.photos.map(\.url)
+                    let u = try await Task.detached { try HDRMerge.merge(urls, to: URL(fileURLWithPath: dir)) }.value
+                    log += "hdr: \(u.path) \(String(format: "%.1f", Date().timeIntervalSince(t0)))s\n"
+                } catch { log += "hdr error: \(error.localizedDescription)\n" }
             }
             if args.contains("--recognize-all") {
                 // 一张接一张识别, 记下每张的时间 (第二张起系统提示能复用缓存)

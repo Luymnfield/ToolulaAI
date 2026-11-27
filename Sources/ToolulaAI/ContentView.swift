@@ -50,6 +50,11 @@ struct ContentView: View {
                     Button("AI 选片（打分、找废片）") { store.cull() }
                     Button("AI 关键词和描述") { store.tag() }
                     Divider()
+                    Button("整组对齐到当前照片（风格相同，曝光和白平衡逐张对齐）") { store.matchGroupToCurrent() }
+                        .disabled(store.selection.count < 2)
+                    Button("把选中的包围曝光合成 HDR") { store.mergeHDR() }
+                        .disabled(store.selection.count < 2)
+                    Divider()
                     ForEach(EditorApp.allCases) { app in
                         Button { store.send(to: app) } label: {
                             Label { Text(app.menuTitle) } icon: { Image(nsImage: app.icon) }

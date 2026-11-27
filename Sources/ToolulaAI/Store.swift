@@ -173,7 +173,7 @@ final class Store: ObservableObject {
     @Published var alert: String?
     @Published var tasteSummary = ""
     var clipboard: Settings?
-    private var cancelRequested = false
+    var cancelRequested = false
 
     private let renderQueue = DispatchQueue(label: "render", qos: .userInitiated)
     static let previewSide: CGFloat = 2000
@@ -498,6 +498,8 @@ final class Store: ObservableObject {
         guard let item = current else { return }
         let l = LocalAdjustment(area: area)
         item.locals.append(l)
+        // 只在 Lightroom 里生效的区域: Toolula 里找不到也留着 (发送到 Lightroom 时由它的 AI 蒙版做)
+        if MaskKind.lightroomOnly.contains(area) { return }
         // 先确认能找到这个区域
         if let base = item.previewBase {
             let cache = item.maskCache

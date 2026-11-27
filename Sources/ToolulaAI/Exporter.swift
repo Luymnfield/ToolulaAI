@@ -142,7 +142,8 @@ enum Exporter {
     static let lightroomMaskType: [MaskKind: String] = [.subject: "subject", .person: "people:13", .face: "people:2",
                                                          .sky: "sky", .background: "background",
                                                          .skin: "people:2", .eyes: "people:8+3", .lips: "people:6", .teeth: "people:12",
-                                                         .greenery: "landscape:50005"]
+                                                         .greenery: "landscape:50005", .water: "landscape:50007",
+                                                         .mountains: "landscape:50002", .buildings: "landscape:50001"]
     /// Lightroom 的蒙版做不出来的区域 (亮度蒙版): 发 RAW 时带不过去
     static let lightroomUnsupported: Set<MaskKind> = [.brights, .darks]
     /// 人像精修里 Lightroom 能表达的项目 -> (蒙版, 区域名, 每 100 强度对应的局部参数)
