@@ -28,7 +28,11 @@ struct InspectorView: View {
                 recognizeBox
 
                 Menu {
-                    ForEach(Params.styles, id: \.self) { s in Button(s) { store.style = s } }
+                    ForEach(Params.styleGroups) { g in
+                        Menu {
+                            ForEach(g.styles, id: \.self) { raw in Button(raw.loc) { store.style = raw.loc } }
+                        } label: { Label(g.name.locKey, systemImage: g.icon) }
+                    }
                     if !store.customStyles.isEmpty {
                         Divider()
                         ForEach(store.customStyles, id: \.self) { s in Button("★ " + s) { store.style = s } }
