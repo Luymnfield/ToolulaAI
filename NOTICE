@@ -42,6 +42,8 @@ before use, especially for commercial use):
   Z-Image Turbo                                          Apache-2.0
   Wan 2.1 / Wan 2.2                                      Apache-2.0
   LaMa (Core ML)                                         Apache-2.0
+  DETR ResNet-50 semantic segmentation (Core ML, Apple)  Apache-2.0 (optional, downloaded only when the
+                                                         user chooses to; not bundled with the app)
   taeh3                                                  MIT
   lightx2v autoencoders                                  Apache-2.0
   Qwen-Image 2.1                                         Qwen Research License: non-commercial

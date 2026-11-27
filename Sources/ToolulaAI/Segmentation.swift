@@ -53,6 +53,9 @@ final class SceneSegmenter: @unchecked Sendable {
         return try load()
     }
 
+    /// 删除模型后把内存里的也放掉
+    func unload() { lock.withLock { model = nil } }
+
     /// 已经装好时同步加载 (没装返回 nil)
     func loadedModel() -> MLModel? {
         if let m = lock.withLock({ model }) { return m }

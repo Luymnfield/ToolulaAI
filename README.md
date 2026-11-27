@@ -23,6 +23,8 @@ Toolula AI is a native SwiftUI app for **macOS 14 or later on Apple Silicon** (M
   - Global adjustments plus local adjustments for face, skin, eyes, lips, teeth, subject, sky and background.
   - Portrait retouching built on face landmarks: texture-preserving skin smoothing, blemish removal (moles are kept), under-eye softening, even skin tone, dodge & burn, and brighter eyes, whiter teeth and richer lip color.
   - AI recognition streams its answer, so the scene and the first suggested look appear within seconds.
+  - Landscape tools: luminosity masks (highlights / shadows), vegetation, auto straighten, HDR merge of bracketed shots, and matching a whole shoot to one reference photo.
+  - Optional components you can add on the Models page: a semantic segmentation model (Apple's DETR, 85 MB) for water, mountain and building areas, and the AI eraser model (LaMa, 216 MB). Neither is bundled with the app or stored in this repository.
   - Before/after comparison.
   - Batch editing by scene.
 - **Lightroom Classic integration**: send edits to Lightroom as RAW plus XMP, with editable AI masks. The preview is calibrated to match Lightroom's rendering. A companion Lightroom plugin is bundled.

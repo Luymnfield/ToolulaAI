@@ -108,6 +108,9 @@ struct ModelsView: View {
             ModelCard(title: "加速", icon: "bolt") {
                 AccelerationBlock()
             }
+            ModelCard(title: "可选组件", icon: "puzzlepiece.extension") {
+                OptionalComponentsBlock()
+            }
         }
     }
 
@@ -575,5 +578,55 @@ struct ComfyWarmupToggle: View {
             }
         }
         .accessibilityLabel(Text("绘图 / 视频页预热"))
+    }
+}
+
+
+// MARK: - 可选组件: 修图用的小模型, 不随 App 发布, 用户自己决定要不要下载
+
+struct OptionalComponentsBlock: View {
+    @EnvironmentObject var store: Store
+    @State private var tick = 0   // 下载 / 删除后刷新
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            row(name: "语义分割模型", detail: "认出水面、山、建筑、天空，在修图里单独调这些区域；也让 AI 知道画面构成。Apple 发布的 DETR（Apache-2.0）。",
+                sizeMB: SceneSegmenter.sizeMB, installed: SceneSegmenter.installed,
+                download: { store.downloadSegmenter() }, folder: SceneSegmenter.dir)
+            Divider()
+            row(name: "AI 消除模型", detail: "修图里的「AI 消除」：涂掉路人、杂物、电线，自动补上背景。LaMa（Apache-2.0）。第一次用 AI 消除时也会自动下载。",
+                sizeMB: 216, installed: Inpainter.installed, download: nil, folder: Inpainter.dir)
+            Text("这些模型不在 App 里，也不在 Toolula 的代码仓库里；下载后放在 ~/Toolula/Models，只在这台 Mac 上用。")
+                .font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
+        }
+        .id(tick)
+        .onChange(of: store.working) { tick += 1 }
+    }
+
+    @ViewBuilder func row(name: String, detail: String, sizeMB: Int, installed: Bool, download: (() -> Void)?, folder: URL) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(name.locKey).bold()
+                    Text(verbatim: "\(sizeMB) MB").font(.caption).foregroundStyle(.secondary)
+                    if installed { Label("已安装", systemImage: "checkmark.circle.fill").font(.caption).foregroundStyle(.green) }
+                }
+                Text(detail.locKey).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+            if installed {
+                Button("删除") {
+                    // 移到废纸篓 (可以从废纸篓找回)
+                    try? FileManager.default.trashItem(at: folder, resultingItemURL: nil)
+                    if folder == SceneSegmenter.dir { SceneSegmenter.shared.unload() }
+                    tick += 1
+                    for p in store.photos { p.changed() }
+                }
+                .controlSize(.small)
+                .help(Text("移到废纸篓，需要时可以重新下载"))
+            } else if let download {
+                Button("下载") { download() }.controlSize(.small).disabled(store.working)
+            }
+        }
     }
 }

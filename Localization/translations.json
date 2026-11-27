@@ -5910,5 +5910,33 @@
  "下载失败：%@": [
   "Download failed: %@",
   "Download fehlgeschlagen: %@"
+ ],
+ "可选组件": [
+  "Optional components",
+  "Optionale Komponenten"
+ ],
+ "语义分割模型": [
+  "Segmentation model",
+  "Segmentierungsmodell"
+ ],
+ "AI 消除模型": [
+  "AI eraser model",
+  "KI-Radierer-Modell"
+ ],
+ "认出水面、山、建筑、天空，在修图里单独调这些区域；也让 AI 知道画面构成。Apple 发布的 DETR（Apache-2.0）。": [
+  "Recognizes water, mountains, buildings and sky so you can adjust them separately, and tells the AI what's in the picture. Apple's DETR (Apache-2.0).",
+  "Erkennt Wasser, Berge, Gebäude und Himmel, damit du sie einzeln anpassen kannst, und sagt der KI, was im Bild ist. DETR von Apple (Apache-2.0)."
+ ],
+ "修图里的「AI 消除」：涂掉路人、杂物、电线，自动补上背景。LaMa（Apache-2.0）。第一次用 AI 消除时也会自动下载。": [
+  "\"AI Erase\" in photo editing: paint over passers-by, clutter or wires and the background is filled in. LaMa (Apache-2.0). Also downloads automatically the first time you use AI Erase.",
+  "„KI-Radierer“ in der Bildbearbeitung: Passanten, Unordnung oder Kabel übermalen, der Hintergrund wird ergänzt. LaMa (Apache-2.0). Wird auch beim ersten Benutzen automatisch geladen."
+ ],
+ "这些模型不在 App 里，也不在 Toolula 的代码仓库里；下载后放在 ~/Toolula/Models，只在这台 Mac 上用。": [
+  "These models aren't part of the app or Toolula's code repository; once downloaded they live in ~/Toolula/Models and are only used on this Mac.",
+  "Diese Modelle sind nicht Teil der App oder des Toolula-Code-Repositorys; nach dem Laden liegen sie in ~/Toolula/Models und werden nur auf diesem Mac verwendet."
+ ],
+ "移到废纸篓，需要时可以重新下载": [
+  "Moves it to the Trash; you can download it again any time",
+  "In den Papierkorb legen; kann jederzeit erneut geladen werden"
  ]
 }
