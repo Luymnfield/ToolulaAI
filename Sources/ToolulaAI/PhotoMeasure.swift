@@ -8,6 +8,7 @@ enum PhotoMeasure {
         var clipHi = 0.0, clipLo = 0.0           // 过曝 / 死黑像素占比 (%)
         var castA = 0.0, castB = 0.0             // 中性色区域的偏色: A 正 = 偏品红 / 负 = 偏绿; B 正 = 偏黄 / 负 = 偏蓝 (0~255 单位)
         var neutralShare = 0.0
+        var globalA = 0.0, globalB = 0.0           // 所有中间调的平均偏色 (强烈偏色时中性色本身也会被染色, 这个更能看出来)
         var skin: (luma: Double, hue: Double, sat: Double)?
     }
 
@@ -40,7 +41,8 @@ enum PhotoMeasure {
         }
 
         var hist = [Int](repeating: 0, count: 256)
-        var hi = 0, lo = 0, nN = 0
+        var hi = 0, lo = 0, nN = 0, nG = 0
+        var gA = 0.0, gB = 0.0
         var sumA = 0.0, sumB = 0.0
         var sk = (r: 0.0, g: 0.0, b: 0.0, n: 0.0)
         let n = w * h
@@ -52,6 +54,7 @@ enum PhotoMeasure {
             if Y <= 4 { lo += 1 }
             let mx = max(R, G, B), mn = min(R, G, B)
             let sat = mx > 0 ? (mx - mn) / mx : 0
+            if Y > 40 && Y < 215 { nG += 1; gA += R - G; gB += (R + G) / 2 - B }
             if sat < 0.25 && Y > 40 && Y < 235 {
                 nN += 1
                 sumA += R - G
@@ -73,6 +76,7 @@ enum PhotoMeasure {
         s.clipLo = Double(lo) / Double(n) * 100
         s.neutralShare = Double(nN) / Double(n)
         if nN > 0 { s.castA = sumA / Double(nN); s.castB = sumB / Double(nN) }
+        if nG > 0 { s.globalA = gA / Double(nG); s.globalB = gB / Double(nG) }
         if sk.n > 30 {
             let R = sk.r / sk.n, G = sk.g / sk.n, B = sk.b / sk.n
             let mx = max(R, G, B), mn = min(R, G, B)
@@ -96,6 +100,13 @@ enum PhotoMeasure {
             if abs(s.castB) > 4 { parts.append((s.castB > 0 ? "偏暖偏黄" : "偏冷偏蓝") + " (" + level(s.castB) + ")") }
             if abs(s.castA) > 4 { parts.append((s.castA > 0 ? "偏品红" : "偏绿") + " (" + level(s.castA) + ")") }
             m["cast"] = parts.isEmpty ? "基本中性" : parts.joined(separator: "、")
+        }
+        // 整体色调: 中性色看起来还好、但整张图明显偏某个颜色时, 偏色可能把灰色也染了 (室内钨丝灯常见)
+        if abs(s.globalB) > 25 || abs(s.globalA) > 20 {
+            var parts: [String] = []
+            if abs(s.globalB) > 25 { parts.append(s.globalB > 0 ? "整体明显偏暖偏黄" : "整体明显偏冷偏蓝") }
+            if abs(s.globalA) > 20 { parts.append(s.globalA > 0 ? "整体偏品红" : "整体偏绿") }
+            m["global_cast"] = parts.joined(separator: "、") + String(format: " (暖冷 %+.0f, 绿品红 %+.0f)", s.globalB, s.globalA)
         }
         if let k = s.skin {
             var d: [String] = []

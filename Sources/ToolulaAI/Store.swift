@@ -415,10 +415,27 @@ final class Store: ObservableObject {
         let r = Renderer.shared
         let small = r.scale(base, maxSide: PhotoMeasure.side * 2)
         let img = r.renderEdited(small, settings: settings, patches: patches, locals: [], portrait: portrait, cache: MaskCache())
-        let portrait = cache.portraitAnalysis(for: base)
-        guard var m = PhotoMeasure.stats(img, skin: portrait?.skin).map(PhotoMeasure.forAI) else { return nil }
+        let faces = cache.portraitAnalysis(for: base)
+        guard let st0 = PhotoMeasure.stats(img, skin: faces?.skin) else { return nil }
+        var m = PhotoMeasure.forAI(st0)
+        // 白平衡: 量出把中性色校正到完全中性大约要偏移多少 (看图判断偏色不准, 尤其是室内暖光)
+        if st0.neutralShare > 0.03, max(abs(st0.castA), abs(st0.castB)) > 4 {
+            var t = settings["IncrementalTemperature"] ?? 0, n = settings["IncrementalTint"] ?? 0
+            let start = (t, n)
+            var cur = st0
+            for _ in 0..<4 {
+                guard abs(cur.castB) > 2 || abs(cur.castA) > 2 else { break }
+                t = Params.clamp("IncrementalTemperature", t - cur.castB * 1.6)
+                n = Params.clamp("IncrementalTint", n - cur.castA * 1.6)
+                var s2 = settings; s2["IncrementalTemperature"] = t; s2["IncrementalTint"] = n
+                guard let next = PhotoMeasure.stats(r.renderEdited(small, settings: s2, patches: patches, locals: [], portrait: portrait, cache: MaskCache())) else { break }
+                cur = next
+            }
+            let dt = Int((t - start.0).rounded()), dn = Int((n - start.1).rounded())
+            if abs(dt) >= 5 || abs(dn) >= 5 { m["wb_fix"] = "TempShift \(dt >= 0 ? "+" : "")\(dt), TintShift \(dn >= 0 ? "+" : "")\(dn)" }
+        }
         // 风光: 天空和植被占多少、地平线歪了多少 (没有人脸、天空或植被够多时算风光照)
-        if portrait == nil {
+        if faces == nil {
             // 和「局部调整」用同一套蒙版 (同样的大小、同一份缓存), 两边判断一致
             func share(_ k: MaskKind) -> Double {
                 let mask: CIImage? = cache.get(k) ?? Masks.compute(k, for: base, cache: cache).map { cache.set(k, $0); return $0 }
