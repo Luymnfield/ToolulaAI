@@ -1,64 +1,42 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// 修图页: 左边窄缩略图条 (有照片时才出现), 中间深灰看片区, 右边分步骤的设置
 struct ContentView: View {
     @EnvironmentObject var store: Store
 
     var body: some View {
-        NavigationSplitView {
-            SidebarView()
-                .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 360)
-        } detail: {
-            HStack(spacing: 0) {
-                ViewerView()
+        HStack(spacing: 0) {
+            if !store.photos.isEmpty {
+                FilmstripView().frame(width: 104)
                 Divider()
-                InspectorView()
-                    .frame(width: 340)
             }
+            ViewerView()
+            Divider()
+            InspectorView().frame(width: 330)
         }
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
                 Button { openPanel(store) } label: { Label("添加照片", systemImage: "plus") }
                     .help("添加照片或文件夹（也可以直接拖进窗口）")
             }
-            ToolbarItem(placement: .principal) {
-                Picker("视图", selection: $store.viewMode) {
-                    ForEach(ViewMode.allCases) { Text($0.rawValue.locKey).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 200)
-                .help("效果 / 左右对比 / 原图")
-            }
             ToolbarItemGroup(placement: .primaryAction) {
-                if store.working {
-                    ProgressView().controlSize(.small)
-                    Button("停止") { store.cancel() }
-                }
-                Button { store.aiEdit() } label: { Label("AI 修图", systemImage: "wand.and.stars") }
-                    .disabled(store.selection.isEmpty || store.working)
-                    .help("用右边设置的风格修选中的照片 (⌘E)")
                 Toggle(isOn: Binding(get: { store.eraseMode }, set: { on in
                     store.eraseMode = on
                     if on { store.viewMode = .after }
                 })) { Label("AI 消除", systemImage: "eraser") }
                     .toggleStyle(.button)
+                    .labelStyle(.titleAndIcon)
                     .disabled(store.current == nil)
                     .help("用笔刷涂掉路人、杂物、电线，AI 自动补上背景")
                 Menu {
-                    Button("AI 选片（打分、找废片）") { store.cull() }
-                    Button("AI 关键词和描述") { store.tag() }
-                } label: { Label("更多 AI", systemImage: "sparkles") }
-                    .disabled(store.selection.isEmpty || store.working)
-                Menu {
-                    ForEach(EditorApp.allCases) { app in
-                        Button { store.send(to: app) } label: {
-                            Label { Text(app.menuTitle) } icon: { Image(nsImage: app.icon) }
-                        }
-                        .disabled(!app.installed)
+                    ForEach(MaskKind.allCases) { k in
+                        Button { store.addLocal(k) } label: { Label(k.label, systemImage: k.icon) }
                     }
-                } label: { Label("发送到", systemImage: "arrow.up.forward.app") }
-                    .disabled(store.selection.isEmpty || store.working)
-                    .help("把修好的照片发送到 Lightroom、Photoshop 或 Luminar Neo 继续编辑")
+                } label: { Label("局部", systemImage: "circle.lefthalf.filled") }
+                    .labelStyle(.titleAndIcon)
+                    .disabled(store.current == nil)
+                    .help("只调某一块：人脸、皮肤、眼睛、天空、背景…")
                 Menu {
                     Button("导出 JPEG（原尺寸）…") { store.exportJPEG(maxSide: nil) }
                     Button("导出 JPEG（长边 2048，适合发图）…") { store.exportJPEG(maxSide: 2048) }
@@ -66,7 +44,21 @@ struct ContentView: View {
                     Button("存成 Lightroom / Photoshop 预设…") { store.savePresetForAdobe() }
                     Button("导出 LUT（Photoshop / Luminar / 视频软件通用）") { store.exportLUT() }
                 } label: { Label("导出", systemImage: "square.and.arrow.up") }
+                    .labelStyle(.titleAndIcon)
                     .disabled(store.selection.isEmpty || store.working)
+                Menu {
+                    Button("AI 选片（打分、找废片）") { store.cull() }
+                    Button("AI 关键词和描述") { store.tag() }
+                    Divider()
+                    ForEach(EditorApp.allCases) { app in
+                        Button { store.send(to: app) } label: {
+                            Label { Text(app.menuTitle) } icon: { Image(nsImage: app.icon) }
+                        }
+                        .disabled(!app.installed)
+                    }
+                } label: { Label("更多", systemImage: "ellipsis.circle") }
+                    .disabled(store.selection.isEmpty || store.working)
+                    .help("AI 选片、关键词、发送到其他软件")
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -110,107 +102,173 @@ func loadURLs(_ providers: [NSItemProvider], _ done: @escaping @MainActor ([URL]
     group.notify(queue: .main) { MainActor.assumeIsolated { done(urls) } }
 }
 
-// MARK: - 左边: 照片列表
+// MARK: - 左边: 缩略图条
 
-struct SidebarView: View {
+struct FilmstripView: View {
     @EnvironmentObject var store: Store
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("筛选", selection: $store.filter) {
-                ForEach(ListFilter.allCases) { Text($0.rawValue.locKey).tag($0) }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .padding(8)
-
-            if store.photos.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "photo.on.rectangle.angled").font(.system(size: 40)).foregroundStyle(.secondary)
-                    Text("把照片或文件夹拖到这里").foregroundStyle(.secondary)
-                    Button("选择照片…") { openPanel(store) }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List(selection: $store.selection) {
-                    ForEach(store.visiblePhotos) { item in
-                        PhotoRow(item: item).tag(item.id)
-                            .contextMenu {
-                                Button("从列表移除") { store.remove(store.selection.contains(item.id) ? store.selectedItems : [item]) }
-                                Button("在访达中显示") { NSWorkspace.shared.activateFileViewerSelecting([item.url]) }
-                            }
+            Menu {
+                ForEach(ListFilter.allCases) { f in
+                    Button { store.filter = f } label: {
+                        if store.filter == f { Label(f.rawValue.loc, systemImage: "checkmark") } else { Text(f.rawValue.locKey) }
                     }
                 }
-                .listStyle(.sidebar)
+            } label: {
+                Label(store.filter.rawValue.locKey, systemImage: "line.3.horizontal.decrease").font(.caption)
             }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .padding(.vertical, 8)
+            .help("筛选：全部 / 精选 / 隐藏废片")
+
+            List(selection: $store.selection) {
+                ForEach(store.visiblePhotos) { item in
+                    ThumbCell(item: item).tag(item.id)
+                        .listRowInsets(EdgeInsets(top: 3, leading: 4, bottom: 3, trailing: 4))
+                        .contextMenu {
+                            Button("从列表移除") { store.remove(store.selection.contains(item.id) ? store.selectedItems : [item]) }
+                            Button("在访达中显示") { NSWorkspace.shared.activateFileViewerSelecting([item.url]) }
+                        }
+                }
+            }
+            .listStyle(.sidebar)
+            .scrollContentBackground(.hidden)
+
+            Text("\(store.visiblePhotos.count) 张").font(.caption2).foregroundStyle(.secondary).padding(.vertical, 6)
         }
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 }
 
-struct PhotoRow: View {
+/// 缩略图: 星级、AI 已修、废片、正在处理都画在图上
+struct ThumbCell: View {
     @ObservedObject var item: PhotoItem
 
     var body: some View {
-        HStack(spacing: 8) {
-            ZStack {
-                if let t = item.thumb {
-                    Image(nsImage: t).resizable().aspectRatio(contentMode: .fill)
-                } else {
-                    Color.gray.opacity(0.2)
-                }
-                if item.busy {
-                    Color.black.opacity(0.4)
-                    ProgressView().controlSize(.small)
-                }
+        ZStack {
+            if let t = item.thumb {
+                Image(nsImage: t).resizable().aspectRatio(contentMode: .fill)
+            } else {
+                Color.gray.opacity(0.2)
             }
-            .frame(width: 54, height: 54)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .opacity(item.reject ? 0.45 : 1)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(item.name).lineLimit(1).truncationMode(.middle)
-                HStack(spacing: 4) {
-                    if item.stars > 0 {
-                        Text(String(repeating: "★", count: item.stars)).foregroundStyle(.yellow).font(.caption)
-                    }
-                    if item.reject { Text("废片").font(.caption2).padding(.horizontal, 4).background(.red.opacity(0.25)).clipShape(Capsule()) }
-                    if item.ai != nil { Image(systemName: "wand.and.stars").font(.caption).foregroundStyle(.green) }
-                    if item.isRaw { Text("RAW").font(.caption2).foregroundStyle(.secondary) }
-                }
-                if !item.status.isEmpty && item.status != String(localized: "AI 已修") {
-                    Text(item.status).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-                }
+            if item.busy {
+                Color.black.opacity(0.45)
+                ProgressView().controlSize(.small)
             }
         }
-        .padding(.vertical, 2)
+        .frame(width: 80, height: 64)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .opacity(item.reject ? 0.4 : 1)
+        .overlay(alignment: .bottomLeading) {
+            if item.stars > 0 {
+                Text(String(repeating: "★", count: item.stars)).font(.system(size: 8)).foregroundStyle(.yellow)
+                    .padding(.horizontal, 3).padding(.vertical, 1).background(.black.opacity(0.55), in: Capsule()).padding(3)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if item.ai != nil || !item.portrait.isEmpty {
+                Image(systemName: "wand.and.stars").font(.system(size: 9, weight: .semibold)).foregroundStyle(.white)
+                    .padding(3).background(Color.toolula.opacity(0.9), in: Circle()).padding(3)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .help(Text(verbatim: item.name + (item.status.isEmpty ? "" : " · " + item.status)))
+        .accessibilityLabel(Text(verbatim: item.name))
     }
 }
 
-// MARK: - 中间: 预览 / 对比
+// MARK: - 中间: 深灰看片区
 
 struct ViewerView: View {
     @EnvironmentObject var store: Store
+    /// 按住 \ 看原图 (和 Lightroom 一样)
+    @State private var holdOriginal = false
+    @State private var monitor: Any?
 
     var body: some View {
         ZStack {
-            Color(nsColor: .underPageBackgroundColor)
+            Color(white: 0.13)
             if let item = store.current {
-                CompareView(item: item, mode: store.eraseMode ? .after : store.viewMode)
-                    .padding(16)
-                    .padding(.bottom, store.eraseMode ? 120 : 0)
-                if store.eraseMode {
-                    VStack { Spacer(); EraseBar(item: item).padding(.bottom, 50) }
+                CompareView(item: item, mode: store.eraseMode ? .after : (holdOriginal ? .before : store.viewMode))
+                    .padding(24)
+                    .padding(.bottom, store.eraseMode ? 120 : 40)
+                VStack {
+                    Spacer()
+                    if store.eraseMode {
+                        EraseBar(item: item).padding(.bottom, 50)
+                    } else {
+                        ViewModeBar(holdOriginal: holdOriginal).padding(.bottom, 14)
+                    }
                 }
             } else {
-                VStack(spacing: 14) {
-                    Image(systemName: "wand.and.stars").font(.system(size: 52)).foregroundStyle(.green)
-                    Text("Toolula AI 修图").font(.title2.bold())
-                    Text("把照片拖进窗口 → 在右边选风格 → 点「AI 修图」").foregroundStyle(.secondary)
-                    Button("添加照片…") { openPanel(store) }.controlSize(.large)
-                }
+                EmptyDropView()
             }
         }
+        .environment(\.colorScheme, .dark)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) { e in
+                // 输入文字时不拦截
+                guard e.charactersIgnoringModifiers == "\\", !(NSApp.keyWindow?.firstResponder is NSTextView) else { return e }
+                holdOriginal = e.type == .keyDown
+                return nil
+            }
+        }
+        .onDisappear { if let monitor { NSEvent.removeMonitor(monitor) }; monitor = nil }
+    }
+}
+
+/// 浮在照片下面的小条: 修图后 / 左右对比 / 原图
+struct ViewModeBar: View {
+    @EnvironmentObject var store: Store
+    let holdOriginal: Bool
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(ViewMode.allCases) { m in
+                let on = holdOriginal ? m == .before : store.viewMode == m
+                Button { store.viewMode = m } label: {
+                    Text(label(m)).font(.caption).padding(.horizontal, 11).padding(.vertical, 5)
+                        .foregroundStyle(on ? Color.white : Color.white.opacity(0.7))
+                        .background(on ? Color.white.opacity(0.18) : .clear, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+            Text("按住 \\ 看原图").font(.caption2).foregroundStyle(.white.opacity(0.45)).padding(.horizontal, 8)
+        }
+        .padding(3)
+        .background(Color(white: 0.22), in: Capsule())
+        .overlay(Capsule().stroke(.white.opacity(0.08)))
+    }
+
+    func label(_ m: ViewMode) -> LocalizedStringKey {
+        switch m {
+        case .after: return "修图后"
+        case .split: return "左右对比"
+        case .before: return "原图"
+        }
+    }
+}
+
+/// 还没有照片: 一个大的拖放区
+struct EmptyDropView: View {
+    @EnvironmentObject var store: Store
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "photo.on.rectangle.angled").font(.system(size: 46, weight: .light)).foregroundStyle(.white.opacity(0.55))
+            Text("把照片拖到这里开始修图").font(.title3.weight(.semibold)).foregroundStyle(.white.opacity(0.92))
+            Text("支持 RAW、JPEG、HEIC，也可以拖入整个文件夹").font(.callout).foregroundStyle(.white.opacity(0.55))
+            Button { openPanel(store) } label: { Text("选择照片…").padding(.horizontal, 10) }
+                .buttonStyle(.borderedProminent).tint(Color.toolula).controlSize(.large)
+                .padding(.top, 4)
+        }
+        .padding(40)
+        .frame(maxWidth: 460)
+        .background(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.18), style: StrokeStyle(lineWidth: 1.5, dash: [7, 6])))
     }
 }
 

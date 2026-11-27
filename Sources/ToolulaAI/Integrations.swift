@@ -1,3 +1,4 @@
+import SwiftUI
 import AppKit
 import CoreImage
 
@@ -353,40 +354,6 @@ extension Store {
         case .lightroom: sendToLightroom()
         case .photoshop: sendToPhotoshop()
         case .luminar: sendToLuminar()
-        }
-    }
-}
-
-import SwiftUI
-
-/// 修图页右边的「发送到」三个按钮
-struct SendToBar: View {
-    @EnvironmentObject var store: Store
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("发送到其他软件继续编辑").font(.caption).foregroundStyle(.secondary)
-            HStack(spacing: 8) {
-                ForEach(EditorApp.allCases) { app in
-                    Button {
-                        if app.installed { store.send(to: app) } else { NSWorkspace.shared.open(app.downloadURL) }
-                    } label: {
-                        VStack(spacing: 4) {
-                            Image(nsImage: app.icon).resizable().frame(width: 28, height: 28)
-                                .opacity(app.installed ? 1 : 0.35)
-                            Text(app.shortName).font(.caption2).lineLimit(1)
-                            if !app.installed { Text("未安装").font(.system(size: 9)).foregroundStyle(.tertiary) }
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 62)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.05)))
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .focusEffectDisabled()
-                    .disabled(app.installed && (store.selection.isEmpty || store.working))
-                    .help(app.installed ? Text(app.menuTitle) : Text("还没安装，点一下打开官网"))
-                }
-            }
         }
     }
 }

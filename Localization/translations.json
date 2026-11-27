@@ -5474,5 +5474,101 @@
  "宝丽来：偏暖偏黄，高光略褪色，暗部偏青，复古即时成像感": [
   "Polaroid: warm yellowish tint, slightly faded highlights, cyan shadows, retro instant-film feel",
   "Polaroid: warmer Gelbstich, leicht verblasste Lichter, cyanfarbene Schatten, Retro-Sofortbild-Look"
+ ],
+ "筛选：全部 / 精选 / 隐藏废片": [
+  "Filter: all / picks / hide rejects",
+  "Filter: alle / Favoriten / Ausschuss ausblenden"
+ ],
+ "%lld 张": [
+  "%lld photos",
+  "%lld Fotos"
+ ],
+ "按住 \\ 看原图": [
+  "Hold \\ for original",
+  "\\ halten für Original"
+ ],
+ "修图后": [
+  "Edited",
+  "Bearbeitet"
+ ],
+ "左右对比": [
+  "Side by side",
+  "Vergleich"
+ ],
+ "把照片拖到这里开始修图": [
+  "Drop photos here to start editing",
+  "Fotos hierher ziehen, um zu beginnen"
+ ],
+ "支持 RAW、JPEG、HEIC，也可以拖入整个文件夹": [
+  "RAW, JPEG and HEIC are supported — you can also drop a whole folder",
+  "RAW, JPEG und HEIC werden unterstützt – auch ganze Ordner"
+ ],
+ "局部": [
+  "Local",
+  "Lokal"
+ ],
+ "只调某一块：人脸、皮肤、眼睛、天空、背景…": [
+  "Adjust one area only: face, skin, eyes, sky, background…",
+  "Nur einen Bereich anpassen: Gesicht, Haut, Augen, Himmel, Hintergrund …"
+ ],
+ "AI 选片、关键词、发送到其他软件": [
+  "AI culling, keywords, send to other apps",
+  "KI-Auswahl, Stichwörter, an andere Apps senden"
+ ],
+ "类别": [
+  "Category",
+  "Kategorie"
+ ],
+ "我的": [
+  "Mine",
+  "Meine"
+ ],
+ "删除这个风格": [
+  "Delete this style",
+  "Diesen Stil löschen"
+ ],
+ "添加照片后，AI 会先看一看照片，说出问题并给 3 个修法。": [
+  "Once you add a photo, AI looks at it first, names the issues and suggests 3 looks.",
+  "Sobald du ein Foto hinzufügst, sieht die KI es sich an, nennt die Probleme und schlägt 3 Looks vor."
+ ],
+ "一键精修": [
+  "One-click retouch",
+  "Mit einem Klick"
+ ],
+ "用上面选的风格修选中的照片 (⌘E)": [
+  "Edit the selected photos with the style chosen above (⌘E)",
+  "Ausgewählte Fotos im oben gewählten Stil bearbeiten (⌘E)"
+ ],
+ "高级": [
+  "Advanced",
+  "Erweitert"
+ ],
+ "AI 识别": [
+  "AI look",
+  "KI-Analyse"
+ ],
+ "风格": [
+  "Style",
+  "Stil"
+ ],
+ "自定义要求和参考图": [
+  "Custom request and reference",
+  "Eigene Vorgabe und Referenz"
+ ],
+ "自定义要求和参考图（已选参考图）": [
+  "Custom request and reference (reference set)",
+  "Eigene Vorgabe und Referenz (Referenz gewählt)"
+ ],
+ "调整 · %lld 项": [
+  "Adjustments · %lld",
+  "Anpassungen · %lld"
+ ],
+ "调整 · %lld 项（已改 %lld 项）": [
+  "Adjustments · %1$lld (%2$lld changed)",
+  "Anpassungen · %1$lld (%2$lld geändert)"
+ ],
+ "更多 %lld 项": [
+  "%lld more",
+  "%lld weitere"
  ]
 }
