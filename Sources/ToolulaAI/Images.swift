@@ -483,14 +483,19 @@ struct ImageView: View {
     @ObservedObject var models = ImageModels.shared
     @EnvironmentObject var app: AppState
     @EnvironmentObject var photos: Store
+    @AppStorage("imageModelOpen") private var modelOpen = false
+
+    static let examples = ["一只在窗台上晒太阳的橘猫，柔和的午后光线", "雨夜的城市街道，霓虹灯在积水里的倒影，电影感", "极简产品海报：白色背景上的一瓶香水，柔和的影子"]
 
     var body: some View {
         HStack(spacing: 0) {
-            history.frame(width: 250)
+            if !store.items.isEmpty {
+                history.frame(width: 124)
+                Divider()
+            }
+            preview
             Divider()
-            preview.frame(maxWidth: .infinity, maxHeight: .infinity)
-            Divider()
-            settings.frame(width: 360)
+            settings.frame(width: 340)
         }
         .task { models.scan(); await engine.check() }
         .onAppear { ComfyWarmup.enter("image") }
@@ -498,34 +503,35 @@ struct ImageView: View {
         .onChange(of: models.selectedId) { ComfyWarmup.enter("image") }
     }
 
+    // MARK: 左边: 生成过的图片 (窄条)
+
     var history: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("生成的图片").font(.headline)
+            HStack(spacing: 4) {
+                Text("\(store.items.count) 张").font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 Button { NSWorkspace.shared.open(ImageStore.folder) } label: { Image(systemName: "folder") }
                     .buttonStyle(.borderless).help(Text("在访达中打开图片文件夹")).accessibilityLabel(Text("在访达中打开图片文件夹"))
             }
-            .padding(12)
+            .padding(.horizontal, 10).padding(.vertical, 9)
             ScrollView {
-                if store.items.isEmpty {
-                    Text("还没有生成过图片").foregroundStyle(.secondary).padding(.top, 20)
-                }
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
+                LazyVStack(spacing: 6) {
                     ForEach(store.items) { it in
                         Color.clear
                             .aspectRatio(1, contentMode: .fit)
                             .overlay(ImageThumb(path: it.path))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                             .contentShape(Rectangle())
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(store.selected == it.id ? Color.toolula : .clear, lineWidth: 3))
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(store.selected == it.id ? Color.toolula : .clear, lineWidth: 2.5))
                             .onTapGesture { store.selected = it.id }
                             .contextMenu { menu(it) }
+                            .help(Text(verbatim: it.prompt))
                     }
                 }
-                .padding(.horizontal, 10)
+                .padding(.horizontal, 10).padding(.bottom, 10)
             }
         }
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     @ViewBuilder func menu(_ it: ImageItem) -> some View {
@@ -537,130 +543,124 @@ struct ImageView: View {
         Button("删除图片", role: .destructive) { store.delete(it) }
     }
 
+    // MARK: 中间: 深灰画布
+
     @ViewBuilder var preview: some View {
-        ZStack {
-            Color(nsColor: .underPageBackgroundColor)
+        DarkCanvas {
             if store.running {
-                VStack(spacing: 14) {
-                    ProgressView(value: store.steps > 0 ? Double(store.step) / Double(store.steps) : nil).frame(width: 320)
-                    Text(store.stage).font(.headline)
-                    if let t = store.startedAt {
-                        TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                            Text("已用 \(Int(ctx.date.timeIntervalSince(t))) 秒 · 预计约 \(Int(store.estimateSeconds.rounded())) 秒")
-                                .font(.callout).foregroundStyle(.secondary).monospacedDigit()
-                        }
-                    }
-                    Button("停止") { store.cancel() }
+                CanvasProgress(value: store.steps > 0 ? Double(store.step) / Double(store.steps) : nil, stage: store.stage,
+                               detail: store.startedAt.map { t in Text(timerInterval: t...Date.distantFuture, countsDown: false) + Text(" · ") + Text("预计约 \(Int(store.estimateSeconds.rounded())) 秒") }) {
+                    store.cancel()
                 }
             } else if let it = store.items.first(where: { $0.id == store.selected }), let img = NSImage(contentsOfFile: it.path) {
-                VStack(spacing: 10) {
+                VStack(spacing: 12) {
                     Image(nsImage: img).resizable().aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8)).shadow(radius: 8)
+                        .clipShape(RoundedRectangle(cornerRadius: 4)).shadow(color: .black.opacity(0.35), radius: 10)
                         .onDrag { NSItemProvider(contentsOf: URL(fileURLWithPath: it.path)) ?? NSItemProvider() }
-                    Text(it.prompt).font(.callout).foregroundStyle(.secondary).lineLimit(3).textSelection(.enabled)
-                    HStack(spacing: 10) {
-                        Text("\(it.model) · \(String(it.width))×\(String(it.height)) · 种子 \(String(it.seed)) · \(Int(it.elapsed)) 秒")
-                            .font(.caption).foregroundStyle(.tertiary)
-                        Spacer()
-                        Button("在修图中打开") { app.section = .photo; photos.add(urls: [URL(fileURLWithPath: it.path)]) }
-                        Button("作为视频的第一帧") { VideoStore.shared.firstFrame = URL(fileURLWithPath: it.path); app.section = .video }
-                        Button { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: it.path)]) } label: { Image(systemName: "folder") }
-                            .accessibilityLabel(Text("在访达中显示"))
+                    Text(verbatim: it.prompt).font(.callout).foregroundStyle(.white.opacity(0.7)).lineLimit(2).textSelection(.enabled)
+                        .multilineTextAlignment(.center)
+                    Text("\(it.model) · \(String(it.width))×\(String(it.height)) · 种子 \(String(it.seed)) · \(Int(it.elapsed)) 秒")
+                        .font(.caption).foregroundStyle(.white.opacity(0.45))
+                    FloatingBar {
+                        Button { app.section = .photo; photos.add(urls: [URL(fileURLWithPath: it.path)]) } label: { Label("在修图中打开", systemImage: "camera.filters") }
+                        Button { VideoStore.shared.firstFrame = URL(fileURLWithPath: it.path); app.section = .video } label: { Label("作为视频的第一帧", systemImage: "film") }
+                        Button { store.prompt = it.prompt } label: { Label("用这个提示词", systemImage: "text.quote") }
+                        Button { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: it.path)]) } label: { Label("在访达中显示", systemImage: "folder") }
                     }
-                    .controlSize(.small)
                 }
                 .padding(24)
             } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "paintbrush.pointed").font(.system(size: 48)).foregroundStyle(Color.toolula)
-                    Text("AI 绘图").font(.title.bold())
-                    Text("写下想要的画面，本机的图片模型几十秒就能画出来。\n画好的图可以直接拿去修图，或者作为视频的第一帧。")
-                        .multilineTextAlignment(.center).foregroundStyle(.secondary)
+                CanvasEmpty(icon: "paintbrush.pointed", title: "写下想要的画面", subtitle: "本机的图片模型几十秒就能画出来。画好的图可以直接拿去修图，或者作为视频的第一帧。") {
+                    VStack(spacing: 6) {
+                        ForEach(Self.examples, id: \.self) { ex in
+                            Button { store.prompt = ex.loc } label: {
+                                Text(ex.locKey).font(.caption).padding(.horizontal, 10).padding(.vertical, 5)
+                                    .foregroundStyle(.white.opacity(0.8))
+                                    .background(.white.opacity(0.08), in: Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
                 }
             }
         }
     }
 
+    // MARK: 右边: 卡片 + 固定的生成按钮
+
     var settings: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                if !ComfyEngine.installed {
-                    GroupBox {
-                        HStack {
-                            Text("还没有图片引擎（ComfyUI）。设置向导可以一键安装。").font(.caption).foregroundStyle(.orange)
-                            Spacer()
-                            Button("打开设置向导") { SetupWizardState.shared.show = true }.controlSize(.small)
-                        }.padding(4)
+        SettingsColumn {
+            if !ComfyEngine.installed {
+                StepCard(title: "还没有图片引擎", icon: "exclamationmark.triangle") { EmptyView() } content: {
+                    HStack {
+                        Text("还没有图片引擎（ComfyUI）。设置向导可以一键安装。").font(.caption).foregroundStyle(.orange)
+                        Spacer()
+                        Button("打开设置向导") { SetupWizardState.shared.show = true }.controlSize(.small)
                     }
-                }
-                GroupBox {
-                    ImageModelPicker().padding(2)
-                } label: { Label("图片模型", systemImage: "square.stack.3d.up") }
-
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 8) {
-                        TextEditor(text: $store.prompt)
-                            .font(.body).frame(height: 130)
-                            .scrollContentBackground(.hidden).padding(4)
-                            .background(Color(nsColor: .textBackgroundColor)).clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
-                        HStack {
-                            Text("中文英文都可以；想在图里出现的文字用引号括起来").font(.caption).foregroundStyle(.secondary)
-                            Spacer()
-                            Button { store.improvePrompt() } label: {
-                                if store.improving { ProgressView().controlSize(.mini) } else { Label("AI 优化", systemImage: "wand.and.stars") }
-                            }
-                            .controlSize(.small).disabled(store.prompt.isEmpty || store.improving || store.running)
-                            .help(Text("让对话模型把你的想法扩写成详细的图片提示词"))
-                        }
-                    }.padding(4)
-                } label: { Label("想要什么画面", systemImage: "text.quote") }
-
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Picker("画面比例", selection: $store.aspect) {
-                            ForEach(ImageAspect.allCases) { Text($0.rawValue.locKey).tag($0) }
-                        }
-                        .accessibilityLabel(Text("画面比例"))
-                        Picker("清晰度", selection: $store.quality) {
-                            ForEach(ImageQuality.allCases) { Text($0.rawValue.locKey).tag($0) }
-                        }
-                        .accessibilityLabel(Text("清晰度"))
-                        Stepper("一次画 \(store.count) 张", value: $store.count, in: 1...4)
-                        HStack {
-                            Toggle("随机种子", isOn: $store.randomSeed)
-                            if !store.randomSeed { TextField("", value: $store.seed, format: .number).frame(width: 110) }
-                        }
-                        let (w, h) = store.quality.size(store.aspect)
-                        Text("\(String(w)) × \(String(h)) · 预计约 \(Int(store.currentEstimate.rounded())) 秒").font(.caption).foregroundStyle(.secondary)
-                    }.padding(4)
-                } label: { Label("设置", systemImage: "slider.horizontal.3") }
-
-                if let e = store.error {
-                    Label(e, systemImage: "exclamationmark.triangle").foregroundStyle(.orange).font(.callout)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                // 生成中再点: 排到队列后面
-                HStack {
-                    Button { GenQueue.shared.addImages([store.prompt]) } label: {
-                        Label(queue.busy ? "加入队列" : "生成图片", systemImage: queue.busy ? "text.badge.plus" : "paintbrush.pointed").frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent).tint(Color.toolula).controlSize(.large)
-                    .keyboardShortcut(.return, modifiers: .command)
-                    .disabled(store.prompt.trimmingCharacters(in: .whitespaces).isEmpty || !models.isReady(models.selected))
-                    Button { showBatch = true } label: { Image(systemName: "list.bullet.rectangle") }
-                        .controlSize(.large)
-                        .help(Text("批量：每行一个提示词，一个接一个生成"))
-                        .accessibilityLabel(Text("批量画图"))
-                        .disabled(!models.isReady(models.selected))
-                }
-                .sheet(isPresented: $showBatch) { BatchPromptSheet(kind: .image, isPresented: $showBatch) }
-                QueueHint(kind: .image)
-                if engine.online {
-                    Button("释放图片模型内存") { store.freeMemory() }.controlSize(.small)
                 }
             }
-            .padding(14)
+            StepCard(number: 1, title: "想要什么画面", icon: "text.quote") {
+                Button { store.improvePrompt() } label: {
+                    if store.improving { ProgressView().controlSize(.mini) } else { Label("AI 优化", systemImage: "wand.and.stars").font(.caption) }
+                }
+                .buttonStyle(.borderless).foregroundStyle(Color.toolula)
+                .disabled(store.prompt.isEmpty || store.improving || store.running)
+                .help(Text("让对话模型把你的想法扩写成详细的图片提示词"))
+            } content: {
+                PromptEditor(text: $store.prompt, height: 120)
+                Text("中文英文都可以；想在图里出现的文字用引号括起来").font(.caption2).foregroundStyle(.secondary)
+            }
+            StepCard(number: 2, title: "图片模型", icon: "square.stack.3d.up") { EmptyView() } content: {
+                ModelDisclosure(name: models.selected.name, ready: models.isReady(models.selected), open: $modelOpen) { ImageModelPicker() }
+            }
+            StepCard(number: 3, title: "设置", icon: "slider.horizontal.3") { EmptyView() } content: {
+                VStack(alignment: .leading, spacing: 8) {
+                    Picker("画面比例", selection: $store.aspect) {
+                        ForEach(ImageAspect.allCases) { Text($0.rawValue.locKey).tag($0) }
+                    }
+                    .accessibilityLabel(Text("画面比例"))
+                    Picker("清晰度", selection: $store.quality) {
+                        ForEach(ImageQuality.allCases) { Text($0.rawValue.locKey).tag($0) }
+                    }
+                    .accessibilityLabel(Text("清晰度"))
+                    Stepper("一次画 \(store.count) 张", value: $store.count, in: 1...4)
+                    HStack {
+                        Toggle("随机种子", isOn: $store.randomSeed)
+                        if !store.randomSeed { TextField("", value: $store.seed, format: .number).frame(width: 110) }
+                    }
+                }
+                .controlSize(.small)
+            }
+        } footer: {
+            if let e = store.error {
+                Label(e, systemImage: "exclamationmark.triangle").foregroundStyle(.orange).font(.caption)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            // 生成中再点: 排到队列后面
+            HStack {
+                Button { GenQueue.shared.addImages([store.prompt]) } label: {
+                    Label(queue.busy ? "加入队列" : "生成图片", systemImage: queue.busy ? "text.badge.plus" : "paintbrush.pointed").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent).tint(Color.toolula).controlSize(.large)
+                .keyboardShortcut(.return, modifiers: .command)
+                .disabled(store.prompt.trimmingCharacters(in: .whitespaces).isEmpty || !models.isReady(models.selected))
+                Button { showBatch = true } label: { Image(systemName: "list.bullet.rectangle") }
+                    .controlSize(.large)
+                    .help(Text("批量：每行一个提示词，一个接一个生成"))
+                    .accessibilityLabel(Text("批量画图"))
+                    .disabled(!models.isReady(models.selected))
+            }
+            .sheet(isPresented: $showBatch) { BatchPromptSheet(kind: .image, isPresented: $showBatch) }
+            HStack(spacing: 8) {
+                let (w, h) = store.quality.size(store.aspect)
+                Text("\(String(w)) × \(String(h)) · 预计约 \(Int(store.currentEstimate.rounded())) 秒").font(.caption).foregroundStyle(.secondary)
+                Spacer()
+                if engine.online {
+                    Button("释放内存") { store.freeMemory() }.buttonStyle(.borderless).font(.caption).foregroundStyle(.secondary)
+                        .help(Text("释放图片模型内存"))
+                }
+            }
+            QueueHint(kind: .image)
         }
     }
 }

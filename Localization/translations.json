@@ -5570,5 +5570,73 @@
  "更多 %lld 项": [
   "%lld more",
   "%lld weitere"
+ ],
+ "预计约 %lld 秒": [
+  "about %lld s",
+  "ca. %lld s"
+ ],
+ "释放内存": [
+  "Free memory",
+  "Speicher freigeben"
+ ],
+ "需要下载": [
+  "Needs download",
+  "Download nötig"
+ ],
+ "%lld 段": [
+  "%lld videos",
+  "%lld Videos"
+ ],
+ "%@ 秒 · %@": [
+  "%1$@ s · %2$@",
+  "%1$@ s · %2$@"
+ ],
+ "预计共约 %lld 分钟": [
+  "about %lld min in total",
+  "insgesamt ca. %lld Min."
+ ],
+ "%@ · %@×%@ · 种子 %@ · 用时 %lld 分钟": [
+  "%1$@ · %2$@×%3$@ · seed %4$@ · took %5$lld min",
+  "%1$@ · %2$@×%3$@ · Seed %4$@ · %5$lld Min."
+ ],
+ "还没有图片引擎": [
+  "No image engine yet",
+  "Noch keine Bild-Engine"
+ ],
+ "写下想要的画面": [
+  "Describe the picture you want",
+  "Beschreibe das gewünschte Bild"
+ ],
+ "写下想要的视频": [
+  "Describe the video you want",
+  "Beschreibe das gewünschte Video"
+ ],
+ "本机的图片模型几十秒就能画出来。画好的图可以直接拿去修图，或者作为视频的第一帧。": [
+  "The image model on this Mac draws it in under a minute. You can edit the result right away or use it as a video's first frame.",
+  "Das Bildmodell auf diesem Mac zeichnet es in unter einer Minute. Das Ergebnis kannst du direkt bearbeiten oder als erstes Videobild nutzen."
+ ],
+ "用本机的视频模型把文字或图片变成视频。写下想要的画面，或者给一张图片作为第一帧。": [
+  "Turn text or images into video with the video model on this Mac. Describe the scene, or give an image as the first frame.",
+  "Mach mit dem Videomodell auf diesem Mac aus Text oder Bildern ein Video. Beschreibe die Szene oder gib ein Bild als erstes Bild vor."
+ ],
+ "拖一张图片进来，让它动起来": [
+  "Drop in an image to bring it to life",
+  "Zieh ein Bild herein, um es zu animieren"
+ ],
+ "更换": [
+  "Change",
+  "Ändern"
+ ],
+ "一只在窗台上晒太阳的橘猫，柔和的午后光线": [
+  "An orange cat sunbathing on a windowsill, soft afternoon light",
+  "Eine rote Katze sonnt sich auf dem Fensterbrett, weiches Nachmittagslicht"
+ ],
+ "雨夜的城市街道，霓虹灯在积水里的倒影，电影感": [
+  "A city street on a rainy night, neon reflected in puddles, cinematic",
+  "Eine Stadtstraße in einer Regennacht, Neon spiegelt sich in Pfützen, filmisch"
+ ],
+ "极简产品海报：白色背景上的一瓶香水，柔和的影子": [
+  "Minimal product poster: a perfume bottle on a white background, soft shadow",
+  "Minimalistisches Produktposter: ein Parfümflakon auf weißem Hintergrund, weicher Schatten"
  ]
 }
