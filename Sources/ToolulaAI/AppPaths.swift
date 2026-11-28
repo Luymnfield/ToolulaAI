@@ -1,6 +1,6 @@
 import Foundation
 
-/// Toolula 的所有文件都放在用户主目录下的一个文件夹里, 按类别分好:
+/// Leonix 的所有文件都放在用户主目录下的一个文件夹里, 按类别分好:
 ///
 ///     ~/Toolula/
 ///       Images/       绘图页生成的图片
@@ -13,7 +13,7 @@ import Foundation
 ///       Logs/         运行日志、诊断报告
 ///       Cache/        可以随时清掉的缓存 (提示词缓存、预览、修图临时图)
 ///       Engines/      本地 AI 引擎 (Python、MLX、ComfyUI 等程序文件)
-///       Models/       Toolula 自己下载的模型 (内置引擎的对话模型、修图擦除模型)
+///       Models/       Leonix 自己下载的模型 (内置引擎的对话模型、修图擦除模型)
 ///
 /// 旧版本放在 ~/Library/Application Support/ToolulaAI、~/Pictures/Toolula AI、~/Movies/Toolula AI,
 /// 第一次启动时由 `StorageMigration` 搬过来, 旧的 Application Support 位置换成指向新文件夹的链接

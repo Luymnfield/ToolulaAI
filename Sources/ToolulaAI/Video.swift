@@ -19,9 +19,9 @@ final class ComfyEngine: ObservableObject {
     @Published var audioVAE: String?
     @Published var lora: String?
     private var process: Process?
-    /// 是 Toolula 用启动包装启动的 (带 conv3d 加速); 用户自己开着的 Comfy Desktop 没有
+    /// 是 Leonix 用启动包装启动的 (带 conv3d 加速); 用户自己开着的 Comfy Desktop 没有
     @Published var patched = false
-    /// 是 Toolula 自己启动的进程 (可以在空闲时关掉)
+    /// 是 Leonix 自己启动的进程 (可以在空闲时关掉)
     var owned: Bool { process?.isRunning == true }
 
     var base: URL { URL(string: "http://127.0.0.1:\(port)")! }
@@ -31,11 +31,11 @@ final class ComfyEngine: ObservableObject {
     /// Comfy Desktop 的安装信息 (用来在后台启动 ComfyUI, 不用打开 Comfy 窗口)
     struct Install { let dir: URL; let python: URL; let config: URL?; let input: URL?; let output: URL?; var managed = false }
 
-    /// 自测用: 有 Comfy Desktop 也优先用 Toolula 自己装的
+    /// 自测用: 有 Comfy Desktop 也优先用 Leonix 自己装的
     nonisolated(unsafe) static var preferManaged = false
     nonisolated(unsafe) static var simulateMissing = false
 
-    /// Toolula 自己装的 ComfyUI (设置向导装的)
+    /// Leonix 自己装的 ComfyUI (设置向导装的)
     static func managedInstall() -> Install? {
         guard ComfySetup.installed else { return nil }
         // 如果这台电脑也有 Comfy Desktop, 顺便用上它已经下载的模型
@@ -105,7 +105,7 @@ final class ComfyEngine: ObservableObject {
             let p = Process()
             p.executableURL = inst.python
             p.currentDirectoryURL = inst.dir
-            // 用 Toolula 自带的启动包装: 在 Apple GPU 上把很慢的 conv3d 换成等价的 conv2d (视频解码快约 4 倍)
+            // 用 Leonix 自带的启动包装: 在 Apple GPU 上把很慢的 conv3d 换成等价的 conv2d (视频解码快约 4 倍)
             let launcher = Bundle.main.url(forResource: "toolula_comfy_launch", withExtension: "py")
             let script = launcher?.path ?? "ComfyUI/main.py"
             // latent2rgb: 每一步都发一张粗略的预览 (不需要额外的模型, 几乎不耗时), 生成时能看到画面慢慢出来
@@ -136,15 +136,15 @@ final class ComfyEngine: ObservableObject {
         message = String(localized: "ComfyUI 启动超时，可以打开 Comfy Desktop 看看有没有报错。")
     }
 
-    /// 把 ComfyUI 输出文件夹里 Toolula 生成的文件挪到 Toolula 文件夹 (同一个磁盘上只是改名, 不留两份)。
-    /// 别的程序生成的文件 (不在 Toolula 子文件夹里) 只复制, 不动原文件。
+    /// 把 ComfyUI 输出文件夹里 Leonix 生成的文件挪到 Toolula 文件夹 (同一个磁盘上只是改名, 不留两份)。
+    /// 别的程序生成的文件 (不在 Leonix 子文件夹里) 只复制, 不动原文件。
     static func takeOutput(_ out: URL, to dest: URL) {
         let fm = FileManager.default
         if out.deletingLastPathComponent().lastPathComponent == "Toolula", (try? fm.moveItem(at: out, to: dest)) != nil { return }
         try? fm.copyItem(at: out, to: dest)
     }
 
-    /// Toolula 退出时关掉自己启动的 ComfyUI
+    /// Leonix 退出时关掉自己启动的 ComfyUI
     func stopOwned() {
         if let p = process, p.isRunning { p.terminate() }
         process = nil

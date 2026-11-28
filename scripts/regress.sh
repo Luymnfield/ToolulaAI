@@ -24,7 +24,7 @@ while (( $# )); do
   shift
 done
 
-APP="$ROOT/build/selftest/Toolula AI.app"
+APP="$ROOT/build/selftest/Leonix.app"
 DOMAIN=com.toolula.ai-photo-edit
 DATA="$HOME/Toolula"
 STAMP=$(date +%Y%m%d-%H%M%S)
@@ -78,7 +78,7 @@ run() {
   printf "▸ %-22s" "$name"
   timeout $timeout open -n -W -a "$APP" --args --snapshot "$png" "$@" -AppleLanguages '(zh-Hans)' -ApplePersistenceIgnoreState YES
   local rc=$?
-  pkill -f "selftest/Toolula AI.app/Contents/MacOS/ToolulaAI --snapshot $png" 2>/dev/null
+  pkill -f "selftest/Leonix.app/Contents/MacOS/ToolulaAI --snapshot $png" 2>/dev/null
   if (( rc == 124 )); then st="❌"; note="超时 (${timeout}s)"
   elif [[ ! -s "$txt" ]]; then st="❌"; note="没有日志"
   elif [[ -n "$expect" ]] && ! grep -Eq -- "$expect" "$txt"; then st="❌"; note="日志里没有: $expect"
@@ -154,7 +154,7 @@ else
 fi
 
 {
-  echo "# Toolula 回归测试 $STAMP"
+  echo "# Leonix 回归测试 $STAMP"
   echo
   echo "- 模式: $([[ $QUICK == 1 ]] && echo quick || echo 完整)  对比: $([[ -n "$PREV" ]] && echo ${PREV:t} || echo 无)  截图变化阈值: ${THRESH}%"
   echo "- 失败: $FAIL"

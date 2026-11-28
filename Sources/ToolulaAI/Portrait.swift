@@ -18,7 +18,7 @@ struct PortraitRetouch: Codable, Hashable, Sendable {
         set { values[key] = newValue == 0 ? nil : max(0, min(100, newValue)) }
     }
     var isEmpty: Bool { !values.values.contains { $0 != 0 } }
-    /// 只能在 Toolula 里渲染、Lightroom 参数表达不了的项目 (像素级修改)
+    /// 只能在 Leonix 里渲染、Lightroom 参数表达不了的项目 (像素级修改)
     var hasPixelOnly: Bool { Self.specs.contains { $0.pixelOnly && self[$0.key] != 0 } }
 
     struct Spec: Identifiable {

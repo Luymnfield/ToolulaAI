@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// 界面语言: 默认跟随系统, 也可以在设置里单独给 Toolula 选一种。
+/// 界面语言: 默认跟随系统, 也可以在设置里单独给 Leonix 选一种。
 /// 支持: 简体中文、繁體中文、English、日本語、한국어、Deutsch、Français、Español、Português、Русский (其他语言用英文)
 enum Lang {
     /// 实际使用的界面语言 (zh-Hans / zh-Hant / en / ja / ko / de / fr / es / pt-BR / pt / ru)
@@ -46,7 +46,7 @@ enum Lang {
         return c == "pt-BR" ? "pt" : c
     }
 
-    // MARK: 单独给 Toolula 选语言 (写进 Toolula 自己的 AppleLanguages, 不改系统设置)
+    // MARK: 单独给 Leonix 选语言 (写进 Leonix 自己的 AppleLanguages, 不改系统设置)
 
     /// nil = 跟随系统
     static var override: String? {
@@ -57,7 +57,7 @@ enum Lang {
         }
     }
 
-    /// 换语言后重新打开 Toolula
+    /// 换语言后重新打开 Leonix
     @MainActor
     static func relaunch() {
         let path = Bundle.main.bundlePath
@@ -85,7 +85,7 @@ struct LanguagePicker: View {
         }
         if changed {
             HStack {
-                Text("重新打开 Toolula 后生效。").font(.callout).foregroundStyle(.secondary)
+                Text("重新打开 Leonix 后生效。").font(.callout).foregroundStyle(.secondary)
                 Spacer()
                 Button("立即重新打开") { Lang.relaunch() }
             }

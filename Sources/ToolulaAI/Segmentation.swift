@@ -126,7 +126,7 @@ final class SceneSegmenter: @unchecked Sendable {
 }
 
 extension Store {
-    /// 下载语义分割模型 (Apple 的 DETR, 85 MB). 下好以后水面、山、建筑在 Toolula 里也能单独调
+    /// 下载语义分割模型 (Apple 的 DETR, 85 MB). 下好以后水面、山、建筑在 Leonix 里也能单独调
     func downloadSegmenter() {
         guard !working else { return }
         working = true
@@ -139,7 +139,7 @@ extension Store {
                         Task { @MainActor in self.status = String(localized: "下载语义分割模型：\(SystemInfo.size(got)) / 85 MB") }
                     }
                 }.value
-                status = String(localized: "语义分割模型已装好：水面、山、建筑现在在 Toolula 里也能调")
+                status = String(localized: "语义分割模型已装好：水面、山、建筑现在在 Leonix 里也能调")
                 for p in photos { p.changed() }
             } catch {
                 alert = String(localized: "下载失败：\(error.localizedDescription)")

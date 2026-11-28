@@ -115,7 +115,7 @@ struct EmptyChat: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "bubble.left.and.text.bubble.right").font(.system(size: 48)).foregroundStyle(.green)
-            Text("Toolula AI").font(.largeTitle.bold())
+            Text("Leonix").font(.largeTitle.bold())
             MachineBadge().frame(width: 320)
             Text("完全在本机运行的 AI：聊天、执行命令、整理文件、修图、自动化").foregroundStyle(.secondary)
             Button("开始新对话") { chat.newConversation() }.controlSize(.large)
@@ -353,7 +353,7 @@ struct ConversationView: View {
 
                 ZStack(alignment: .topLeading) {
                     if input.isEmpty {
-                        Text("给 Toolula AI 发消息…（⌘↩ 发送）").foregroundStyle(.tertiary).padding(.horizontal, 5).padding(.vertical, 8)
+                        Text("给 Leonix 发消息…（⌘↩ 发送）").foregroundStyle(.tertiary).padding(.horizontal, 5).padding(.vertical, 8)
                     }
                     TextEditor(text: $input)
                         .font(.body)

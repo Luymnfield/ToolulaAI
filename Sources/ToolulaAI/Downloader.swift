@@ -112,7 +112,7 @@ final class ModelDownloader: ObservableObject {
         let job = DownloadJob(id: id)
         jobs.insert(job, at: 0)
         job.quant = quant
-        // 没装 LM Studio 时, GGUF 模型下载给 Toolula 内置引擎
+        // 没装 LM Studio 时, GGUF 模型下载给 Leonix 内置引擎
         if LocalEngine.preferred == .builtin, quant != nil || id.lowercased().hasSuffix("gguf") {
             job.dest = EnginePaths.models.appendingPathComponent(BuiltinEngine.folderName(forRepo: id))
         }

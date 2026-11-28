@@ -349,7 +349,7 @@ struct QuickAskView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
                 Image(systemName: "sparkles").font(.title2).foregroundStyle(Color.toolula).accessibilityHidden(true)
-                TextField(conv == nil ? String(localized: "问 Toolula AI…") : String(localized: "继续问…"), text: $quick.text)
+                TextField(conv == nil ? String(localized: "问 Leonix…") : String(localized: "继续问…"), text: $quick.text)
                     .textFieldStyle(.plain)
                     .font(.title2)
                     .focused($focused)

@@ -1,4 +1,4 @@
-Toolula AI
+Leonix
 Copyright 2026 Luymnfield
 
 This product is licensed under the Apache License, Version 2.0
@@ -6,7 +6,7 @@ This product is licensed under the Apache License, Version 2.0
 
 Trademarks
 ----------
-The name "Toolula", the Toolula AI name, and the Toolula logos and app
+The name "Toolula", the Leonix name, and the Leonix logos and app
 icons are not licensed under the Apache License. As section 6 of the
 License says, it grants no permission to use them, except as needed to
 describe where the work comes from. If you distribute a modified version,
@@ -20,9 +20,9 @@ this source release or of its license.
 
 Software and models downloaded at run time
 ------------------------------------------
-Toolula AI contains no third-party code. When a feature first needs them,
+Leonix contains no third-party code. When a feature first needs them,
 it downloads the following to ~/Toolula/Engines and ~/Toolula/Models on the
-user's Mac. They are not distributed with Toolula AI, and each stays under
+user's Mac. They are not distributed with Leonix, and each stays under
 its own license:
 
   llama.cpp (llama-server)    MIT                https://github.com/ggml-org/llama.cpp

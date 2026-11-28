@@ -299,7 +299,7 @@ enum Tools {
             return await d(task)
 
         case "notify_user":
-            Notifier.send(title: a["title"] as? String ?? "Toolula AI", body: a["message"] as? String ?? "")
+            Notifier.send(title: a["title"] as? String ?? "Leonix", body: a["message"] as? String ?? "")
             return String(localized: "通知已发送")
 
         case "generate_video":
@@ -428,7 +428,7 @@ enum Tools {
             let ch = ChromeControl.shared
             let id = (a["id"] as? Int) ?? Int(a["id"] as? Double ?? -1)
             let text = a["text"] as? String ?? ""
-            if ch.isPassword(id) { return String(localized: "这是密码框。为了安全 Toolula 不输入密码，请用户自己输入。") }
+            if ch.isPassword(id) { return String(localized: "这是密码框。为了安全 Leonix 不输入密码，请用户自己输入。") }
             guard await ctx.approve(call, String(localized: "在 Chrome 的 \(ch.describe(id)) 输入：\(text)") + ((a["submit"] as? Bool) == true ? String(localized: "（然后提交）") : "")) else {
                 return String(localized: "用户没有同意。")
             }
@@ -462,7 +462,7 @@ enum Tools {
         case "browser_type":
             let b = BrowserController.shared
             guard let id = a["element_id"] as? Int, let text = a["text"] as? String else { return String(localized: "错误：缺少参数") }
-            if b.isPassword(id) { return String(localized: "不能替用户输入密码。请让用户自己在 Toolula 浏览器里登录。") }
+            if b.isPassword(id) { return String(localized: "不能替用户输入密码。请让用户自己在 Leonix 浏览器里登录。") }
             let submit = a["submit"] as? Bool ?? false
             guard await ctx.approve(call, String(localized: "在网页的 \(b.describe(id)) 里输入：\(text)") + (submit ? String(localized: "（并提交）") : "")) else {
                 return String(localized: "用户拒绝了这次输入。")
@@ -500,7 +500,7 @@ enum Tools {
             let paths = (a["paths"] as? [String] ?? []).map { expand($0, base: ctx.workDir) }
             let style = a["style"] as? String ?? ""
             let folder = (a["export_folder"] as? String).map { expand($0, base: ctx.workDir) }
-                ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures/" + String(localized: "Toolula AI 修图/导出"))
+                ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures/" + String(localized: "Leonix 修图/导出"))
             var result = await store.editAndExport(urls: paths, style: style, folder: folder)
             if let target = a["open_in"] as? String, target != "none" {
                 result += "\n" + (await store.sendEdited(urls: paths, to: target))

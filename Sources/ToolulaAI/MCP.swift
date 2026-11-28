@@ -261,7 +261,7 @@ final class MCPClient: @unchecked Sendable {
         let r = try await transport.request("initialize", [
             "protocolVersion": "2025-06-18",
             "capabilities": [String: Any](),
-            "clientInfo": ["name": "Toolula AI", "version": info],
+            "clientInfo": ["name": "Leonix", "version": info],
         ], timeout: 120)
         serverName = (r["serverInfo"] as? [String: Any])?["name"] as? String ?? name
         await transport.notify("notifications/initialized", nil)

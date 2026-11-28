@@ -1,7 +1,7 @@
 import AppKit
 import WebKit
 
-/// Toolula 自带的浏览器: AI 通过工具操作它, 用户可以在窗口里看着 (也可以自己登录网站)
+/// Leonix 自带的浏览器: AI 通过工具操作它, 用户可以在窗口里看着 (也可以自己登录网站)
 @MainActor
 final class BrowserController: NSObject, WKNavigationDelegate {
     static let shared = BrowserController()
@@ -25,7 +25,7 @@ final class BrowserController: NSObject, WKNavigationDelegate {
         if window == nil {
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1100, height: 780),
                              styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
-            w.title = String(localized: "Toolula 浏览器")
+            w.title = String(localized: "Leonix 浏览器")
             w.contentView = webView
             w.isReleasedWhenClosed = false
             w.center()

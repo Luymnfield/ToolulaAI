@@ -72,7 +72,7 @@ final class ChatToolsTests: XCTestCase {
         XCTAssertTrue(md.hasPrefix("# 旅行计划"))
         XCTAssertTrue(md.contains("📎 行程.docx"))
         XCTAssertTrue(md.contains("大约 **2000 元**。"))
-        XCTAssertEqual(md.components(separatedBy: "## Toolula AI").count - 1, 2)
+        XCTAssertEqual(md.components(separatedBy: "## Leonix").count - 1, 2)
     }
 
     func testPDFExport() throws {

@@ -60,7 +60,7 @@ enum GitHub {
         if !query.isEmpty { c.queryItems = query }
         var req = URLRequest(url: c.url!)
         req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        req.setValue("Toolula-AI", forHTTPHeaderField: "User-Agent")
+        req.setValue("Leonix", forHTTPHeaderField: "User-Agent")
         req.timeoutInterval = 30
         let (data, resp) = try await URLSession.shared.data(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
@@ -212,7 +212,7 @@ extension SkillStore {
         return u
     }
 
-    /// 下载技能文件夹并保存成 Toolula 技能. 返回错误信息 (nil = 成功)
+    /// 下载技能文件夹并保存成 Leonix 技能. 返回错误信息 (nil = 成功)
     func importSkill(_ gh: GHSkill) async -> String? {
         let safeName = (gh.repo + "-" + gh.name).replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: " ", with: "-")
         let dir = skillsFolder.appendingPathComponent(safeName)

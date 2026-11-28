@@ -83,7 +83,7 @@ struct CommandPalette: View {
         })
         for o in Lang.options where o.code != Lang.current.code {
             c.append(.init(id: "lang-\(o.code)", kind: .setting, icon: "globe", title: String(localized: "界面语言：\(o.name)"),
-                           subtitle: String(localized: "重新打开 Toolula 后生效"), keywords: "language lang 语言 \(o.code)") {
+                           subtitle: String(localized: "重新打开 Leonix 后生效"), keywords: "language lang 语言 \(o.code)") {
                 Lang.override = o.code
                 Lang.relaunch()
             })

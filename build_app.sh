@@ -1,7 +1,7 @@
 #!/bin/zsh
-# 编译并打包成 "Toolula AI.app"
-#   ./build_app.sh             正式版 -> build/Toolula AI.app
-#   ./build_app.sh --selftest  自测版 (带 --snapshot 等自测开关) -> build/selftest/Toolula AI.app
+# 编译并打包成 "Leonix.app"
+#   ./build_app.sh             正式版 -> build/Leonix.app
+#   ./build_app.sh --selftest  自测版 (带 --snapshot 等自测开关) -> build/selftest/Leonix.app
 set -e
 cd "$(dirname "$0")"
 SELFTEST=0
@@ -9,11 +9,11 @@ SELFTEST=0
 if (( SELFTEST )); then
   swift build -c release --scratch-path .build-selftest -Xswiftc -DTOOLULA_SELFTEST
   BIN=.build-selftest/release/ToolulaAI
-  APP="build/selftest/Toolula AI.app"
+  APP="build/selftest/Leonix.app"
 else
   swift build -c release
   BIN=.build/release/ToolulaAI
-  APP="build/Toolula AI.app"
+  APP="build/Leonix.app"
 fi
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -33,8 +33,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Toolula AI</string>
-  <key>CFBundleDisplayName</key><string>Toolula AI</string>
+  <key>CFBundleName</key><string>Leonix</string>
+  <key>CFBundleDisplayName</key><string>Leonix</string>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleSupportedPlatforms</key><array><string>MacOSX</string></array>
@@ -64,44 +64,44 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     </array>
   </dict>
   <dict>
-    <key>CFBundleTypeName</key><string>Toolula 对话</string>
+    <key>CFBundleTypeName</key><string>Leonix 对话</string>
     <key>CFBundleTypeRole</key><string>Viewer</string>
     <key>LSHandlerRank</key><string>Owner</string>
     <key>LSItemContentTypes</key><array><string>com.toolula.chat</string></array>
   </dict></array>
   <key>UTExportedTypeDeclarations</key><array><dict>
     <key>UTTypeIdentifier</key><string>com.toolula.chat</string>
-    <key>UTTypeDescription</key><string>Toolula 对话</string>
+    <key>UTTypeDescription</key><string>Leonix 对话</string>
     <key>UTTypeConformsTo</key><array><string>public.plain-text</string><string>public.utf8-plain-text</string></array>
     <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>toolulachat</string></array></dict>
   </dict></array>
   <key>NSServices</key><array>
     <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>用 Toolula 总结</string></dict>
+      <key>NSMenuItem</key><dict><key>default</key><string>用 Leonix 总结</string></dict>
       <key>NSMessage</key><string>summarizeFiles</string>
-      <key>NSPortName</key><string>Toolula AI</string>
+      <key>NSPortName</key><string>Leonix</string>
       <key>NSSendFileTypes</key><array><string>public.item</string></array>
       <key>NSRequiredContext</key><dict/>
       <key>NSIconName</key><string>NSActionTemplate</string>
     </dict>
     <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>用 Toolula 修图</string></dict>
+      <key>NSMenuItem</key><dict><key>default</key><string>用 Leonix 修图</string></dict>
       <key>NSMessage</key><string>editPhotos</string>
-      <key>NSPortName</key><string>Toolula AI</string>
+      <key>NSPortName</key><string>Leonix</string>
       <key>NSSendFileTypes</key><array><string>public.image</string></array>
       <key>NSRequiredContext</key><dict/>
     </dict>
     <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>用 Toolula 做成视频</string></dict>
+      <key>NSMenuItem</key><dict><key>default</key><string>用 Leonix 做成视频</string></dict>
       <key>NSMessage</key><string>videoFromImage</string>
-      <key>NSPortName</key><string>Toolula AI</string>
+      <key>NSPortName</key><string>Leonix</string>
       <key>NSSendFileTypes</key><array><string>public.image</string></array>
       <key>NSRequiredContext</key><dict/>
     </dict>
     <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>问 Toolula</string></dict>
+      <key>NSMenuItem</key><dict><key>default</key><string>问 Leonix</string></dict>
       <key>NSMessage</key><string>askAboutText</string>
-      <key>NSPortName</key><string>Toolula AI</string>
+      <key>NSPortName</key><string>Leonix</string>
       <key>NSSendTypes</key><array><string>public.utf8-plain-text</string><string>NSStringPboardType</string></array>
       <key>NSRequiredContext</key><dict/>
     </dict>
@@ -129,18 +129,18 @@ USAGE
 while IFS='|' read -r L S1 S2 S3 S4; do
   [[ -z "$L" ]] && continue
   mkdir -p "$APP/Contents/Resources/$L.lproj"
-  printf '"用 Toolula 总结" = "%s";\n"用 Toolula 修图" = "%s";\n"用 Toolula 做成视频" = "%s";\n"问 Toolula" = "%s";\n' "$S1" "$S2" "$S3" "$S4" > "$APP/Contents/Resources/$L.lproj/ServicesMenu.strings"
+  printf '"用 Leonix 总结" = "%s";\n"用 Leonix 修图" = "%s";\n"用 Leonix 做成视频" = "%s";\n"问 Leonix" = "%s";\n' "$S1" "$S2" "$S3" "$S4" > "$APP/Contents/Resources/$L.lproj/ServicesMenu.strings"
 done <<'SERVICES'
-en|Summarize with Toolula|Edit with Toolula|Make a Video with Toolula|Ask Toolula
-de|Mit Toolula zusammenfassen|Mit Toolula bearbeiten|Mit Toolula als Video|Toolula fragen
-zh-Hant|用 Toolula 摘要|用 Toolula 修圖|用 Toolula 製作影片|問 Toolula
-ja|Toolulaで要約|Toolulaで編集|Toolulaでビデオを作成|Toolulaに質問
-ko|Toolula로 요약|Toolula로 편집|Toolula로 비디오 만들기|Toolula에게 묻기
-fr|Résumer avec Toolula|Modifier avec Toolula|Créer une vidéo avec Toolula|Demander à Toolula
-es|Resumir con Toolula|Editar con Toolula|Crear un video con Toolula|Preguntar a Toolula
-pt-BR|Resumir com o Toolula|Editar com o Toolula|Criar vídeo com o Toolula|Perguntar ao Toolula
-pt|Resumir com o Toolula|Editar com o Toolula|Criar vídeo com o Toolula|Perguntar ao Toolula
-ru|Кратко с Toolula|Изменить в Toolula|Создать видео в Toolula|Спросить Toolula
+en|Summarize with Leonix|Edit with Leonix|Make a Video with Leonix|Ask Leonix
+de|Mit Leonix zusammenfassen|Mit Leonix bearbeiten|Mit Leonix als Video|Leonix fragen
+zh-Hant|用 Leonix 摘要|用 Leonix 修圖|用 Leonix 製作影片|問 Leonix
+ja|Leonixで要約|Leonixで編集|Leonixでビデオを作成|Leonixに質問
+ko|Leonix로 요약|Leonix로 편집|Leonix로 비디오 만들기|Leonix에게 묻기
+fr|Résumer avec Leonix|Modifier avec Leonix|Créer une vidéo avec Leonix|Demander à Leonix
+es|Resumir con Leonix|Editar con Leonix|Crear un video con Leonix|Preguntar a Leonix
+pt-BR|Resumir com o Leonix|Editar com o Leonix|Criar vídeo com o Leonix|Perguntar ao Leonix
+pt|Resumir com o Leonix|Editar com o Leonix|Criar vídeo com o Leonix|Perguntar ao Leonix
+ru|Кратко с Leonix|Изменить в Leonix|Создать видео в Leonix|Спросить Leonix
 SERVICES
 # 快捷指令动作的元数据 (AppIntents): swift build 已经导出了编译器的常量信息 (.swiftconstvalues), 用它生成 Metadata.appintents
 INT=.build/intents; mkdir -p $INT
@@ -180,8 +180,8 @@ cat > "$WX/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Toolula AI</string>
-  <key>CFBundleDisplayName</key><string>Toolula AI</string>
+  <key>CFBundleName</key><string>Leonix</string>
+  <key>CFBundleDisplayName</key><string>Leonix</string>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleSupportedPlatforms</key><array><string>MacOSX</string></array>

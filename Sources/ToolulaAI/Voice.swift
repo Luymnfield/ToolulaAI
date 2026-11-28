@@ -39,9 +39,9 @@ final class Dictation: ObservableObject {
     private func start() async {
         // 两个权限: 麦克风、语音识别
         let mic = await AVCaptureDevice.requestAccess(for: .audio)
-        guard mic else { error = String(localized: "没有麦克风权限：请在「系统设置 → 隐私与安全性 → 麦克风」里允许 Toolula AI"); return }
+        guard mic else { error = String(localized: "没有麦克风权限：请在「系统设置 → 隐私与安全性 → 麦克风」里允许 Leonix"); return }
         let speech = await withCheckedContinuation { c in SFSpeechRecognizer.requestAuthorization { c.resume(returning: $0) } }
-        guard speech == .authorized else { error = String(localized: "没有语音识别权限：请在「系统设置 → 隐私与安全性 → 语音识别」里允许 Toolula AI"); return }
+        guard speech == .authorized else { error = String(localized: "没有语音识别权限：请在「系统设置 → 隐私与安全性 → 语音识别」里允许 Leonix"); return }
         guard let rec = SFSpeechRecognizer(locale: Self.locale) ?? SFSpeechRecognizer(), rec.isAvailable else {
             error = String(localized: "这台电脑上暂时用不了语音识别"); return
         }

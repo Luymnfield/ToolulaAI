@@ -37,7 +37,7 @@ final class AppState: ObservableObject {
     @Published var showTasks = false
 }
 
-/// Toolula 的品牌绿 (取自变色龙 logo)
+/// Leonix 的品牌绿 (取自变色龙 logo)
 extension Color {
     static let toolula = Color(red: 0.29, green: 0.78, blue: 0.52)
 }
@@ -193,7 +193,7 @@ struct HomeView: View {
         HStack(alignment: .center, spacing: 22) {
             Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 96, height: 96)
             VStack(alignment: .leading, spacing: 6) {
-                Text("Toolula AI").font(.system(size: 34, weight: .bold))
+                Text("Leonix").font(.system(size: 34, weight: .bold))
                 Text("完全在本机运行的 AI：聊天、执行命令、整理文件、修图、自动化").foregroundStyle(.secondary)
                 HStack(spacing: 6) {
                     Circle().fill(models.online ? .green : .red).frame(width: 8, height: 8)

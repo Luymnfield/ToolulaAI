@@ -17,7 +17,7 @@ enum Diagnostics {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         return try await Task.detached(priority: .userInitiated) {
             let fm = FileManager.default
-            let name = "Toolula-诊断-\(SafeJSON.stamp())"
+            let name = "Leonix-诊断-\(SafeJSON.stamp())"
             let tmp = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
             let dir = tmp.appendingPathComponent(name, isDirectory: true)
             try fm.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -71,7 +71,7 @@ enum Diagnostics {
         let mlx = MLXEngine.shared
         let comfy = ComfyEngine.shared
         let info = Bundle.main.infoDictionary ?? [:]
-        var s = "Toolula AI \(info["CFBundleShortVersionString"] ?? "?") (\(info["CFBundleVersion"] ?? "?"))\n"
+        var s = "Leonix \(info["CFBundleShortVersionString"] ?? "?") (\(info["CFBundleVersion"] ?? "?"))\n"
         s += "生成时间: \(Date())\n\n[模型设置]\n"
         s += "chatModel=\(mm.chatModel)\nphotoModel=\(mm.photoModel)\nfastModel=\(mm.fastModel)\n"
         s += "autoRoute=\(mm.autoRoute) autoCompress=\(mm.autoCompress)\ndraftModels=\(mm.draftModels)\n"

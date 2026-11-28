@@ -55,7 +55,7 @@ enum SafeJSON {
     static func note(_ s: String) {
         lastErrors.append(s)
         if lastErrors.count > 50 { lastErrors.removeFirst(lastErrors.count - 50) }
-        NSLog("[Toolula storage] %@", s)
+        NSLog("[Leonix storage] %@", s)
     }
 }
 

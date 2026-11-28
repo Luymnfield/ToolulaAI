@@ -12,7 +12,7 @@ struct MenuBarContent: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Button("打开 Toolula AI") { show(nil) }
+        Button("打开 Leonix") { show(nil) }
         Divider()
         if let id = automations.runningTask, let t = automations.tasks.first(where: { $0.id == id }) {
             Text("正在运行：\(t.name)")
@@ -22,7 +22,7 @@ struct MenuBarContent: View {
         Button("新对话") { show(.chat) }
         Button("自动化") { show(.automation) }
         Divider()
-        Button("退出 Toolula AI") { NSApp.terminate(nil) }.keyboardShortcut("q")
+        Button("退出 Leonix") { NSApp.terminate(nil) }.keyboardShortcut("q")
     }
 
     func show(_ section: AppSection?) {
@@ -39,7 +39,7 @@ struct BackgroundToggle: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Toggle("后台常驻（关闭窗口后在菜单栏继续运行）", isOn: $backgroundMode)
-            Text("打开后，关闭窗口不会退出：Toolula 留在屏幕顶部的菜单栏，自动化照常运行。")
+            Text("打开后，关闭窗口不会退出：Leonix 留在屏幕顶部的菜单栏，自动化照常运行。")
                 .font(.caption2).foregroundStyle(.secondary)
         }
         .font(.caption)

@@ -71,7 +71,7 @@ final class SetupWizardState: ObservableObject {
         // 1) 对话引擎 + 模型
         let bestChat = Recommender.picks().first { $0.role == .allround }?.best
         if LocalEngine.installed {
-            ok.append(Ready(icon: "checkmark.circle.fill", text: String(localized: "已检测到 LM Studio，Toolula 会直接使用它")))
+            ok.append(Ready(icon: "checkmark.circle.fill", text: String(localized: "已检测到 LM Studio，Leonix 会直接使用它")))
             let hasModel = !ModelManager.shared.localChatModels.filter { !$0.isBuiltin }.isEmpty
                 || (bestChat.map { ModelDownloader.isInstalled($0.id) } ?? false)
             if !hasModel, let e = bestChat {
@@ -80,7 +80,7 @@ final class SetupWizardState: ObservableObject {
             }
         } else {
             if BuiltinEngine.installed {
-                ok.append(Ready(icon: "checkmark.circle.fill", text: String(localized: "Toolula 内置 AI 引擎已安装")))
+                ok.append(Ready(icon: "checkmark.circle.fill", text: String(localized: "Leonix 内置 AI 引擎已安装")))
             } else {
                 list.append(Item(kind: .builtinEngine, icon: "cpu", title: String(localized: "内置 AI 引擎（llama.cpp，开源）"),
                                  detail: String(localized: "在本机运行对话和修图模型，不需要另外安装 LM Studio"), sizeGB: 0.02, on: !smallMac))
@@ -330,7 +330,7 @@ struct SetupWizard: View {
             Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 64, height: 64)
             VStack(alignment: .leading, spacing: 4) {
                 Text("设置向导").font(.title.bold())
-                Text("Toolula 检测了这台 Mac，下面是需要安装的内容。全部由 Toolula 自动下载安装，不需要你另外装软件。")
+                Text("Leonix 检测了这台 Mac，下面是需要安装的内容。全部由 Leonix 自动下载安装，不需要你另外装软件。")
                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Text(info.summary.isEmpty ? "" : info.summary).font(.callout.bold())
             }

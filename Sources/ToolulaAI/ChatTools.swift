@@ -88,7 +88,7 @@ enum ChatExport {
                 for p in m.images { s += "![](\(URL(fileURLWithPath: p).absoluteString))\n\n" }
                 if !m.text.isEmpty { s += m.text + "\n\n" }
             case "assistant":
-                if !m.text.isEmpty || !m.toolCalls.isEmpty || m.error != nil { s += "## Toolula AI\n\n" }
+                if !m.text.isEmpty || !m.toolCalls.isEmpty || m.error != nil { s += "## Leonix\n\n" }
                 for t in m.toolCalls {
                     let call = Tools.normalize(t)
                     s += "- 🔧 `\(call.name)` " + (call.args.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: ", ").prefix(200)) + "\n"

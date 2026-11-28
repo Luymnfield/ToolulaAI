@@ -235,7 +235,7 @@ struct StorageSection: View {
         case "Logs": return String(localized: "日志和诊断报告")
         case "Cache": return String(localized: "缓存（可以清理）")
         case "Engines": return String(localized: "本地 AI 引擎")
-        case "Models": return String(localized: "Toolula 下载的模型")
+        case "Models": return String(localized: "Leonix 下载的模型")
         default: return id
         }
     }

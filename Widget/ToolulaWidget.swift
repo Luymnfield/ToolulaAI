@@ -1,7 +1,7 @@
 import SwiftUI
 import WidgetKit
 
-// Toolula AI 桌面小组件: 一键开始对话 / 修图 / 绘图 / 视频 (点按钮打开 Toolula 对应的页面)
+// Leonix 桌面小组件: 一键开始对话 / 修图 / 绘图 / 视频 (点按钮打开 Leonix 对应的页面)
 
 struct ToolulaEntry: TimelineEntry { let date: Date }
 
@@ -67,7 +67,7 @@ struct ToolulaWidgetView: View {
         Link(destination: URL(string: "toolula://chat")!) {
             HStack(spacing: 10) {
                 Logo(size: 26)
-                Text("问问 Toolula AI…").font(.system(size: 15, weight: .medium)).foregroundStyle(.white.opacity(0.85)).lineLimit(1)
+                Text("问问 Leonix…").font(.system(size: 15, weight: .medium)).foregroundStyle(.white.opacity(0.85)).lineLimit(1)
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 14).frame(height: 50)
@@ -93,7 +93,7 @@ struct ToolulaWidgetView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Logo(size: 44)
                 Spacer(minLength: 0)
-                Text("问问 Toolula").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
+                Text("问问 Leonix").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
                 Text("对话 · 修图 · 绘图").font(.system(size: 11)).foregroundStyle(.white.opacity(0.6))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -107,8 +107,8 @@ struct ToolulaAskWidget: Widget {
             ToolulaWidgetView(entry: entry)
                 .containerBackground(for: .widget) { Color(white: 0.09) }
         }
-        .configurationDisplayName("Toolula AI")
-        .description("问问 Toolula，或一键开始修图、绘图、生成视频")
+        .configurationDisplayName("Leonix")
+        .description("问问 Leonix，或一键开始修图、绘图、生成视频")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

@@ -178,7 +178,7 @@ final class ModelManager: ObservableObject {
             let t0 = Date()
             _ = try await LLMClient.stream(model: id, messages: [["role": "user", "content": "hi"]], tools: nil, reasoning: "none", useDraft: false, maxTokens: 1) { _, _ in }
             r["load"] = Date().timeIntervalSince(t0)
-            let filler = String(repeating: "Toolula 是一个在 Mac 本机运行的 AI 应用，可以聊天、修图、绘图、生成视频和操作电脑。", count: 40)
+            let filler = String(repeating: "Leonix 是一个在 Mac 本机运行的 AI 应用，可以聊天、修图、绘图、生成视频和操作电脑。", count: 40)
             let msgs: [[String: Any]] = [["role": "user", "content": "[\(UUID().uuidString)]\n" + filler + "\n请写一段 200 字左右的产品介绍。"]]
             let t1 = Date()
             var first: Date?
@@ -286,7 +286,7 @@ final class ModelManager: ObservableObject {
         d.set(pid, forKey: "photoAPIProvider")
         d.removeObject(forKey: "photoAPIKeyCache")
         // Lightroom 插件单独运行时读这个文件, 知道用哪个模型 (不含 API Key)
-        // (MTP 引擎只在 Toolula 运行时才开着, 插件单独用时改用 LM Studio 里的同一个模型)
+        // (MTP 引擎只在 Leonix 运行时才开着, 插件单独用时改用 LM Studio 里的同一个模型)
         let lmFallback = MTPPair.pair(for: photoModel).flatMap { p in models.first { !$0.isMLX && !$0.isBuiltin && !$0.isCloud && p.lmStudioMatches($0.id) }?.id }
         let cfg: [String: Any] = lmFallback != nil ? ["base": "", "model": lmFallback!, "builtin": false, "cloud": false] :
             ["base": ep.isLocal && !photoModel.hasPrefix("builtin:") ? "" : ep.base.absoluteString,
@@ -336,7 +336,7 @@ final class ModelManager: ObservableObject {
                     lmErr = String(localized: "连不上 LM Studio（127.0.0.1:1234）")
                 }
             } else { lmOnline = false }
-            // 2) Toolula 内置引擎 (没在跑也列出已下载的模型, 用到时自动启动)
+            // 2) Leonix 内置引擎 (没在跑也列出已下载的模型, 用到时自动启动)
             if BuiltinEngine.installed {
                 let eng = BuiltinEngine.shared
                 let infos = await eng.check() ? await eng.models() : BuiltinEngine.offlineModels()

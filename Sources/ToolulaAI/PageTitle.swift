@@ -23,7 +23,7 @@ struct PageTitle: ViewModifier {
 
     var title: String {
         switch section {
-        case .home: return "Toolula AI"
+        case .home: return "Leonix"
         case .chat:
             if let c = chat.current, !c.title.isEmpty { return c.title }
             return String(localized: "新对话")

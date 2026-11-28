@@ -1,4 +1,4 @@
-# Toolula 启动 ComfyUI 用的包装 (用法和 ComfyUI/main.py 一样, 工作目录是 ComfyUI 的安装目录)。
+# Leonix 启动 ComfyUI 用的包装 (用法和 ComfyUI/main.py 一样, 工作目录是 ComfyUI 的安装目录)。
 #
 # Apple GPU (MPS) 上 PyTorch 的 conv3d 很慢: 实测只有约 2.3 TFLOPS, 同样的计算拆成几次 conv2d 有 10~12 TFLOPS。
 # 视频 VAE (Wan 2.2 等) 主要由 conv3d 组成, 所以这里在启动前把 conv3d 换成 "沿时间维拆成 conv2d 再相加",
@@ -45,7 +45,7 @@ def conv3d(x, w, b=None, stride=1, padding=0, dilation=1, groups=1):
 if not os.environ.get("TOOLULA_NO_CONV3D_PATCH") and torch.backends.mps.is_available():
     F.conv3d = conv3d
     torch.conv3d = conv3d
-    print("[Toolula] MPS conv3d -> conv2d patch enabled", flush=True)
+    print("[Leonix] MPS conv3d -> conv2d patch enabled", flush=True)
 
 comfy_dir = os.path.join(os.getcwd(), "ComfyUI")
 sys.path.insert(0, comfy_dir)

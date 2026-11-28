@@ -157,7 +157,7 @@ final class ComputerControl: ObservableObject {
     func readApp(_ name: String?) -> String {
         guard axTrusted else { return Self.needAX }
         guard let app = findApp(name) else { return String(localized: "没有找到正在运行的程序「\(name ?? "")」。可以先用 open_app 打开它。") }
-        if isBlocked(app) { return String(localized: "为了安全，Toolula 不操作「\(app.localizedName ?? "")」（密码 / 系统设置类程序）。") }
+        if isBlocked(app) { return String(localized: "为了安全，Leonix 不操作「\(app.localizedName ?? "")」（密码 / 系统设置类程序）。") }
         let root = AXUIElementCreateApplication(app.processIdentifier)
         var lines: [String] = []
         var map: [Int: AXUIElement] = [:]
@@ -214,7 +214,7 @@ final class ComputerControl: ObservableObject {
         return text
     }
 
-    static let needAX = String(localized: "还没有「辅助功能」权限。请用户在 Toolula 助手页右上角打开「操作电脑」，按提示在系统设置里允许 Toolula AI。")
+    static let needAX = String(localized: "还没有「辅助功能」权限。请用户在 Leonix 助手页右上角打开「操作电脑」，按提示在系统设置里允许 Leonix。")
 
     private func element(_ id: Int) -> AXUIElement? { elements[id] }
 
@@ -256,7 +256,7 @@ final class ComputerControl: ObservableObject {
         if let id {
             guard let el = element(id) else { return String(localized: "没有编号 \(id) 的元素，请先用 app_read 重新读取界面。") }
             if Self.str(el, kAXSubroleAttribute) == "AXSecureTextField" {
-                return String(localized: "这是密码框。为了安全 Toolula 不输入密码，请用户自己输入。")
+                return String(localized: "这是密码框。为了安全 Leonix 不输入密码，请用户自己输入。")
             }
             target = app(for: el)
             if isBlocked(target) { return String(localized: "为了安全，不操作这个程序。") }
@@ -314,7 +314,7 @@ final class ComputerControl: ObservableObject {
     func screenshot(_ name: String?) async -> (String?, String) {
         refreshPermissions()
         guard screenAllowed else {
-            return (nil, String(localized: "还没有「屏幕录制」权限。请用户在 Toolula 助手页的「操作电脑」里按提示允许。"))
+            return (nil, String(localized: "还没有「屏幕录制」权限。请用户在 Leonix 助手页的「操作电脑」里按提示允许。"))
         }
         do {
             var content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
@@ -484,7 +484,7 @@ enum MacAutomation {
         let text = out.trimmingCharacters(in: .whitespacesAndNewlines)
         if code != 0 {
             if text.contains("-1743") || text.lowercased().contains("not authorized") {
-                return String(localized: "macOS 没有允许 Toolula 控制这个程序。请用户在「系统设置 → 隐私与安全性 → 自动化」里允许 Toolula AI。原始错误：\(text)")
+                return String(localized: "macOS 没有允许 Leonix 控制这个程序。请用户在「系统设置 → 隐私与安全性 → 自动化」里允许 Leonix。原始错误：\(text)")
             }
             return String(localized: "脚本出错：\(text)")
         }
@@ -560,7 +560,7 @@ struct ControlBanner: View {
     var body: some View {
         HStack(spacing: 8) {
             Circle().fill(Color.toolula).frame(width: 8, height: 8)
-            Text("Toolula AI 正在操作「\(cc.activeApp ?? "")」").font(.callout.bold())
+            Text("Leonix 正在操作「\(cc.activeApp ?? "")」").font(.callout.bold())
             Text("按 Esc 停止").font(.caption).foregroundStyle(.secondary)
         }
         .padding(.horizontal, 16).padding(.vertical, 9)
@@ -589,7 +589,7 @@ struct ComputerControlPanel: View {
             permission(String(localized: "屏幕录制"), String(localized: "截屏查看画面（可选，读不出按钮时才用）"), cc.screenAllowed) {
                 cc.requestScreen(); ComputerControl.openSettings("Privacy_ScreenCapture")
             }
-            Text("授权后如果仍显示未允许，请重新打开 Toolula AI。安全规则：不操作密码管理器、钥匙串和系统设置；不往密码框里输入；操作时屏幕顶部会显示提示条，按 Esc 立即停止。")
+            Text("授权后如果仍显示未允许，请重新打开 Leonix。安全规则：不操作密码管理器、钥匙串和系统设置；不往密码框里输入；操作时屏幕顶部会显示提示条，按 Esc 立即停止。")
                 .font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)

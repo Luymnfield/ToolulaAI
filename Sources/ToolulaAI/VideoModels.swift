@@ -262,7 +262,7 @@ extension VideoModelSpec {
     }
 
     /// 预计时间 (分钟). H3 依据实测: 864×480、5 秒、4 步采样约 9 分钟
-    /// fastConv: ComfyUI 是 Toolula 用启动包装启动的 (conv3d 加速); fastVAE: H3 装了 Sol VAE
+    /// fastConv: ComfyUI 是 Leonix 用启动包装启动的 (conv3d 加速); fastVAE: H3 装了 Sol VAE
     func estimate(w: Int, h: Int, frames: Int, steps: Int, loaded: Bool, fastConv: Bool = false, fastVAE: Bool = false) -> Double {
         let work = Double(w * h * frames) / Double(864 * 480 * 124)
         switch id {

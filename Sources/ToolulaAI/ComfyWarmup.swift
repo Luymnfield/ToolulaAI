@@ -4,7 +4,7 @@ import Foundation
 /// 第一次生成不用再等 15~50 秒。离开页面一段时间后自动释放内存。
 ///
 /// 内存策略:
-/// - 只在 Toolula 自己启动的 ComfyUI 里预加载和释放 (用户自己开着的 Comfy Desktop 不去动它)
+/// - 只在 Leonix 自己启动的 ComfyUI 里预加载和释放 (用户自己开着的 Comfy Desktop 不去动它)
 /// - 不会为了预热卸载对话模型; 估算放不下就只启动 ComfyUI, 等真正生成时再按原来的流程处理
 /// - MiniMax H3 (约 97GB) 永远不预加载
 @MainActor

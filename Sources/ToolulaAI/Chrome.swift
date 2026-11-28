@@ -5,7 +5,7 @@ import Foundation
 //
 // 读网页 / 点击 / 输入需要用户在 Chrome 里打开一次:
 //   菜单「显示 → 开发者 → 允许 Apple 事件中的 JavaScript」
-// 第一次控制时 macOS 会问用户是否允许 Toolula AI 控制 Chrome.
+// 第一次控制时 macOS 会问用户是否允许 Leonix 控制 Chrome.
 
 @MainActor
 final class ChromeControl {
@@ -24,7 +24,7 @@ final class ChromeControl {
     nonisolated static func explain(_ out: String) -> String {
         if out.contains("JavaScript") && (out.contains("Apple Events") || out.contains("Apple 事件") || out.contains("turned off")) { return jsOffHelp }
         if out.contains("-1743") || out.lowercased().contains("not authorized") {
-            return String(localized: "macOS 没有允许 Toolula 控制 Chrome。请用户在「系统设置 → 隐私与安全性 → 自动化」里允许 Toolula AI 控制 Google Chrome。")
+            return String(localized: "macOS 没有允许 Leonix 控制 Chrome。请用户在「系统设置 → 隐私与安全性 → 自动化」里允许 Leonix 控制 Google Chrome。")
         }
         return String(localized: "Chrome 出错：\(out)")
     }
@@ -128,7 +128,7 @@ final class ChromeControl {
     }
 
     func type(_ id: Int, _ text: String, submit: Bool) async -> String {
-        if isPassword(id) { return String(localized: "这是密码框。为了安全 Toolula 不输入密码，请用户自己输入。") }
+        if isPassword(id) { return String(localized: "这是密码框。为了安全 Leonix 不输入密码，请用户自己输入。") }
         guard let js = BrowserController.typeJS(id, text: text, submit: submit) else { return String(localized: "无法输入") }
         let (ok, r) = await Self.runJS(js)
         guard ok else { return Self.explain(r) }

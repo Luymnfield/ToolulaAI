@@ -17,7 +17,7 @@ enum MaskKind: String, Codable, CaseIterable, Identifiable {
     // (试过不用模型、按颜色和位置估计水面: 一张湖景把山坡当成了水, 收紧条件后连湖都找不到)
     case water, mountains, buildings
 
-    /// 只在 Lightroom 里生效的区域 (没有语义分割模型时, Toolula 的预览里没有效果)
+    /// 只在 Lightroom 里生效的区域 (没有语义分割模型时, Leonix 的预览里没有效果)
     static var lightroomOnly: Set<MaskKind> { SceneSegmenter.installed ? [] : [.water, .mountains, .buildings] }
     static let needsSegmenter: Set<MaskKind> = [.water, .mountains, .buildings]
     var id: String { rawValue }

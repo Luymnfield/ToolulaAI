@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 // MARK: - 聚焦搜索
 
 /// 让聚焦搜索 (⌘Space) 能搜到对话: 每个对话写一个纯文本的 .toolulachat 文件 (~/Toolula/Chats/Search),
-/// 系统自己会索引它; 点结果由 Toolula 打开那个对话。
+/// 系统自己会索引它; 点结果由 Leonix 打开那个对话。
 /// (系统的 CoreSpotlight 接口要求正式开发者签名, 本机自签名的 App 用不了, 所以用文件的办法)
 enum SpotlightIndex {
     static let ext = "toolulachat"
@@ -61,7 +61,7 @@ enum SpotlightIndex {
             if let old = written[c.id]?.0, old != name { try? fm.removeItem(at: dir.appendingPathComponent(old)) }
             var body = "\(title)\n\n"
             for m in c.messages where (m.role == "user" && m.hidden != true) || (m.role == "assistant" && !m.text.isEmpty) {
-                body += (m.role == "user" ? "我：" : "Toolula：") + m.text + "\n"
+                body += (m.role == "user" ? "我：" : "Leonix：") + m.text + "\n"
                 for d in m.docs ?? [] { body += "📎 \(d.name)\n" }
                 body += "\n"
             }
@@ -109,7 +109,7 @@ final class ServiceProvider: NSObject {
         WindowOpener.showMain()
     }
 
-    /// 「用 Toolula 总结」: 新对话, 附上这些文件, 让 AI 总结
+    /// 「用 Leonix 总结」: 新对话, 附上这些文件, 让 AI 总结
     @objc func summarizeFiles(_ pb: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
         let files = urls(pb)
         MainActor.assumeIsolated {
@@ -130,7 +130,7 @@ final class ServiceProvider: NSObject {
         }
     }
 
-    /// 「用 Toolula 修图」: 照片加到修图页
+    /// 「用 Leonix 修图」: 照片加到修图页
     @objc func editPhotos(_ pb: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
         let files = urls(pb)
         MainActor.assumeIsolated {
@@ -141,7 +141,7 @@ final class ServiceProvider: NSObject {
         }
     }
 
-    /// 「用 Toolula 做成视频」: 第一张图当视频首帧
+    /// 「用 Leonix 做成视频」: 第一张图当视频首帧
     @objc func videoFromImage(_ pb: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
         let files = urls(pb).filter { DocReader.isImage($0) }
         MainActor.assumeIsolated {
@@ -152,7 +152,7 @@ final class ServiceProvider: NSObject {
         }
     }
 
-    /// 选中文字 → 「问 Toolula」: 打开处理选中文字的小窗
+    /// 选中文字 → 「问 Leonix」: 打开处理选中文字的小窗
     @objc func askAboutText(_ pb: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
         let text = pb.string(forType: .string) ?? ""
         MainActor.assumeIsolated {

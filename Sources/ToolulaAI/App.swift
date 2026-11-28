@@ -62,7 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 点通知 -> 跳到对应的结果 (例如生成好的图片)
         UNUserNotificationCenter.current().delegate = self
-        // 上次崩溃留下的 llama.cpp / MTP 引擎 / ComfyUI (只清理 Toolula 自己启动、已失去父进程的)
+        // 上次崩溃留下的 llama.cpp / MTP 引擎 / ComfyUI (只清理 Leonix 自己启动、已失去父进程的)
         Task.detached(priority: .utility) { ProcessJanitor.cleanupOrphans() }
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
@@ -124,12 +124,12 @@ struct ToolulaAIApp: App {
         // 第一次启动新版本: 把旧位置的数据和作品搬进 ~/Toolula (要在任何地方读写数据之前)
         StorageMigration.runIfNeeded()
         StorageUsage.trimMLXCache()     // 引擎还没启动, 这时清提示词缓存最安全
-        // 滚动条只在滚动时出现 (只影响 Toolula 自己, 不改系统设置)
+        // 滚动条只在滚动时出现 (只影响 Leonix 自己, 不改系统设置)
         UserDefaults.standard.set("WhenScrolling", forKey: "AppleShowScrollBars")
     }
 
     var body: some Scene {
-        Window("Toolula AI", id: "main") {
+        Window("Leonix", id: "main") {
             RootView()
                 .environmentObject(store)
                 .environmentObject(chat)
@@ -271,7 +271,7 @@ enum WindowOpener {
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {
-    /// Toolula 在前台时也显示通知横幅
+    /// Leonix 在前台时也显示通知横幅
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
         [.banner, .sound]
     }

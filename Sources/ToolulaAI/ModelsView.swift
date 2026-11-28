@@ -127,7 +127,7 @@ struct ModelsView: View {
         if BuiltinEngine.installed {
             HStack {
                 Circle().fill(Color.green).frame(width: 8, height: 8)
-                Text("Toolula 内置 AI 引擎（llama.cpp）已安装，用到时自动启动，空闲 15 分钟自动释放内存").font(.callout)
+                Text("Leonix 内置 AI 引擎（llama.cpp）已安装，用到时自动启动，空闲 15 分钟自动释放内存").font(.callout)
                 Spacer()
             }
         }
@@ -389,7 +389,7 @@ struct ProviderCard: View {
                     Button("删除服务商", role: .destructive) { models.removeProvider(providerId) }
                 }
                 if !p.models.isEmpty {
-                    Text("勾选要在 Toolula 里使用的模型：").font(.caption).foregroundStyle(.secondary)
+                    Text("勾选要在 Leonix 里使用的模型：").font(.caption).foregroundStyle(.secondary)
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 4) {
                             ForEach(p.models, id: \.self) { m in
@@ -596,7 +596,7 @@ struct OptionalComponentsBlock: View {
             Divider()
             row(name: "AI 消除模型", detail: "修图里的「AI 消除」：涂掉路人、杂物、电线，自动补上背景。LaMa（Apache-2.0）。第一次用 AI 消除时也会自动下载。",
                 sizeMB: 216, installed: Inpainter.installed, download: nil, folder: Inpainter.dir)
-            Text("这些模型不在 App 里，也不在 Toolula 的代码仓库里；下载后放在 ~/Toolula/Models，只在这台 Mac 上用。")
+            Text("这些模型不在 App 里，也不在 Leonix 的代码仓库里；下载后放在 ~/Toolula/Models，只在这台 Mac 上用。")
                 .font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
         }
         .id(tick)

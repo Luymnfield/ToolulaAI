@@ -140,7 +140,7 @@ final class TextAssist: ObservableObject {
         let mm = ModelManager.shared
         let model = mm.fastModel(for: mm.chatModel) ?? mm.chatModel
         let msgs: [[String: Any]] = [
-            ["role": "system", "content": "你是 Toolula AI，帮用户处理他在别的程序里选中的文字。直接给结果，不寒暄，不解释你做了什么。"],
+            ["role": "system", "content": "你是 Leonix，帮用户处理他在别的程序里选中的文字。直接给结果，不寒暄，不解释你做了什么。"],
             ["role": "user", "content": instruction + "\n\n" + text],
         ]
         task = Task {

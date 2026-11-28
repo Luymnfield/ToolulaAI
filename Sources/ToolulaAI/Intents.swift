@@ -1,17 +1,17 @@
 import AppIntents
 import AppKit
 
-// 快捷指令 / Siri 动作。在「快捷指令」App 里搜 Toolula 就能用, 也能放进自动化。
+// 快捷指令 / Siri 动作。在「快捷指令」App 里搜 Leonix 就能用, 也能放进自动化。
 // 元数据由 build_app.sh 里的 appintentsmetadataprocessor 生成 (项目不是 Xcode 工程)。
 
 struct AskToolulaIntent: AppIntent {
-    static var title: LocalizedStringResource = "问 Toolula"
+    static var title: LocalizedStringResource = "问 Leonix"
     static var description = IntentDescription("用本机 AI 回答一个问题，返回回答的文字。不联网，不打开窗口。")
     static var openAppWhenRun = false
 
     @Parameter(title: "问题") var question: String
 
-    static var parameterSummary: some ParameterSummary { Summary("问 Toolula：\(\.$question)") }
+    static var parameterSummary: some ParameterSummary { Summary("问 Leonix：\(\.$question)") }
 
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
@@ -21,7 +21,7 @@ struct AskToolulaIntent: AppIntent {
 }
 
 struct SummarizeFilesIntent: AppIntent {
-    static var title: LocalizedStringResource = "用 Toolula 总结文件"
+    static var title: LocalizedStringResource = "用 Leonix 总结文件"
     static var description = IntentDescription("读 PDF、Word、Excel、PPT、文本等文件，返回要点总结。")
     static var openAppWhenRun = false
 
@@ -42,7 +42,7 @@ struct SummarizeFilesIntent: AppIntent {
 }
 
 struct GenerateImageIntent: AppIntent {
-    static var title: LocalizedStringResource = "用 Toolula 画图"
+    static var title: LocalizedStringResource = "用 Leonix 画图"
     static var description = IntentDescription("用绘图页现在的模型和设置生成图片（加入队列，生成好会发通知）。")
     static var openAppWhenRun = true
 
@@ -56,7 +56,7 @@ struct GenerateImageIntent: AppIntent {
 }
 
 struct GenerateVideoIntent: AppIntent {
-    static var title: LocalizedStringResource = "用 Toolula 生成视频"
+    static var title: LocalizedStringResource = "用 Leonix 生成视频"
     static var description = IntentDescription("用视频页现在的模型和设置生成视频（加入队列，生成好会发通知）。")
     static var openAppWhenRun = true
 
@@ -70,8 +70,8 @@ struct GenerateVideoIntent: AppIntent {
 }
 
 struct EditPhotosIntent: AppIntent {
-    static var title: LocalizedStringResource = "用 Toolula 修图"
-    static var description = IntentDescription("把照片加到 Toolula 的修图页。")
+    static var title: LocalizedStringResource = "用 Leonix 修图"
+    static var description = IntentDescription("把照片加到 Leonix 的修图页。")
     static var openAppWhenRun = true
 
     @Parameter(title: "照片") var photos: [IntentFile]
@@ -88,7 +88,7 @@ struct EditPhotosIntent: AppIntent {
 struct ToolulaShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(intent: AskToolulaIntent(), phrases: ["Ask \(.applicationName)", "问 \(.applicationName)"],
-                    shortTitle: "问 Toolula", systemImageName: "sparkles")
+                    shortTitle: "问 Leonix", systemImageName: "sparkles")
         AppShortcut(intent: SummarizeFilesIntent(), phrases: ["Summarize files with \(.applicationName)", "用 \(.applicationName) 总结文件"],
                     shortTitle: "总结文件", systemImageName: "doc.text.magnifyingglass")
         AppShortcut(intent: GenerateImageIntent(), phrases: ["Draw with \(.applicationName)", "用 \(.applicationName) 画图"],
@@ -110,7 +110,7 @@ enum IntentRunner {
         case noModel, noFile
         var errorDescription: String? {
             switch self {
-            case .noModel: return String(localized: "还没有可用的对话模型。请先打开 Toolula 设置一个模型。")
+            case .noModel: return String(localized: "还没有可用的对话模型。请先打开 Leonix 设置一个模型。")
             case .noFile: return String(localized: "读不到这个文件")
             }
         }
@@ -124,7 +124,7 @@ enum IntentRunner {
         let model = mm.fastModel(for: mm.chatModel) ?? mm.chatModel
         if mm.model(model) != nil { await mm.ensureLoaded(model) }
         let msgs: [[String: Any]] = [
-            ["role": "system", "content": "你是 Toolula AI，运行在用户 Mac 本机。默认用\(Lang.aiLanguage)回答，简洁清楚。回答会显示在快捷指令里，少用 Markdown 表格。"],
+            ["role": "system", "content": "你是 Leonix，运行在用户 Mac 本机。默认用\(Lang.aiLanguage)回答，简洁清楚。回答会显示在快捷指令里，少用 Markdown 表格。"],
             ["role": "user", "content": question],
         ]
         let r = try await LLMClient.stream(model: model, messages: msgs, tools: nil, reasoning: "none") { _, _ in }

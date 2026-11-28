@@ -315,7 +315,7 @@ struct MemoryUsageView: View {
                 Text("约 \(Int(max(0, info.usedGB - modelsGB).rounded())) GB").font(.caption).monospacedDigit().foregroundStyle(.secondary)
             }
             Divider()
-            Text("Toolula 会自动安排：内存够时对话、绘图、视频的模型同时留在内存里，切换不用重新加载；不够时让最久没用的先让位，正在工作的不会被卸载。")
+            Text("Leonix 会自动安排：内存够时对话、绘图、视频的模型同时留在内存里，切换不用重新加载；不够时让最久没用的先让位，正在工作的不会被卸载。")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             if let e = broker.lastEvent {
                 Label(e, systemImage: "arrow.triangle.2.circlepath").font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)

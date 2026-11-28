@@ -303,13 +303,22 @@ final class Store: ObservableObject {
     func cancel() { cancelRequested = true; status = String(localized: "正在停止…") }
 
     func aiEdit() {
-        let targets = selectedItems.filter { $0.previewBase != nil }
-        guard !targets.isEmpty, !working else { return }
+        let selected = selectedItems
+        guard !selected.isEmpty, !working else { return }
         working = true
         cancelRequested = false
         let style = self.style, selfCheck = self.selfCheck, useTaste = self.useTaste
-        let groups = makeGroups(targets)
         Task {
+            // 刚导入的 RAW 还在解码时就点了 AI 修图: 先等它们加载好 (以前会悄悄跳过还没加载完的照片)
+            let t0 = Date()
+            while selected.contains(where: { $0.previewBase == nil }) && Date().timeIntervalSince(t0) < 120 && !cancelRequested {
+                let n = selected.filter { $0.previewBase != nil }.count
+                status = String(localized: "等照片加载：\(n)/\(selected.count)")
+                try? await Task.sleep(for: .milliseconds(300))
+            }
+            let targets = selected.filter { $0.previewBase != nil }
+            guard !targets.isEmpty else { status = ""; working = false; return }
+            let groups = makeGroups(targets)
             let ref = await Task.detached { await self.referenceJPEG() }.value
             if self.referenceURL != nil && ref == nil { self.alert = String(localized: "无法读取参考图"); self.working = false; return }
             var failed = 0
@@ -395,6 +404,30 @@ final class Store: ObservableObject {
             let (fixed, note) = self.guardSettings(base: base, before: current, after: merged, patches: patches, portrait: portrait ?? portrait0)
             // 只改自动检查动过的参数 (其他的照旧, 手动调过的不会被算两次)
             for (k, v) in fixed where merged[k] != v { s[k] = v }
+            // 鲜活度检查: 颜色比专业修图明显偏淡时自动加自然饱和度
+            var merged2 = merged
+            for (k, v) in fixed { merged2[k] = v }
+            let isLandscape = ((req["measure"] as? [String: Any])?["landscape"] as? Bool) == true
+            let faces = cache.portraitAnalysis(for: base)
+            let sceneKind = faces != nil ? "portrait" : isLandscape ? "landscape" : "other"
+            let r0 = Renderer.shared, small0 = r0.scale(base, maxSide: PhotoMeasure.side)
+            // 本来就要淡的风格 (黑白、低饱和、莫兰迪、清冷、胶片、褪色…) 或者 AI 自己明显降了饱和度: 不加
+            let muted = ["黑白", "去色", "低饱和", "淡雅", "莫兰迪", "清冷", "冷色", "褪色", "胶片", "复古", "暗调", "高调", "黑金", "宝丽来", "日系",
+                         "black", "white", "mono", "muted", "film", "vintage", "faded"].contains { style.lowercased().contains($0) }
+                || (merged2["Saturation"] ?? 0) <= -30
+            // 风光收尾 (先按颜色区域补齐, 再整体检查鲜活度)
+            if !muted && sceneKind == "landscape" {
+                let (fin, fnote) = PhotoMeasure.finishLandscape(merged2) { st in
+                    r0.renderEdited(small0, settings: st, patches: patches, locals: [], portrait: portrait ?? portrait0, cache: MaskCache())
+                }
+                for (k, v) in fin where merged2[k] != v { s[k] = v; merged2[k] = v }
+                if let fnote { text += "\n\n" + fnote }
+            }
+            let (vivid, vnote) = muted ? (merged2, nil) : PhotoMeasure.guardVividness(merged2, scene: sceneKind, skin: faces?.skin) { st in
+                r0.renderEdited(small0, settings: st, patches: patches, locals: [], portrait: portrait ?? portrait0, cache: MaskCache())
+            }
+            for (k, v) in vivid where merged2[k] != v { s[k] = v }
+            if let vnote { text += "\n\n" + vnote }
             // 地平线检测在没有清楚地平线的照片上会出错 (实测一张湖景: 歪 2.5°, Vision 说 5.6°), 所以不自动拉正, 由用户在「构图」里点
             if let note { text += "\n\n" + note }
             return (s, text, nil, portrait)
@@ -410,7 +443,7 @@ final class Store: ObservableObject {
         return true
     }
 
-    /// 在当前效果上量曝光、过曝、偏色、肤色, 交给 AI (Toolula 量得比模型看缩略图准)
+    /// 在当前效果上量曝光、过曝、偏色、肤色, 交给 AI (Leonix 量得比模型看缩略图准)
     nonisolated func measureForAI(base: CIImage, settings: Settings, patches: [RetouchPatch], portrait: PortraitRetouch, cache: MaskCache) -> [String: Any]? {
         let r = Renderer.shared
         let small = r.scale(base, maxSide: PhotoMeasure.side * 2)
@@ -529,7 +562,7 @@ final class Store: ObservableObject {
         guard let item = current else { return }
         let l = LocalAdjustment(area: area)
         item.locals.append(l)
-        // 只在 Lightroom 里生效的区域: Toolula 里找不到也留着 (发送到 Lightroom 时由它的 AI 蒙版做)
+        // 只在 Lightroom 里生效的区域: Leonix 里找不到也留着 (发送到 Lightroom 时由它的 AI 蒙版做)
         if MaskKind.lightroomOnly.contains(area) { return }
         // 先确认能找到这个区域
         if let base = item.previewBase {
@@ -634,7 +667,7 @@ final class Store: ObservableObject {
             }
     }
 
-    /// 在 Toolula 里预览某个方案 (之后可以继续微调, 或发送到别的软件)
+    /// 在 Leonix 里预览某个方案 (之后可以继续微调, 或发送到别的软件)
     func applyPlan(_ plan: PhotoPlan, to item: PhotoItem) {
         let before = item.settings
         item.applyAI(plan.settings, analysis: "【\(plan.name)】\(plan.why)")

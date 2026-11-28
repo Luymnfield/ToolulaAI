@@ -53,7 +53,7 @@ enum Recommender {
         Entry(id: "lmstudio-community/Qwen3.5-4B-MLX-4bit", role: .fast, sizeGB: 3.1, score: 55, note: "最小最快"),
     ]
 
-    /// Apple 芯片 + Toolula 内置引擎 (llama.cpp 用 GGUF 格式). 大小包含看图用的 mmproj 文件, 从 Hugging Face 实测
+    /// Apple 芯片 + Leonix 内置引擎 (llama.cpp 用 GGUF 格式). 大小包含看图用的 mmproj 文件, 从 Hugging Face 实测
     static let ggufMac: [Entry] = [
         Entry(id: "lmstudio-community/Qwen3.8-27B-GGUF", role: .allround, sizeGB: 30.0, score: 100, note: "目前最好的本地全能模型", gguf: "Q8_0"),
         Entry(id: "lmstudio-community/Qwen3.8-27B-GGUF", role: .allround, sizeGB: 23.4, score: 96, note: "同上，稍微小一点", gguf: "Q6_K"),
@@ -275,7 +275,7 @@ struct SetupBanner: View {
     var body: some View {
         if !LocalEngine.installed && !BuiltinEngine.installed && models.cloudModels.isEmpty {
             banner(icon: "arrow.down.app", title: "第一步：一键安装本地 AI",
-                   text: "Toolula 会检测这台 Mac，自动下载适合它的 AI 引擎和模型，不需要另外安装软件。内存较小的电脑也可以直接连接云端 API。") {
+                   text: "Leonix 会检测这台 Mac，自动下载适合它的 AI 引擎和模型，不需要另外安装软件。内存较小的电脑也可以直接连接云端 API。") {
                 Button("打开设置向导") { SetupWizardState.shared.show = true }.buttonStyle(.borderedProminent).tint(Color.toolula)
                 Button("连接云端 API") { modelsTab = 2; app.section = .models }
             }

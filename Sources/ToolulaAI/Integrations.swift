@@ -116,7 +116,7 @@ enum Integrations {
         let output = r.apply(s, to: input)
         var outPx = [Float](repeating: 0, count: w * h * 4)
         r.context.render(output, toBitmap: &outPx, rowBytes: w * 16, bounds: CGRect(x: 0, y: 0, width: w, height: h), format: .RGBAf, colorSpace: r.sRGB)
-        var lines = ["TITLE \"\(title.replacingOccurrences(of: "\"", with: "'"))\"", "# Toolula AI", "LUT_3D_SIZE \(n)",
+        var lines = ["TITLE \"\(title.replacingOccurrences(of: "\"", with: "'"))\"", "# Leonix", "LUT_3D_SIZE \(n)",
                      "DOMAIN_MIN 0.0 0.0 0.0", "DOMAIN_MAX 1.0 1.0 1.0"]
         lines.reserveCapacity(n * n * n + 6)
         // .cube 顺序: 红色变化最快, 然后绿, 然后蓝
@@ -198,13 +198,13 @@ extension Store {
 
     func exportLUT() {
         guard let item = current else { return }
-        let name = "Toolula " + (item.url.deletingPathExtension().lastPathComponent)
+        let name = "Leonix " + (item.url.deletingPathExtension().lastPathComponent)
         let settings = item.settings
         Task {
             let (u, e) = await Task.detached { Integrations.saveLUT(settings, name: name) }.value
             if let u {
                 status = String(localized: "LUT 已保存：\(u.lastPathComponent)")
-                alert = String(localized: "LUT 已保存到「图片/Toolula AI/LUTs」。\n\n• Photoshop：图层 → 新建调整图层 → 颜色查找 → 载入 3D LUT\n• Luminar Neo：编辑 → LUT 映射 → 载入自定义 LUT\n\n清晰度、纹理、暗角、颗粒这类效果放不进 LUT。")
+                alert = String(localized: "LUT 已保存到「~/Toolula/Exports/LUTs」。\n\n• Photoshop：图层 → 新建调整图层 → 颜色查找 → 载入 3D LUT\n• Luminar Neo：编辑 → LUT 映射 → 载入自定义 LUT\n\n清晰度、纹理、暗角、颗粒这类效果放不进 LUT。")
                 NSWorkspace.shared.activateFileViewerSelecting([u])
             } else {
                 alert = e
@@ -217,9 +217,9 @@ extension Store {
         guard let item = current else { return }
         let a = NSAlert()
         a.messageText = String(localized: "存成 Lightroom / Photoshop 预设")
-        a.informativeText = String(localized: "预设会出现在 Lightroom「修改照片 → 预设」和 Photoshop「Camera Raw → 预设」里（Toolula AI 修图 分组）。")
+        a.informativeText = String(localized: "预设会出现在 Lightroom「修改照片 → 预设」和 Photoshop「Camera Raw → 预设」里（Leonix 修图 分组）。")
         let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
-        field.stringValue = "Toolula " + DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .short)
+        field.stringValue = "Leonix " + DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .short)
         a.accessoryView = field
         a.addButton(withTitle: String(localized: "保存"))
         a.addButton(withTitle: String(localized: "取消"))
@@ -273,7 +273,7 @@ extension Store {
 
 /// 自动配置 Lightroom: App 里带着 Lightroom 插件, 启动时如果 Lightroom 装了就自动安装/更新
 enum LightroomSetup {
-    /// 叫醒 Lightroom 里的 Toolula 插件 (它在后台把局部调整做成蒙版). Lightroom 启动时不一定运行插件,
+    /// 叫醒 Lightroom 里的 Leonix 插件 (它在后台把局部调整做成蒙版). Lightroom 启动时不一定运行插件,
     /// 但开着时一定会收到这个链接; 刚启动的 Lightroom 可能还收不到, 所以 20 秒、60 秒后再叫一次
     static func wakePlugin() {
         let url = "lightroom://com.toolula.ai-photo-edit/wake"

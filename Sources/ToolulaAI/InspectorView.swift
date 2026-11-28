@@ -433,7 +433,7 @@ struct ItemPanels: View {
                     .font(.subheadline.weight(.semibold))
             }
 
-            Text("预览由 Toolula 自己的引擎渲染；「发送到 Lightroom」后由 Lightroom 渲染，效果会略有不同。")
+            Text("预览由 Leonix 自己的引擎渲染；「发送到 Lightroom」后由 Lightroom 渲染，效果会略有不同。")
                 .font(.caption2).foregroundStyle(.tertiary)
         }
     }
@@ -714,7 +714,7 @@ struct LocalPanel: View {
                     Text("发送到 Lightroom / Photoshop 时，会发送已经修好的 16 位 TIFF（AI 消除无法写进它们的参数文件）。")
                         .font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
                 } else if item.retouched {
-                    Text("发送到 Lightroom 时，局部调整会在导入后由 Toolula 插件自动做成 Lightroom 的 AI 蒙版，可以继续调；发送到 Photoshop 时是修好的 16 位 TIFF。")
+                    Text("发送到 Lightroom 时，局部调整会在导入后由 Leonix 插件自动做成 Lightroom 的 AI 蒙版，可以继续调；发送到 Photoshop 时是修好的 16 位 TIFF。")
                         .font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -739,8 +739,8 @@ struct LocalPanel: View {
                     Text(l.area.label).bold()
                     Text(summary(l)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                     if MaskKind.lightroomOnly.contains(l.area) {
-                        Text("只在发送到 Lightroom 后生效（由 Lightroom 的 AI 风景蒙版做），Toolula 的预览里看不到").font(.caption2).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
-                        Button("下载语义分割模型（85 MB），Toolula 里也能用") { store.downloadSegmenter() }
+                        Text("只在发送到 Lightroom 后生效（由 Lightroom 的 AI 风景蒙版做），Leonix 的预览里看不到").font(.caption2).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                        Button("下载语义分割模型（85 MB），Leonix 里也能用") { store.downloadSegmenter() }
                             .controlSize(.small).disabled(store.working)
                     }
                 }

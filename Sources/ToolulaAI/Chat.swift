@@ -63,7 +63,7 @@ enum Agent {
         // 所以不变的内容放前面, 会变的 (记忆、技能、日期、电脑和磁盘空间、工作目录) 放最后; 时间只精确到天。
         // 新对话第一次要全部读一遍 (qwen3.8-27b 约 160 token/秒), 所以写得尽量短。
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd EEEE"; f.locale = Locale(identifier: "zh_CN")
-        var s = "你是 Toolula AI，运行在用户 Mac 本机的离线 AI 助手。默认用\(Lang.aiLanguage)回答（用户用别的语言就跟随），简洁清楚，可用 Markdown。"
+        var s = "你是 Leonix，运行在用户 Mac 本机的离线 AI 助手。默认用\(Lang.aiLanguage)回答（用户用别的语言就跟随），简洁清楚，可用 Markdown。"
         if tools {
             s += """
 
@@ -597,7 +597,7 @@ final class ChatStore: ObservableObject {
         return (r.ok ? "" : "（子助手没能完成）") + String(r.text.prefix(6000)) + "\n（子助手用了 \(r.steps) 步）"
     }
 
-    /// 做了一分钟以上的任务, 用户不在看 Toolula 时发通知
+    /// 做了一分钟以上的任务, 用户不在看 Leonix 时发通知
     private func notifyIfLong(_ id: UUID, started: Date) {
         Notifier.requestPermission()
         guard Date().timeIntervalSince(started) > 60, !NSApp.isActive || selected != id,
@@ -614,7 +614,7 @@ final class ChatStore: ObservableObject {
         }
     }
 
-    /// 任务中途停下了 (退出了 Toolula、步数用完): 返回给用户看的说明, 没停在半路就返回 nil
+    /// 任务中途停下了 (退出了 Leonix、步数用完): 返回给用户看的说明, 没停在半路就返回 nil
     static func interrupted(_ c: Conversation) -> String? {
         guard let last = c.messages.last else { return nil }
         if last.paused == true { return String(localized: "任务做到一半，步数用完先停下了。") }
@@ -635,7 +635,7 @@ final class ChatStore: ObservableObject {
             guard let i = c.messages.lastIndex(where: { $0.role == "assistant" && !$0.toolCalls.isEmpty }) else { return }
             let done = Set(c.messages[(i + 1)...].compactMap(\.toolCallId))
             for call in c.messages[i].toolCalls where !done.contains(call.id) {
-                c.messages.append(ChatMessage(role: "tool", text: "（Toolula 中途退出了，这一步没有执行）", toolCallId: call.id, toolName: call.name))
+                c.messages.append(ChatMessage(role: "tool", text: "（Leonix 中途退出了，这一步没有执行）", toolCallId: call.id, toolName: call.name))
             }
         }
         selected = id

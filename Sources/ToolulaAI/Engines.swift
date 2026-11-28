@@ -1,9 +1,9 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Toolula 自己管理的运行环境
+// MARK: - Leonix 自己管理的运行环境
 //
-// 别人的 Mac 上可能什么都没装. 这里的东西都由 Toolula 按需下载到
+// 别人的 Mac 上可能什么都没装. 这里的东西都由 Leonix 按需下载到
 // ~/Toolula/Engines, 不需要用户自己装 LM Studio / ComfyUI / Python.
 //   - 内置对话引擎: llama.cpp 的 llama-server (开源, MIT), 跑 GGUF 模型, 能看图, 支持工具调用
 //   - 视频引擎: ComfyUI (开源, GPL) + 独立的 Python 环境 (用 uv 安装)
@@ -294,7 +294,7 @@ final class BuiltinEngine: ObservableObject {
     }
 }
 
-// MARK: - 视频引擎 (Toolula 自己装的 ComfyUI)
+// MARK: - 视频引擎 (Leonix 自己装的 ComfyUI)
 
 enum ComfySetup {
     static var dir: URL { EnginePaths.comfy }
@@ -339,6 +339,6 @@ enum ComfySetup {
 enum ChatEngineKind { case lmStudio, builtin }
 
 extension LocalEngine {
-    /// 装了 LM Studio 就继续用它 (MLX 格式在 Apple 芯片上更快); 没装就用 Toolula 内置引擎
+    /// 装了 LM Studio 就继续用它 (MLX 格式在 Apple 芯片上更快); 没装就用 Leonix 内置引擎
     static var preferred: ChatEngineKind { installed && !simulateMissing ? .lmStudio : .builtin }
 }

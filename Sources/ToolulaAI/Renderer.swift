@@ -214,13 +214,10 @@ final class Renderer: @unchecked Sendable {
 /// 校准时可以用 defaults 覆盖: calib.<参数>+ / calib.<参数>- (正值 / 负值的系数)
 enum SliderCalibration {
     /// 参数 -> (正值系数, 负值系数); 没列出的不变
-    /// 只收了「明显更接近、又不是极端值」的; 高光/白色/黑色/清晰度/纹理的形状和 Lightroom 不同, 单靠系数调不准, 先不动
+    /// 只收了「明显更接近、又不是极端值」的. 高光/阴影/白色/黑色已经改成按 Lightroom 实测的曲线 (lightroomToneTable), 不在这里
     static let gains: [String: (pos: Double, neg: Double)] = [
         "Exposure2012": (1.0, 1.2),
         "Contrast2012": (1.4, 1.4),
-        "Shadows2012": (1.2, 1.0),
-        "Whites2012": (1.0, 1.4),
-        "Blacks2012": (0.7, 1.0),
         "Vibrance": (0.85, 1.2),
         "SplitToningHighlightSaturation": (0.85, 1.0),
         "SplitToningShadowSaturation": (0.85, 1.0),
@@ -268,15 +265,37 @@ enum LUT {
     @inline(__always) static func lum(_ r: Double, _ g: Double, _ b: Double) -> Double { 0.2126 * r + 0.7152 * g + 0.0722 * b }
     @inline(__always) static func bell(_ x: Double, _ c: Double, _ w: Double) -> Double { let d = (x - c) / w; return exp(-d * d) }
 
+    /// Lightroom (PV2012, Adobe Standard) 的高光 / 阴影 / 白色 / 黑色滑块: 每单位滑块 (滑块值 / 100) 让每个亮度 (sRGB 亮度 0, 0.05 … 1) 变化多少.
+    /// 来自同一张照片在 Lightroom 里 ±50 / ±60 的实际渲染和原图逐像素对比 (两张校准照片的平均, ~/Toolula/Data/LightroomCalibrate).
+    /// 以前用的是手写的钟形曲线, 作用范围太窄: 例如黑色 -50 在 Lightroom 里让 10%~15% 亮度的地方暗 0.08, 以前只暗 0.014.
+    static let lightroomToneTable: [String: [Double]] = [
+        "Highlights2012+": [0.0016, 0.0050, 0.0098, 0.0158, 0.0220, 0.0285, 0.0361, 0.0467, 0.0643, 0.0893, 0.1151, 0.1372, 0.1552, 0.1657, 0.1653, 0.1568, 0.1449, 0.1289, 0.1045, 0.0770, 0.0000],
+        "Highlights2012-": [0.0021, 0.0059, 0.0103, 0.0158, 0.0216, 0.0276, 0.0344, 0.0439, 0.0600, 0.0837, 0.1103, 0.1359, 0.1588, 0.1758, 0.1859, 0.1915, 0.1941, 0.1882, 0.1648, 0.1350, 0.0000],
+        "Shadows2012+": [0.0555, 0.1179, 0.1254, 0.1191, 0.1021, 0.0841, 0.0717, 0.0636, 0.0554, 0.0475, 0.0416, 0.0370, 0.0329, 0.0290, 0.0247, 0.0199, 0.0150, 0.0102, 0.0057, 0.0026, 0.0000],
+        "Shadows2012-": [0.0208, 0.0515, 0.0702, 0.0812, 0.0803, 0.0721, 0.0637, 0.0575, 0.0514, 0.0454, 0.0409, 0.0373, 0.0335, 0.0296, 0.0253, 0.0203, 0.0150, 0.0094, 0.0045, 0.0017, 0.0000],
+        "Whites2012+": [0.0009, 0.0033, 0.0075, 0.0143, 0.0228, 0.0330, 0.0457, 0.0615, 0.0802, 0.0999, 0.1179, 0.1336, 0.1475, 0.1593, 0.1689, 0.1761, 0.1795, 0.1733, 0.1496, 0.1167, 0.0000],
+        "Whites2012-": [0.0003, 0.0013, 0.0031, 0.0059, 0.0093, 0.0134, 0.0187, 0.0257, 0.0341, 0.0437, 0.0535, 0.0631, 0.0721, 0.0806, 0.0892, 0.0982, 0.1065, 0.1127, 0.1152, 0.1145, 0.0000],
+        "Blacks2012+": [0.0229, 0.0511, 0.0620, 0.0707, 0.0743, 0.0751, 0.0758, 0.0763, 0.0756, 0.0727, 0.0674, 0.0601, 0.0519, 0.0437, 0.0354, 0.0270, 0.0193, 0.0125, 0.0069, 0.0032, 0.0000],
+        "Blacks2012-": [0.0366, 0.0945, 0.1315, 0.1466, 0.1380, 0.1212, 0.1058, 0.0949, 0.0872, 0.0800, 0.0719, 0.0627, 0.0531, 0.0440, 0.0354, 0.0271, 0.0196, 0.0131, 0.0079, 0.0047, 0.0000],
+    ]
+
+    @inline(__always) static func lightroomTone(_ key: String, positive: Bool, _ x: Double) -> Double {
+        guard let t = lightroomToneTable[key + (positive ? "+" : "-")] else { return 0 }
+        let p = min(1, max(0, x)) * 20
+        let i = min(19, Int(p)), f = p - Double(i)
+        return t[i] * (1 - f) + t[i + 1] * f
+    }
+
     /// 色调曲线 (输入/输出都是 0~1 的亮度)
     static func toneCurve(_ x: Double, _ s: Settings) -> Double {
         func v(_ k: String) -> Double { (s[k] ?? 0) / 100 }
         var y = x
         y -= v("Contrast2012") * 0.07 * sin(2 * .pi * x)
-        y += v("Highlights2012") * 0.13 * bell(x, 0.80, 0.14)
-        y += v("Shadows2012") * 0.14 * bell(x, 0.20, 0.15)
-        y += v("Whites2012") * 0.10 * bell(x, 0.96, 0.09)
-        y += v("Blacks2012") * 0.10 * bell(x, 0.03, 0.08)
+        // 高光 / 阴影 / 白色 / 黑色: 用 Lightroom 实际渲染量出来的曲线 (见 lightroomTone)
+        for k in ["Highlights2012", "Shadows2012", "Whites2012", "Blacks2012"] {
+            let t = v(k)
+            if t != 0 { y += t * lightroomTone(k, positive: t > 0, x) }
+        }
         y += v("ParametricHighlights") * 0.08 * bell(x, 0.88, 0.10)
         y += v("ParametricLights") * 0.08 * bell(x, 0.63, 0.12)
         y += v("ParametricDarks") * 0.08 * bell(x, 0.37, 0.12)

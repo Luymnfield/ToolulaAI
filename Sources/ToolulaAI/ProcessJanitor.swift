@@ -1,13 +1,13 @@
 import Foundation
 
-/// 记录 Toolula 自己启动的后台进程 (llama.cpp / MTP 引擎 / ComfyUI), 崩溃后下次启动时清理。
+/// 记录 Leonix 自己启动的后台进程 (llama.cpp / MTP 引擎 / ComfyUI), 崩溃后下次启动时清理。
 ///
-/// 每启动一个进程就在 `pids/<名字>.json` 里记下: pid、启动时间、命令行特征、Toolula 自己的 pid。
+/// 每启动一个进程就在 `pids/<名字>.json` 里记下: pid、启动时间、命令行特征、Leonix 自己的 pid。
 /// 下次启动时只清理同时满足下面所有条件的进程:
 ///   1. pid 文件里记着 (用户自己开的 LM Studio / Comfy Desktop 不会有记录)
 ///   2. 进程还在, 启动时间和记录一致 (防止 pid 被别的程序复用)
 ///   3. 命令行仍包含记录的特征
-///   4. 已经没有父进程 (父进程变成了 launchd, 说明启动它的 Toolula 已经不在了)
+///   4. 已经没有父进程 (父进程变成了 launchd, 说明启动它的 Leonix 已经不在了)
 enum ProcessJanitor {
     struct Record: Codable {
         var name: String
@@ -37,7 +37,7 @@ enum ProcessJanitor {
         SafeJSON.save(r, to: file(name, pid))
     }
 
-    /// 正常关掉了: 删掉这次启动 (本 Toolula 进程) 记下的这一类记录
+    /// 正常关掉了: 删掉这次启动 (本 Leonix 进程) 记下的这一类记录
     static func unregister(_ name: String) {
         for (f, r) in records() where r?.name == name && r?.owner == getpid() {
             try? FileManager.default.removeItem(at: f)
@@ -56,7 +56,7 @@ enum ProcessJanitor {
                 try? fm.removeItem(at: f); continue
             }
             if r.owner == getpid() { continue }                                               // 是我自己这次启动的
-            guard info.ppid == 1 else { continue }                                            // 还有父进程 (另一个 Toolula 正在用)
+            guard info.ppid == 1 else { continue }                                            // 还有父进程 (另一个 Leonix 正在用)
             let ok = terminate(r.pid)
             done.append("\(r.name) pid=\(r.pid) \(ok ? "已结束" : "结束失败")")
             if ok { try? fm.removeItem(at: f) }

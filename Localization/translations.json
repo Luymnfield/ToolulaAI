@@ -291,9 +291,9 @@
   "LM Studio returned error %1$lld: %2$@",
   "LM Studio meldet Fehler %1$lld: %2$@"
  ],
- "LUT 已保存到「图片/Toolula AI/LUTs」。\n\n• Photoshop：图层 → 新建调整图层 → 颜色查找 → 载入 3D LUT\n• Luminar Neo：编辑 → LUT 映射 → 载入自定义 LUT\n\n清晰度、纹理、暗角、颗粒这类效果放不进 LUT。": [
-  "LUT saved to “Pictures/Toolula AI/LUTs”.\n\n• Photoshop: Layer → New Adjustment Layer → Color Lookup → Load 3D LUT\n• Luminar Neo: Edit → LUT Mapping → Load custom LUT\n\nClarity, texture, vignette and grain can’t be stored in a LUT.",
-  "LUT gespeichert unter „Bilder/Toolula AI/LUTs“.\n\n• Photoshop: Ebene → Neue Einstellungsebene → Color Lookup → 3D-LUT laden\n• Luminar Neo: Bearbeiten → LUT-Mapping → Eigene LUT laden\n\nKlarheit, Struktur, Vignette und Körnung können nicht in einer LUT gespeichert werden."
+ "LUT 已保存到「~/Toolula/Exports/LUTs」。\n\n• Photoshop：图层 → 新建调整图层 → 颜色查找 → 载入 3D LUT\n• Luminar Neo：编辑 → LUT 映射 → 载入自定义 LUT\n\n清晰度、纹理、暗角、颗粒这类效果放不进 LUT。": [
+  "LUT saved to “~/Toolula/Exports/LUTs”.\n\n• Photoshop: Layer → New Adjustment Layer → Color Lookup → Load 3D LUT\n• Luminar Neo: Edit → LUT Mapping → Load custom LUT\n\nClarity, texture, vignette and grain can’t be stored in a LUT.",
+  "LUT gespeichert unter „~/Toolula/Exports/LUTs“.\n\n• Photoshop: Ebene → Neue Einstellungsebene → Color Lookup → 3D-LUT laden\n• Luminar Neo: Bearbeiten → LUT-Mapping → Eigene LUT laden\n\nKlarheit, Struktur, Vignette und Körnung können nicht in einer LUT gespeichert werden."
  ],
  "LUT 已保存：%@": [
   "LUT saved: %@",
@@ -331,45 +331,45 @@
   "Python runtime",
   "Python-Laufzeit"
  ],
- "Toolula AI 修图": [
-  "Toolula AI Photo",
-  "Toolula AI Foto"
+ "Leonix 修图": [
+  "Leonix Photo",
+  "Leonix Foto"
  ],
- "Toolula AI 修图/导出": [
-  "Toolula AI/Export",
-  "Toolula AI/Export"
+ "Leonix 修图/导出": [
+  "Leonix/Export",
+  "Leonix/Export"
  ],
- "Toolula AI 正在操作「%@」": [
-  "Toolula AI is controlling “%@”",
-  "Toolula AI steuert „%@“"
+ "Leonix 正在操作「%@」": [
+  "Leonix is controlling “%@”",
+  "Leonix steuert „%@“"
  ],
  "Toolula AI修图": [
-  "Toolula AI/Lightroom",
-  "Toolula AI/Lightroom"
+  "Leonix/Lightroom",
+  "Leonix/Lightroom"
  ],
- "Toolula 会检测这台 Mac，自动下载适合它的 AI 引擎和模型，不需要另外安装软件。内存较小的电脑也可以直接连接云端 API。": [
-  "Toolula checks this Mac and downloads the right AI engine and models automatically — no other software needed. Macs with little memory can connect a cloud API instead.",
-  "Toolula prüft diesen Mac und lädt automatisch die passende KI-Engine und Modelle – keine weitere Software nötig. Macs mit wenig Arbeitsspeicher können stattdessen eine Cloud-API verbinden."
+ "Leonix 会检测这台 Mac，自动下载适合它的 AI 引擎和模型，不需要另外安装软件。内存较小的电脑也可以直接连接云端 API。": [
+  "Leonix checks this Mac and downloads the right AI engine and models automatically — no other software needed. Macs with little memory can connect a cloud API instead.",
+  "Leonix prüft diesen Mac und lädt automatisch die passende KI-Engine und Modelle – keine weitere Software nötig. Macs mit wenig Arbeitsspeicher können stattdessen eine Cloud-API verbinden."
  ],
- "Toolula 内置 AI 引擎已安装": [
-  "Toolula built-in AI engine installed",
-  "Integrierte KI-Engine von Toolula installiert"
+ "Leonix 内置 AI 引擎已安装": [
+  "Leonix built-in AI engine installed",
+  "Integrierte KI-Engine von Leonix installiert"
  ],
- "Toolula 内置 AI 引擎（llama.cpp）已安装，用到时自动启动，空闲 15 分钟自动释放内存": [
-  "Toolula built-in AI engine (llama.cpp) installed — starts when needed and frees memory after 15 idle minutes",
+ "Leonix 内置 AI 引擎（llama.cpp）已安装，用到时自动启动，空闲 15 分钟自动释放内存": [
+  "Leonix built-in AI engine (llama.cpp) installed — starts when needed and frees memory after 15 idle minutes",
   "Integrierte KI-Engine (llama.cpp) installiert – startet bei Bedarf und gibt nach 15 Minuten Leerlauf den Speicher frei"
  ],
- "Toolula 检测了这台 Mac，下面是需要安装的内容。全部由 Toolula 自动下载安装，不需要你另外装软件。": [
-  "Toolula checked this Mac. Below is what needs to be installed — Toolula downloads and installs everything for you, no other software needed.",
-  "Toolula hat diesen Mac geprüft. Unten steht, was installiert werden muss – Toolula lädt und installiert alles selbst, keine weitere Software nötig."
+ "Leonix 检测了这台 Mac，下面是需要安装的内容。全部由 Leonix 自动下载安装，不需要你另外装软件。": [
+  "Leonix checked this Mac. Below is what needs to be installed — Leonix downloads and installs everything for you, no other software needed.",
+  "Leonix hat diesen Mac geprüft. Unten steht, was installiert werden muss – Leonix lädt und installiert alles selbst, keine weitere Software nötig."
  ],
- "Toolula 浏览器": [
-  "Toolula Browser",
-  "Toolula Browser"
+ "Leonix 浏览器": [
+  "Leonix Browser",
+  "Leonix Browser"
  ],
- "Toolula 用 LM Studio 在本机运行 AI 模型。安装好后回来，就能下载推荐给这台电脑的模型。也可以先连接云端 API。": [
-  "Toolula runs AI models on this Mac with LM Studio. Once it’s installed, come back to download models recommended for this computer. You can also connect a cloud API first.",
-  "Toolula führt KI-Modelle mit LM Studio auf diesem Mac aus. Nach der Installation kannst du hier die für diesen Computer empfohlenen Modelle laden. Du kannst auch zuerst eine Cloud-API verbinden."
+ "Leonix 用 LM Studio 在本机运行 AI 模型。安装好后回来，就能下载推荐给这台电脑的模型。也可以先连接云端 API。": [
+  "Leonix runs AI models on this Mac with LM Studio. Once it’s installed, come back to download models recommended for this computer. You can also connect a cloud API first.",
+  "Leonix führt KI-Modelle mit LM Studio auf diesem Mac aus. Nach der Installation kannst du hier die für diesen Computer empfohlenen Modelle laden. Du kannst auch zuerst eine Cloud-API verbinden."
  ],
  "uv 安装失败": [
   "uv installation failed",
@@ -519,9 +519,9 @@
   "Not supported",
   "Nicht unterstützt"
  ],
- "不能替用户输入密码。请让用户自己在 Toolula 浏览器里登录。": [
-  "Passwords can’t be typed for the user. Ask the user to log in themselves in the Toolula Browser.",
-  "Passwörter werden nicht für den Nutzer eingegeben. Bitte den Nutzer, sich selbst im Toolula Browser anzumelden."
+ "不能替用户输入密码。请让用户自己在 Leonix 浏览器里登录。": [
+  "Passwords can’t be typed for the user. Ask the user to log in themselves in the Leonix Browser.",
+  "Passwörter werden nicht für den Nutzer eingegeben. Bitte den Nutzer, sich selbst im Leonix Browser anzumelden."
  ],
  "中小型通用模型": [
   "Small-to-mid general model",
@@ -931,9 +931,9 @@
   "Assistant",
   "Assistent"
  ],
- "勾选要在 Toolula 里使用的模型：": [
-  "Check the models to use in Toolula:",
-  "Modelle auswählen, die in Toolula verfügbar sein sollen:"
+ "勾选要在 Leonix 里使用的模型：": [
+  "Check the models to use in Leonix:",
+  "Modelle auswählen, die in Leonix verfügbar sein sollen:"
  ],
  "包含 %lld 个脚本（AI 每次运行前都会征求你同意）": [
   "Contains %lld scripts (the AI asks you before every run)",
@@ -1519,9 +1519,9 @@
   "Local models present: %@",
   "Vorhandene lokale Modelle: %@"
  ],
- "已检测到 LM Studio，Toolula 会直接使用它": [
-  "LM Studio detected — Toolula will use it",
-  "LM Studio erkannt – Toolula verwendet es"
+ "已检测到 LM Studio，Leonix 会直接使用它": [
+  "LM Studio detected — Leonix will use it",
+  "LM Studio erkannt – Leonix verwendet es"
  ],
  "已消除（可以继续涂，或撤销）": [
   "Removed (keep painting, or undo)",
@@ -1691,17 +1691,17 @@
   "Open",
   "Öffnen"
  ],
- "打开 Toolula AI": [
-  "Open Toolula AI",
-  "Toolula AI öffnen"
+ "打开 Leonix": [
+  "Open Leonix",
+  "Leonix öffnen"
  ],
  "打开后 AI 可以执行命令、读写文件、修图（每条命令会先问你）": [
   "When on, the AI can run commands, read/write files and edit photos (it asks before each command)",
   "Wenn an, kann die KI Befehle ausführen, Dateien lesen/schreiben und Fotos bearbeiten (fragt vor jedem Befehl)"
  ],
- "打开后，关闭窗口不会退出：Toolula 留在屏幕顶部的菜单栏，自动化照常运行。": [
-  "When on, closing the window doesn’t quit: Toolula stays in the menu bar at the top of the screen and automations keep running.",
-  "Wenn an, beendet das Schließen des Fensters die App nicht: Toolula bleibt in der Menüleiste und Automatisierungen laufen weiter."
+ "打开后，关闭窗口不会退出：Leonix 留在屏幕顶部的菜单栏，自动化照常运行。": [
+  "When on, closing the window doesn’t quit: Leonix stays in the menu bar at the top of the screen and automations keep running.",
+  "Wenn an, beendet das Schließen des Fensters die App nicht: Leonix bleibt in der Menüleiste und Automatisierungen laufen weiter."
  ],
  "打开网页": [
   "Open web page",
@@ -1803,9 +1803,9 @@
   "Let the AI fine-tune all settings for this plan",
   "KI alle Einstellungen für diese Variante verfeinern lassen"
  ],
- "授权后如果仍显示未允许，请重新打开 Toolula AI。安全规则：不操作密码管理器、钥匙串和系统设置；不往密码框里输入；操作时屏幕顶部会显示提示条，按 Esc 立即停止。": [
-  "If it still shows as not allowed after granting, reopen Toolula AI. Safety rules: never touches password managers, Keychain or System Settings; never types into password fields; a banner shows at the top of the screen while it works — press Esc to stop immediately.",
-  "Falls nach dem Erlauben noch „nicht erlaubt“ steht, Toolula AI neu öffnen. Sicherheitsregeln: keine Passwort-Manager, Schlüsselbund oder Systemeinstellungen; nie in Passwortfelder tippen; oben auf dem Bildschirm erscheint ein Hinweis – Esc stoppt sofort."
+ "授权后如果仍显示未允许，请重新打开 Leonix。安全规则：不操作密码管理器、钥匙串和系统设置；不往密码框里输入；操作时屏幕顶部会显示提示条，按 Esc 立即停止。": [
+  "If it still shows as not allowed after granting, reopen Leonix. Safety rules: never touches password managers, Keychain or System Settings; never types into password fields; a banner shows at the top of the screen while it works — press Esc to stop immediately.",
+  "Falls nach dem Erlauben noch „nicht erlaubt“ steht, Leonix neu öffnen. Sicherheitsregeln: keine Passwort-Manager, Schlüsselbund oder Systemeinstellungen; nie in Passwortfelder tippen; oben auf dem Bildschirm erscheint ein Hinweis – Esc stoppt sofort."
  ],
  "接下来在哪里继续？": [
   "Where to continue?",
@@ -2619,9 +2619,9 @@
   "Image",
   "Bild"
  ],
- "给 Toolula AI 发消息…（⌘↩ 发送）": [
-  "Message Toolula AI… (⌘↩ to send)",
-  "Nachricht an Toolula AI… (⌘↩ zum Senden)"
+ "给 Leonix 发消息…（⌘↩ 发送）": [
+  "Message Leonix… (⌘↩ to send)",
+  "Nachricht an Leonix… (⌘↩ zum Senden)"
  ],
  "继续下载": [
   "Resume",
@@ -2819,9 +2819,9 @@
   "Let the chat model expand your idea into a detailed English video prompt",
   "Das Chat-Modell macht aus deiner Idee einen ausführlichen englischen Video-Prompt"
  ],
- "让本地 AI 按时间或在文件夹有新文件时自动干活。\nToolula AI 需要保持打开（可以设成登录时自动打开）。": [
-  "Let the local AI work on a schedule or when a folder gets new files.\nToolula AI needs to stay open (you can set it to open at login).",
-  "Lass die lokale KI nach Zeitplan oder bei neuen Dateien in einem Ordner arbeiten.\nToolula AI muss geöffnet bleiben (kann bei der Anmeldung automatisch starten)."
+ "让本地 AI 按时间或在文件夹有新文件时自动干活。\nLeonix 需要保持打开（可以设成登录时自动打开）。": [
+  "Let the local AI work on a schedule or when a folder gets new files.\nLeonix needs to stay open (you can set it to open at login).",
+  "Lass die lokale KI nach Zeitplan oder bei neuen Dateien in einem Ordner arbeiten.\nLeonix muss geöffnet bleiben (kann bei der Anmeldung automatisch starten)."
  ],
  "记住": [
   "Remember",
@@ -3075,9 +3075,9 @@
   "Connect a cloud API",
   "Cloud-API verbinden"
  ],
- "退出 Toolula AI": [
-  "Quit Toolula AI",
-  "Toolula AI beenden"
+ "退出 Leonix": [
+  "Quit Leonix",
+  "Leonix beenden"
  ],
  "退出码 %d": [
   "Exit code %d",
@@ -3179,17 +3179,17 @@
   "Long-term memory",
   "Langzeitgedächtnis"
  ],
- "问问 Toolula": [
-  "Ask Toolula",
-  "Frag Toolula"
+ "问问 Leonix": [
+  "Ask Leonix",
+  "Frag Leonix"
  ],
- "问问 Toolula AI…": [
-  "Ask Toolula AI…",
-  "Frag Toolula AI …"
+ "问问 Leonix…": [
+  "Ask Leonix…",
+  "Frag Leonix …"
  ],
- "问问 Toolula，或一键开始修图、绘图、生成视频": [
-  "Ask Toolula, or start photo editing, images or video in one click",
-  "Frag Toolula oder starte mit einem Klick Bildbearbeitung, Bilder oder Video"
+ "问问 Leonix，或一键开始修图、绘图、生成视频": [
+  "Ask Leonix, or start photo editing, images or video in one click",
+  "Frag Leonix oder starte mit einem Klick Bildbearbeitung, Bilder oder Video"
  ],
  "阴影": [
   "Shadows",
@@ -3239,13 +3239,13 @@
   "Aqua",
   "Aquamarin"
  ],
- "预览由 Toolula 自己的引擎渲染；「发送到 Lightroom」后由 Lightroom 渲染，效果会略有不同。": [
-  "The preview is rendered by Toolula’s own engine; after “Send to Lightroom”, Lightroom renders it, so it may look slightly different.",
+ "预览由 Leonix 自己的引擎渲染；「发送到 Lightroom」后由 Lightroom 渲染，效果会略有不同。": [
+  "The preview is rendered by Leonix’s own engine; after “Send to Lightroom”, Lightroom renders it, so it may look slightly different.",
   "Die Vorschau wird von Toolulas eigener Engine berechnet; nach „An Lightroom senden“ rendert Lightroom, daher kann es leicht anders aussehen."
  ],
- "预设会出现在 Lightroom「修改照片 → 预设」和 Photoshop「Camera Raw → 预设」里（Toolula AI 修图 分组）。": [
-  "The preset appears in Lightroom (Develop → Presets) and Photoshop (Camera Raw → Presets), in the Toolula AI group.",
-  "Die Vorgabe erscheint in Lightroom (Entwickeln → Vorgaben) und Photoshop (Camera Raw → Vorgaben) in der Gruppe Toolula AI."
+ "预设会出现在 Lightroom「修改照片 → 预设」和 Photoshop「Camera Raw → 预设」里（Leonix 修图 分组）。": [
+  "The preset appears in Lightroom (Develop → Presets) and Photoshop (Camera Raw → Presets), in the Leonix group.",
+  "Die Vorgabe erscheint in Lightroom (Entwickeln → Vorgaben) und Photoshop (Camera Raw → Vorgaben) in der Gruppe Leonix."
  ],
  "颗粒": [
   "Grain",
@@ -3700,8 +3700,8 @@
   "Unbekannte Taste: %@"
  ],
  "为了安全，不操作这个程序。": [
-  "For safety, Toolula does not operate this app.",
-  "Aus Sicherheitsgründen bedient Toolula diese App nicht."
+  "For safety, Leonix does not operate this app.",
+  "Aus Sicherheitsgründen bedient Leonix diese App nicht."
  ],
  "代码": [
   "Code",
@@ -4019,9 +4019,9 @@
   "Click menu",
   "Menü wählen"
  ],
- "界面语言跟随系统（简体中文、English、Deutsch）。想单独给 Toolula 换语言：系统设置 → 通用 → 语言与地区 → 应用程序。": [
-  "The interface follows the system language (简体中文, English, Deutsch). To change it just for Toolula: System Settings → General → Language & Region → Applications.",
-  "Die Oberfläche folgt der Systemsprache (简体中文, English, Deutsch). Nur für Toolula ändern: Systemeinstellungen → Allgemein → Sprache & Region → Apps."
+ "界面语言跟随系统（简体中文、English、Deutsch）。想单独给 Leonix 换语言：系统设置 → 通用 → 语言与地区 → 应用程序。": [
+  "The interface follows the system language (简体中文, English, Deutsch). To change it just for Leonix: System Settings → General → Language & Region → Applications.",
+  "Die Oberfläche folgt der Systemsprache (简体中文, English, Deutsch). Nur für Leonix ändern: Systemeinstellungen → Allgemein → Sprache & Region → Apps."
  ],
  "登录 Mac 时自动打开": [
   "Open at login",
@@ -4083,17 +4083,17 @@
   "Run script",
   "Skript ausführen"
  ],
- "这是密码框。为了安全 Toolula 不输入密码，请用户自己输入。": [
-  "This is a password field. For safety Toolula does not type passwords; please enter it yourself.",
-  "Dies ist ein Passwortfeld. Aus Sicherheitsgründen gibt Toolula keine Passwörter ein; bitte selbst eingeben."
+ "这是密码框。为了安全 Leonix 不输入密码，请用户自己输入。": [
+  "This is a password field. For safety Leonix does not type passwords; please enter it yourself.",
+  "Dies ist ein Passwortfeld. Aus Sicherheitsgründen gibt Leonix keine Passwörter ein; bitte selbst eingeben."
  ],
  "退出码 %@": [
   "Exit code %@",
   "Exit-Code %@"
  ],
- "问 Toolula AI…": [
-  "Ask Toolula AI…",
-  "Toolula AI fragen …"
+ "问 Leonix…": [
+  "Ask Leonix…",
+  "Leonix fragen …"
  ],
  "通用": [
   "General",
@@ -4179,9 +4179,9 @@
   "Local AI engines",
   "Lokale KI-Engines"
  ],
- "Toolula 下载的模型": [
-  "Models downloaded by Toolula",
-  "Von Toolula geladene Modelle"
+ "Leonix 下载的模型": [
+  "Models downloaded by Leonix",
+  "Von Leonix geladene Modelle"
  ],
  "Toolula 文件夹": [
   "Toolula folder",
@@ -4475,9 +4475,9 @@
   "Batch videos",
   "Videos im Stapel"
  ],
- "还没有可用的对话模型。请先打开 Toolula 设置一个模型。": [
-  "No chat model available yet. Open Toolula and choose one first.",
-  "Noch kein Chat-Modell verfügbar. Bitte zuerst in Toolula eines auswählen."
+ "还没有可用的对话模型。请先打开 Leonix 设置一个模型。": [
+  "No chat model available yet. Open Leonix and choose one first.",
+  "Noch kein Chat-Modell verfügbar. Bitte zuerst in Leonix eines auswählen."
  ],
  "读不到这个文件": [
   "Can't read this file",
@@ -4587,25 +4587,25 @@
   "Replace the selected text with the result (⌘↩)",
   "Markierten Text durch das Ergebnis ersetzen (⌘↩)"
  ],
- "问 Toolula": [
-  "Ask Toolula",
-  "Toolula fragen"
+ "问 Leonix": [
+  "Ask Leonix",
+  "Leonix fragen"
  ],
- "用 Toolula 总结文件": [
-  "Summarize Files with Toolula",
-  "Dateien mit Toolula zusammenfassen"
+ "用 Leonix 总结文件": [
+  "Summarize Files with Leonix",
+  "Dateien mit Leonix zusammenfassen"
  ],
- "用 Toolula 画图": [
-  "Create Image with Toolula",
-  "Bild mit Toolula erstellen"
+ "用 Leonix 画图": [
+  "Create Image with Leonix",
+  "Bild mit Leonix erstellen"
  ],
- "用 Toolula 生成视频": [
-  "Create Video with Toolula",
-  "Video mit Toolula erstellen"
+ "用 Leonix 生成视频": [
+  "Create Video with Leonix",
+  "Video mit Leonix erstellen"
  ],
- "用 Toolula 修图": [
-  "Edit Photos with Toolula",
-  "Fotos mit Toolula bearbeiten"
+ "用 Leonix 修图": [
+  "Edit Photos with Leonix",
+  "Fotos mit Leonix bearbeiten"
  ],
  "问题": [
   "Question",
@@ -4635,9 +4635,9 @@
   "Summarize the main content and list the key information",
   "Fasse den Inhalt zusammen und liste die wichtigsten Informationen auf"
  ],
- "问 Toolula：%@": [
-  "Ask Toolula: %@",
-  "Toolula fragen: %@"
+ "问 Leonix：%@": [
+  "Ask Leonix: %@",
+  "Leonix fragen: %@"
  ],
  "总结文件": [
   "Summarize Files",
@@ -4663,13 +4663,13 @@
   "Generates a video with the current video model and settings (queued, notifies when done).",
   "Erzeugt ein Video mit dem aktuellen Videomodell und den Einstellungen (Warteschlange, Mitteilung bei Fertigstellung)."
  ],
- "把照片加到 Toolula 的修图页。": [
-  "Adds photos to Toolula's photo editor.",
-  "Fügt Fotos zur Fotobearbeitung von Toolula hinzu."
+ "把照片加到 Leonix 的修图页。": [
+  "Adds photos to Leonix's photo editor.",
+  "Fügt Fotos zur Fotobearbeitung von Leonix hinzu."
  ],
- "Toolula 对话": [
-  "Toolula Chat",
-  "Toolula-Chat"
+ "Leonix 对话": [
+  "Leonix Chat",
+  "Leonix-Chat"
  ],
  "腾出内存…": [
   "Freeing memory…",
@@ -4715,9 +4715,9 @@
   "about %lld GB",
   "ca. %lld GB"
  ],
- "Toolula 会自动安排：内存够时对话、绘图、视频的模型同时留在内存里，切换不用重新加载；不够时让最久没用的先让位，正在工作的不会被卸载。": [
-  "Toolula manages this automatically: when there's room, chat, image and video models stay loaded together so switching needs no reload; when there isn't, the least recently used model makes room. Models that are working are never unloaded.",
-  "Toolula regelt das automatisch: Wenn genug Platz ist, bleiben Chat-, Bild- und Videomodelle gleichzeitig geladen – Wechseln ohne Neuladen. Sonst macht das am längsten ungenutzte Modell Platz. Arbeitende Modelle werden nie entladen."
+ "Leonix 会自动安排：内存够时对话、绘图、视频的模型同时留在内存里，切换不用重新加载；不够时让最久没用的先让位，正在工作的不会被卸载。": [
+  "Leonix manages this automatically: when there's room, chat, image and video models stay loaded together so switching needs no reload; when there isn't, the least recently used model makes room. Models that are working are never unloaded.",
+  "Leonix regelt das automatisch: Wenn genug Platz ist, bleiben Chat-, Bild- und Videomodelle gleichzeitig geladen – Wechseln ohne Neuladen. Sonst macht das am längsten ungenutzte Modell Platz. Arbeitende Modelle werden nie entladen."
  ],
  "点一下查看内存被哪些模型占用": [
   "Click to see which models are using memory",
@@ -4747,9 +4747,9 @@
   "Language",
   "Sprache"
  ],
- "重新打开 Toolula 后生效。": [
-  "Takes effect after reopening Toolula.",
-  "Wird nach dem erneuten Öffnen von Toolula wirksam."
+ "重新打开 Leonix 后生效。": [
+  "Takes effect after reopening Leonix.",
+  "Wird nach dem erneuten Öffnen von Leonix wirksam."
  ],
  "立即重新打开": [
   "Reopen Now",
@@ -4763,9 +4763,9 @@
   "Language: %@",
   "Sprache: %@"
  ],
- "重新打开 Toolula 后生效": [
-  "Takes effect after reopening Toolula",
-  "Wird nach dem Neustart von Toolula wirksam"
+ "重新打开 Leonix 后生效": [
+  "Takes effect after reopening Leonix",
+  "Wird nach dem Neustart von Leonix wirksam"
  ],
  "修改文件": [
   "Edit file",
@@ -5019,13 +5019,13 @@
   "Stop dictation",
   "Diktat beenden"
  ],
- "没有麦克风权限：请在「系统设置 → 隐私与安全性 → 麦克风」里允许 Toolula AI": [
-  "No microphone access: allow Toolula AI in System Settings → Privacy & Security → Microphone",
-  "Kein Mikrofonzugriff: Erlaube Toolula AI unter Systemeinstellungen → Datenschutz & Sicherheit → Mikrofon"
+ "没有麦克风权限：请在「系统设置 → 隐私与安全性 → 麦克风」里允许 Leonix": [
+  "No microphone access: allow Leonix in System Settings → Privacy & Security → Microphone",
+  "Kein Mikrofonzugriff: Erlaube Leonix unter Systemeinstellungen → Datenschutz & Sicherheit → Mikrofon"
  ],
- "没有语音识别权限：请在「系统设置 → 隐私与安全性 → 语音识别」里允许 Toolula AI": [
-  "No speech recognition access: allow Toolula AI in System Settings → Privacy & Security → Speech Recognition",
-  "Kein Zugriff auf Spracherkennung: Erlaube Toolula AI unter Systemeinstellungen → Datenschutz & Sicherheit → Spracherkennung"
+ "没有语音识别权限：请在「系统设置 → 隐私与安全性 → 语音识别」里允许 Leonix": [
+  "No speech recognition access: allow Leonix in System Settings → Privacy & Security → Speech Recognition",
+  "Kein Zugriff auf Spracherkennung: Erlaube Leonix unter Systemeinstellungen → Datenschutz & Sicherheit → Spracherkennung"
  ],
  "这台电脑上暂时用不了语音识别": [
   "Speech recognition isn't available on this Mac right now",
@@ -5163,25 +5163,25 @@
   "Note: the folders involved were too large to back up as a whole, so only files the AI wrote or edited were restored; changes made by commands (moves, deletions, etc.) can't be undone.",
   "Hinweis: Die betroffenen Ordner waren zu groß für eine Komplettsicherung; nur von der KI geschriebene/bearbeitete Dateien wurden wiederhergestellt. Änderungen durch Befehle (Verschieben, Löschen …) lassen sich nicht rückgängig machen."
  ],
- "已发送 %lld 张到 Lightroom（在导入窗口点「导入」）。其中 %lld 张的局部调整会由 Toolula 插件在导入后自动加成蒙版": [
-  "Sent %lld photos to Lightroom (click “Import” in the import window). For %lld of them, the Toolula plug-in will turn the local adjustments into masks after import",
-  "%lld Fotos an Lightroom gesendet (im Importfenster auf „Importieren“ klicken). Bei %lld davon wandelt das Toolula-Plug-in die lokalen Anpassungen nach dem Import automatisch in Masken um"
+ "已发送 %lld 张到 Lightroom（在导入窗口点「导入」）。其中 %lld 张的局部调整会由 Leonix 插件在导入后自动加成蒙版": [
+  "Sent %lld photos to Lightroom (click “Import” in the import window). For %lld of them, the Leonix plug-in will turn the local adjustments into masks after import",
+  "%lld Fotos an Lightroom gesendet (im Importfenster auf „Importieren“ klicken). Bei %lld davon wandelt das Leonix-Plug-in die lokalen Anpassungen nach dem Import automatisch in Masken um"
  ],
  "发送到 Lightroom / Photoshop 时，会发送已经修好的 16 位 TIFF（AI 消除无法写进它们的参数文件）。": [
   "When sending to Lightroom / Photoshop, a finished 16-bit TIFF is sent (AI removal can't be written into their settings files).",
   "Beim Senden an Lightroom / Photoshop wird ein fertig bearbeitetes 16-Bit-TIFF gesendet (KI-Entfernen lässt sich nicht in deren Einstellungsdateien schreiben)."
  ],
- "发送到 Lightroom 时，局部调整会在导入后由 Toolula 插件自动做成 Lightroom 的 AI 蒙版，可以继续调；发送到 Photoshop 时是修好的 16 位 TIFF。": [
-  "When sent to Lightroom, the Toolula plug-in turns local adjustments into Lightroom AI masks after import, so you can keep adjusting them; Photoshop receives a finished 16-bit TIFF.",
-  "Beim Senden an Lightroom wandelt das Toolula-Plug-in lokale Anpassungen nach dem Import in KI-Masken von Lightroom um, die du weiter anpassen kannst; Photoshop erhält ein fertiges 16-Bit-TIFF."
+ "发送到 Lightroom 时，局部调整会在导入后由 Leonix 插件自动做成 Lightroom 的 AI 蒙版，可以继续调；发送到 Photoshop 时是修好的 16 位 TIFF。": [
+  "When sent to Lightroom, the Leonix plug-in turns local adjustments into Lightroom AI masks after import, so you can keep adjusting them; Photoshop receives a finished 16-bit TIFF.",
+  "Beim Senden an Lightroom wandelt das Leonix-Plug-in lokale Anpassungen nach dem Import in KI-Masken von Lightroom um, die du weiter anpassen kannst; Photoshop erhält ein fertiges 16-Bit-TIFF."
  ],
  "这张照片有像素级的人像精修": [
   "This photo has pixel-level portrait retouching",
   "Dieses Foto hat Porträtretusche auf Pixelebene"
  ],
- "去瑕疵、淡化眼袋、肤色均匀、光影塑形是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇会做成蒙版），这几项需要在 Lightroom 里自己做。": [
-  "Blemish removal, under-eye softening, even skin tone and dodge & burn change the pixels directly in Toolula, and Lightroom's settings can't express them.\n\nSend finished TIFF: looks exactly like in Toolula, but the RAW settings can no longer be changed.\nSend editable RAW: settings and masks stay editable (skin smoothing, eyes, teeth and lips become masks); you'll need to do these steps in Lightroom yourself.",
-  "Makel entfernen, Augenringe mildern, Hautton angleichen und Abwedeln & Nachbelichten verändern in Toolula direkt die Pixel – Lightroom-Einstellungen können das nicht abbilden.\n\nFertiges TIFF senden: sieht genau aus wie in Toolula, aber die RAW-Einstellungen lassen sich nicht mehr ändern.\nBearbeitbares RAW senden: Einstellungen und Masken bleiben bearbeitbar (Hautglättung, Augen, Zähne und Lippen werden Masken); diese Schritte musst du in Lightroom selbst machen."
+ "去瑕疵、淡化眼袋、肤色均匀、光影塑形是 Leonix 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Leonix 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇会做成蒙版），这几项需要在 Lightroom 里自己做。": [
+  "Blemish removal, under-eye softening, even skin tone and dodge & burn change the pixels directly in Leonix, and Lightroom's settings can't express them.\n\nSend finished TIFF: looks exactly like in Leonix, but the RAW settings can no longer be changed.\nSend editable RAW: settings and masks stay editable (skin smoothing, eyes, teeth and lips become masks); you'll need to do these steps in Lightroom yourself.",
+  "Makel entfernen, Augenringe mildern, Hautton angleichen und Abwedeln & Nachbelichten verändern in Leonix direkt die Pixel – Lightroom-Einstellungen können das nicht abbilden.\n\nFertiges TIFF senden: sieht genau aus wie in Leonix, aber die RAW-Einstellungen lassen sich nicht mehr ändern.\nBearbeitbares RAW senden: Einstellungen und Masken bleiben bearbeitbar (Hautglättung, Augen, Zähne und Lippen werden Masken); diese Schritte musst du in Lightroom selbst machen."
  ],
  "发修好的 TIFF": [
   "Send finished TIFF",
@@ -5807,9 +5807,9 @@
   "This photo has edits Lightroom can't express",
   "Dieses Foto hat Bearbeitungen, die Lightroom nicht abbilden kann"
  ],
- "去瑕疵、淡化眼袋、肤色均匀、肤色校准、光影塑形、亮部 / 暗部蒙版是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇、植被会做成蒙版），这几项需要在 Lightroom 里自己做。": [
-  "Blemish removal, under-eye softening, even skin, skin calibration, dodge & burn and highlight/shadow masks change pixels directly in Toolula, and Lightroom's settings can't express them.\n\nSend finished TIFF: looks exactly like in Toolula, but the RAW settings can no longer be changed.\nSend editable RAW: settings and masks stay editable (skin smoothing, eyes, teeth, lips and vegetation become masks); you'll need to do these steps in Lightroom yourself.",
-  "Makel entfernen, Augenringe mildern, Hautton angleichen, Hautton kalibrieren, Abwedeln & Nachbelichten und Lichter-/Schattenmasken verändern in Toolula direkt die Pixel – Lightroom-Einstellungen können das nicht abbilden.\n\nFertiges TIFF senden: sieht genau aus wie in Toolula, aber die RAW-Einstellungen lassen sich nicht mehr ändern.\nBearbeitbares RAW senden: Einstellungen und Masken bleiben bearbeitbar (Hautglättung, Augen, Zähne, Lippen und Vegetation werden Masken); diese Schritte musst du in Lightroom selbst machen."
+ "去瑕疵、淡化眼袋、肤色均匀、肤色校准、光影塑形、亮部 / 暗部蒙版是 Leonix 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Leonix 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇、植被会做成蒙版），这几项需要在 Lightroom 里自己做。": [
+  "Blemish removal, under-eye softening, even skin, skin calibration, dodge & burn and highlight/shadow masks change pixels directly in Leonix, and Lightroom's settings can't express them.\n\nSend finished TIFF: looks exactly like in Leonix, but the RAW settings can no longer be changed.\nSend editable RAW: settings and masks stay editable (skin smoothing, eyes, teeth, lips and vegetation become masks); you'll need to do these steps in Lightroom yourself.",
+  "Makel entfernen, Augenringe mildern, Hautton angleichen, Hautton kalibrieren, Abwedeln & Nachbelichten und Lichter-/Schattenmasken verändern in Leonix direkt die Pixel – Lightroom-Einstellungen können das nicht abbilden.\n\nFertiges TIFF senden: sieht genau aus wie in Leonix, aber die RAW-Einstellungen lassen sich nicht mehr ändern.\nBearbeitbares RAW senden: Einstellungen und Masken bleiben bearbeitbar (Hautglättung, Augen, Zähne, Lippen und Vegetation werden Masken); diese Schritte musst du in Lightroom selbst machen."
  ],
  "把选中的包围曝光合成 HDR": [
   "Merge selected brackets to HDR",
@@ -5859,9 +5859,9 @@
   "The other selected photos take this photo's look; exposure and white balance are matched to it photo by photo (for one shoot)",
   "Die anderen ausgewählten Fotos übernehmen den Look dieses Fotos; Belichtung und Weißabgleich werden Foto für Foto daran angeglichen (für ein Shooting)"
  ],
- "只在发送到 Lightroom 后生效（由 Lightroom 的 AI 风景蒙版做），Toolula 的预览里看不到": [
-  "Only takes effect after sending to Lightroom (done with Lightroom's AI landscape masks); not visible in Toolula's preview",
-  "Wirkt erst nach dem Senden an Lightroom (mit den KI-Landschaftsmasken von Lightroom); in der Toolula-Vorschau nicht sichtbar"
+ "只在发送到 Lightroom 后生效（由 Lightroom 的 AI 风景蒙版做），Leonix 的预览里看不到": [
+  "Only takes effect after sending to Lightroom (done with Lightroom's AI landscape masks); not visible in Leonix's preview",
+  "Wirkt erst nach dem Senden an Lightroom (mit den KI-Landschaftsmasken von Lightroom); in der Leonix-Vorschau nicht sichtbar"
  ],
  "水面（仅 Lightroom）": [
   "Water (Lightroom only)",
@@ -5879,9 +5879,9 @@
   "Match group to current photo (same look, exposure and white balance per photo)",
   "Gruppe an aktuelles Foto angleichen (gleicher Look, Belichtung und Weißabgleich je Foto)"
  ],
- "下载语义分割模型（85 MB），Toolula 里也能用": [
-  "Download the segmentation model (85 MB) to use it in Toolula too",
-  "Segmentierungsmodell laden (85 MB), um es auch in Toolula zu nutzen"
+ "下载语义分割模型（85 MB），Leonix 里也能用": [
+  "Download the segmentation model (85 MB) to use it in Leonix too",
+  "Segmentierungsmodell laden (85 MB), um es auch in Leonix zu nutzen"
  ],
  "水面": [
   "Water",
@@ -5903,9 +5903,9 @@
   "Downloading the segmentation model: %@ / 85 MB",
   "Segmentierungsmodell: %@ / 85 MB"
  ],
- "语义分割模型已装好：水面、山、建筑现在在 Toolula 里也能调": [
-  "Segmentation model installed: water, mountains and buildings can now be adjusted in Toolula too",
-  "Segmentierungsmodell installiert: Wasser, Berge und Gebäude lassen sich jetzt auch in Toolula anpassen"
+ "语义分割模型已装好：水面、山、建筑现在在 Leonix 里也能调": [
+  "Segmentation model installed: water, mountains and buildings can now be adjusted in Leonix too",
+  "Segmentierungsmodell installiert: Wasser, Berge und Gebäude lassen sich jetzt auch in Leonix anpassen"
  ],
  "下载失败：%@": [
   "Download failed: %@",
@@ -5931,12 +5931,44 @@
   "\"AI Erase\" in photo editing: paint over passers-by, clutter or wires and the background is filled in. LaMa (Apache-2.0). Also downloads automatically the first time you use AI Erase.",
   "„KI-Radierer“ in der Bildbearbeitung: Passanten, Unordnung oder Kabel übermalen, der Hintergrund wird ergänzt. LaMa (Apache-2.0). Wird auch beim ersten Benutzen automatisch geladen."
  ],
- "这些模型不在 App 里，也不在 Toolula 的代码仓库里；下载后放在 ~/Toolula/Models，只在这台 Mac 上用。": [
-  "These models aren't part of the app or Toolula's code repository; once downloaded they live in ~/Toolula/Models and are only used on this Mac.",
-  "Diese Modelle sind nicht Teil der App oder des Toolula-Code-Repositorys; nach dem Laden liegen sie in ~/Toolula/Models und werden nur auf diesem Mac verwendet."
+ "这些模型不在 App 里，也不在 Leonix 的代码仓库里；下载后放在 ~/Toolula/Models，只在这台 Mac 上用。": [
+  "These models aren't part of the app or Leonix's code repository; once downloaded they live in ~/Toolula/Models and are only used on this Mac.",
+  "Diese Modelle sind nicht Teil der App oder des Leonix-Code-Repositorys; nach dem Laden liegen sie in ~/Toolula/Models und werden nur auf diesem Mac verwendet."
  ],
  "移到废纸篓，需要时可以重新下载": [
   "Moves it to the Trash; you can download it again any time",
   "In den Papierkorb legen; kann jederzeit erneut geladen werden"
+ ],
+ "颜色偏淡，自然饱和度 +%lld（平均饱和度 %@ → %@）": [
+  "Colors looked flat: Vibrance +%lld (average saturation %@ → %@)",
+  "Farben wirkten flau: Dynamik +%lld (durchschnittliche Sättigung %@ → %@)"
+ ],
+ "【风光收尾】": [
+  "[Landscape finish] ",
+  "[Landschafts-Feinschliff] "
+ ],
+ "，": [
+  ", ",
+  ", "
+ ],
+ "暗部更通透（黑色色阶 -%lld）": [
+  "clearer shadows (Blacks -%lld)",
+  "klarere Tiefen (Schwarz -%lld)"
+ ],
+ "植物更鲜（绿色饱和度 +%lld）": [
+  "fresher foliage (Green saturation +%lld)",
+  "frischeres Grün (Grün-Sättigung +%lld)"
+ ],
+ "暖色更饱满（橙色饱和度 +%lld）": [
+  "richer warm tones (Orange saturation +%lld)",
+  "sattere Warmtöne (Orange-Sättigung +%lld)"
+ ],
+ "天空和水更蓝（蓝色饱和度 +%lld）": [
+  "bluer sky and water (Blue saturation +%lld)",
+  "blauerer Himmel und Wasser (Blau-Sättigung +%lld)"
+ ],
+ "等照片加载：%lld/%lld": [
+  "Waiting for photos to load: %lld/%lld",
+  "Warte auf Fotos: %lld/%lld"
  ]
 }

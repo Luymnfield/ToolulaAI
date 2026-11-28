@@ -25,7 +25,7 @@ enum AIBridge {
         guard let script = scriptURL else { return Result(error: String(localized: "找不到 AI 脚本 ai_edit.py")) }
         guard PythonRuntime.ready else { return Result(error: String(localized: "修图功能需要 Python。请打开设置向导一键安装。")) }
         // 只读本地记录的命令 (修图习惯 taste / record / learn) 用不到模型, 不要为它们启动引擎
-        // (以前每次打开 Toolula 读一下修图习惯, 就会把 32 GB 的 MTP 引擎拉起来)
+        // (以前每次打开 Leonix 读一下修图习惯, 就会把 32 GB 的 MTP 引擎拉起来)
         let needsModel = !["taste", "record", "learn"].contains(mode)
         // 修图模型在内置引擎上: 先确保引擎在跑
         if needsModel, UserDefaults.standard.string(forKey: "photoModel")?.hasPrefix("builtin:") == true {

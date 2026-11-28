@@ -110,7 +110,7 @@ enum Exporter {
             attrs.append("crs:\(k)=\"\(s)\"")
         }
         return """
-        <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Toolula AI 修图">
+        <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Leonix 修图">
          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
           <rdf:Description rdf:about=""
             xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/"
@@ -136,7 +136,7 @@ enum Exporter {
         return (dest, err)
     }
 
-    /// Toolula 的区域 -> Lightroom 的 AI 蒙版.
+    /// Leonix 的区域 -> Lightroom 的 AI 蒙版.
     /// people:<编号> 是 Lightroom「人物」蒙版的部位 (2 面部皮肤, 3 虹膜和瞳孔, 6 嘴唇, 8 眼白, 12 牙齿, 13 整个人),
     /// 插件写进修图参数再让 Lightroom 计算; 这个 Lightroom 版本做不出来时, 人脸 / 人物 / 皮肤退回「主体」蒙版, 其他的跳过
     static let lightroomMaskType: [MaskKind: String] = [.subject: "subject", .person: "people:13", .face: "people:2",
@@ -154,7 +154,7 @@ enum Exporter {
         ("teeth", "people:12", "teeth", ["Exposure2012": 0.2, "Saturation": -50]),
         ("lips", "people:6", "lips", ["Saturation": 25, "Contrast2012": 10]),
     ]
-    /// Toolula 的局部参数 -> Lightroom 蒙版里的滑块 (LrDevelopController 的名字)
+    /// Leonix 的局部参数 -> Lightroom 蒙版里的滑块 (LrDevelopController 的名字)
     static let lightroomLocalParam: [String: String] = [
         "Exposure2012": "local_Exposure", "Contrast2012": "local_Contrast", "Highlights2012": "local_Highlights",
         "Shadows2012": "local_Shadows", "IncrementalTemperature": "local_Temperature", "Saturation": "local_Saturation",
@@ -193,7 +193,7 @@ enum Exporter {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         // 有 AI 消除: Lightroom 的参数文件表达不了, 改成发送已经修好的 16 位 TIFF.
         // 局部调整 (人脸/背景/天空…) 不在这里处理: 照常发 RAW + 参数, 另外留一个任务文件,
-        // Lightroom 里的 Toolula 插件看到照片导入后, 用 Lightroom 自己的 AI 蒙版把局部调整加上 (还能继续改)
+        // Lightroom 里的 Leonix 插件看到照片导入后, 用 Lightroom 自己的 AI 蒙版把局部调整加上 (还能继续改)
         if !job.patches.isEmpty { return Integrations.renderTIFF(job, to: folder) }
         let dest = uniqueURL(folder, job.url.lastPathComponent)
         do { try FileManager.default.copyItem(at: job.url, to: dest) } catch { return (nil, String(localized: "复制失败：\(error.localizedDescription)")) }
@@ -265,7 +265,7 @@ extension Store {
         panel.canCreateDirectories = true
         panel.prompt = String(localized: "导出到这里")
         panel.message = String(localized: "选择导出文件夹（原片不会被改动）")
-        let def = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures/" + String(localized: "Toolula AI 修图/导出"))
+        let def = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures/" + String(localized: "Leonix 修图/导出"))
         try? FileManager.default.createDirectory(at: def, withIntermediateDirectories: true)
         panel.directoryURL = def
         guard panel.runModal() == .OK, let folder = panel.url else { return }
@@ -296,7 +296,7 @@ extension Store {
         if jobs.contains(where: { $0.hasPixelOnly && $0.patches.isEmpty }) {
             let a = NSAlert()
             a.messageText = String(localized: "这张照片有 Lightroom 表达不了的修改")
-            a.informativeText = String(localized: "去瑕疵、淡化眼袋、肤色均匀、肤色校准、光影塑形、亮部 / 暗部蒙版是 Toolula 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Toolula 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇、植被会做成蒙版），这几项需要在 Lightroom 里自己做。")
+            a.informativeText = String(localized: "去瑕疵、淡化眼袋、肤色均匀、肤色校准、光影塑形、亮部 / 暗部蒙版是 Leonix 直接改像素做的，Lightroom 的参数表达不了。\n\n发修好的 TIFF：效果和 Leonix 里一样，但不能再改 RAW 参数。\n发可编辑的 RAW：参数和蒙版都能继续改（磨皮、眼睛、牙齿、嘴唇、植被会做成蒙版），这几项需要在 Lightroom 里自己做。")
             a.addButton(withTitle: String(localized: "发修好的 TIFF"))
             a.addButton(withTitle: String(localized: "发可编辑的 RAW"))
             a.addButton(withTitle: String(localized: "取消"))
@@ -327,7 +327,7 @@ extension Store {
                 LightroomSetup.wakePlugin()
                 let masked = jobs.filter { $0.patches.isEmpty && $0.retouched }.count
                 status = masked > 0
-                    ? String(localized: "已发送 \(outs.count) 张到 Lightroom（在导入窗口点「导入」）。其中 \(masked) 张的局部调整会由 Toolula 插件在导入后自动加成蒙版")
+                    ? String(localized: "已发送 \(outs.count) 张到 Lightroom（在导入窗口点「导入」）。其中 \(masked) 张的局部调整会由 Leonix 插件在导入后自动加成蒙版")
                     : String(localized: "已发送 \(outs.count) 张到 Lightroom（在导入窗口点「导入」）")
             }
             if !errors.isEmpty { alert = errors.joined(separator: "\n") }
